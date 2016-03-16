@@ -1,0 +1,43 @@
+/* The default bootstrap theme, but thinner. */
+
+/* This is meant as an example for simple bootstrap theming. This does add more bandwidth to the client. This may change in the future to completely re-compile bootstrap, rather than overwriting bootstrap. */
+
+// import variables
+@import "../../../node_modules/bootstrap/less/variables.less";
+@import "../../../node_modules/bootstrap/less/mixins.less";
+
+// overwrite imported variables
+@table-cell-padding: 1px;
+@padding-base-vertical: 2px;
+@padding-base-horizontal: 5px;
+@modal-title-padding: 10px;
+@modal-inner-padding: 10px;
+@breadcrumb-padding-vertical: 2px;
+@breadcrumb-padding-horizontal: 2px;
+@line-height-computed: 2px;
+// 34px (default) - 6 (default padding) + new padding - 4px (to align with buttons)
+@input-height-base: 34 - 6 + @padding-base-vertical - 4px;
+@panel-heading-padding: 0;
+@navbar-height: 35px;
+
+// remove dotted outline on things
+.tab-focus() {
+    outline: none;
+}
+
+// import modified parts of the theme
+@import "../../../node_modules/bootstrap/less/utilities.less";
+@import "../../../node_modules/bootstrap/less/tables.less";
+@import "../../../node_modules/bootstrap/less/buttons.less";
+@import "../../../node_modules/bootstrap/less/modals.less";
+@import "../../../node_modules/bootstrap/less/breadcrumbs.less";
+@import "../../../node_modules/bootstrap/less/forms.less";
+@import "../../../node_modules/bootstrap/less/input-groups.less";
+@import "../../../node_modules/bootstrap/less/panels.less";
+@import "../../../node_modules/bootstrap/less/navbar.less";
+
+.btn-default:focus {
+    color: #333;
+    background-color: #FFF;
+    border-color: #CCC;
+}

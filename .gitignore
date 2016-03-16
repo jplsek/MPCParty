@@ -1,0 +1,8 @@
+*.swp
+*.swo
+node_modules
+public/css/overwrite.css
+public/css/jquery.contextMenu.css
+public/css/themes/default.css
+public/css/themes/default-thin.css
+downloads/*

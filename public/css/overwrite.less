@@ -1,0 +1,308 @@
+@minimumWidth: 360px;
+
+html {
+    min-width: @minimumWidth;
+    overflow-x: hidden; // fixes an issue with context-menus
+    overflow-y: hidden; // fixes random bugs that occur with changing the table widths dynamically
+}
+header {
+    display: -webkit-box; /* fallback for apple webkit */
+    display: flex;
+    -webkit-align-items: center;
+    align-items: stretch;
+    min-width: @minimumWidth;
+
+    #header-left {
+        display: -webkit-box; /* fallback for apple webkit */
+        display: flex;
+        -webkit-align-items: center;
+        align-items: stretch;
+
+        #volume {
+            width: 30px;
+            height: 60px;
+            -webkit-appearance: slider-vertical;
+        }
+        #media-buttons {
+            display: -webkit-box; /* fallback for apple webkit */
+            display: flex;
+            -webkit-flex-direction: column;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+    }
+    #header-middle {
+        display: -webkit-box; /* fallback for apple webkit */
+        display: flex;
+        -webkit-align-items: center;
+        align-items: center;
+        flex: 2;
+    }
+    #header-right {
+        display: -webkit-box; /* fallback for apple webkit */
+        display: flex;
+        -webkit-flex-direction: column;
+        flex-direction: column;
+        justify-content: space-around;
+        width: 200px;
+
+        #header-right-top {
+            display: -webkit-box; /* fallback for apple webkit */
+            display: flex;
+        }
+    }
+}
+main {
+    display: flex;
+    height: 100vh;
+    padding-top: 75px;
+
+    #browser {
+        display: flex;
+        flex-direction: column;
+
+        -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+
+        #browser-header {
+            display: flex;
+        }
+
+        #slwrap {
+            flex-grow: 2;
+            overflow-x: hidden; // in case of size issues with js
+        }
+    }
+    #playlist {
+        -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+        display: flex;
+        flex-direction: column;
+
+        #playlist-header {
+            display: -webkit-box; /* fallback for apple webkit */
+            display: flex;
+            -webkit-align-items: center;
+            align-items: center;
+            text-align: center;
+
+            #playlist-title {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
+        #pslwrap {
+            border-left: 1px solid #DDD;
+            overflow: auto;
+            flex-grow: 2;
+
+            #playlist-song-list {
+                td {
+                    position: relative;
+                }
+                tr:hover {
+                    .song-play {
+                        display: inline;
+                    }
+                }
+            }
+        }
+    }
+}
+#pb { // playlist buffer
+    width: 400px;
+    height: 300px;
+    position: fixed;
+    margin-bottom: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 1002; // above floathead
+    // display: flex; // hidden by css by default, flex added by js
+    flex-direction: column;
+
+    #pb-main {
+        padding: 0 0 0 15px;
+        overflow: auto;
+        flex-grow: 2;
+
+        // Row numbers without js. Issues: row numbers changes while the
+        // user is dragging, row number in cloned tr is also different (no
+        // number would also be fine)
+        //#pb-song-list {
+        //    counter-reset: rowNumber;
+        //    .gen {
+        //        counter-increment: rowNumber;
+        //        .pos::before {
+        //            content: counter(rowNumber) ".";
+        //            min-width: 1em;
+        //            margin-right: 0.5em;
+        //        }
+        //    }
+        //}
+    }
+
+    table {
+        cursor: pointer;
+    }
+}
+#pb-tab {
+    width: 200px;
+    position: fixed;
+    margin-bottom: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 1002; // above floathead
+    background: #404040;
+    color: white;
+    padding: 8px;
+    cursor: pointer;
+}
+#download-player {
+    min-width: 350px;
+
+    #download-player-title {
+        min-height: 20px;
+    }
+}
+.pages {
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+
+    .page {
+        width:200px;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+
+        .form-control {
+            max-width: 80px;
+        }
+    }
+}
+// floatThead
+table.floatThead-table {
+    border-top: none;
+    border-bottom: none;
+    background-color: #FFF;
+    cursor: pointer;
+}
+.floatThead-wrapper {
+    flex-grow: 2;
+    display: flex;
+    overflow: auto;
+}
+.flex-full {
+    -webkit-box-flex: 1; /* fallback for apple webkit */
+    flex: 1;
+}
+#song-list, #playlist-song-list, #home, .loc-dir, .playlists, .faded {
+    cursor: pointer;
+}
+.faded {
+    opacity: 0.5;
+}
+.faded:hover {
+    opacity: 1;
+}
+.nowrap, .song-list-icons, .playlist-song-list-icons {
+    white-space:nowrap;
+}
+.song-list-icons {
+    // slightly less jarring when there there is an init width
+    min-width: 25px;
+}
+.fixed-table {
+    /* magic */
+    width: 100%;
+    table-layout: fixed;
+}
+.fixed-table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.notify {
+    position: fixed;
+    bottom: 0px;
+    z-index: 9999;
+}
+.playlists, #pb-main {
+    user-select: none; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+}
+.none { // like .hidden, except without !important
+    display: none;
+}
+.dropdown-menu > li > a.no-hover:hover {
+    background: inherit;
+    color: inherit;
+}
+.modal-dialog {
+    min-width: @minimumWidth;
+}
+// disables sorting for dragged item
+#song-list .no-placeholder {
+    display: none;
+}
+// enables sorting for dragged item
+#playlist-song-list .no-placeholder, #pb-song-list .no-placeholder {
+    display: block;
+}
+// context menu customizations
+.context-menu-list {
+    padding: 0 0 5px;
+    max-width: 500px;
+}
+// context menu title
+.context-menu-item:first-child {
+    background: #EDEDED;
+    color: #7D7D7D;
+    font-size: 0.8em;
+    cursor: default;
+    margin-bottom: 5px;
+}
+.space-between {
+    display: -webkit-box; /* fallback for apple webkit */
+    display: flex;
+    justify-content: space-between;
+}
+.pulse {
+    animation: pulse ease 1s;
+}
+.pulse2 {
+    animation: pulse ease 1s 2;
+}
+@keyframes pulse {
+    0%, 100% {
+        background-color: inherit;
+    }
+    50% {
+        background-color: #bababa;
+    }
+}
+
+// "mobile"
+@media (max-width: 768px) {
+    html {
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+    main {
+        flex-direction: column;
+        height: auto;
+    }
+    #pb, #pb-tab { // playlist buffer
+        width: 100%;
+    }
+    #browser, #playlist {
+        margin-top: 16px;
+        height: 500px;
+    }
+    // accessability for scrolling
+    #pslwrap, #slwrap {
+        border-left: 1px solid #DDD;
+        border-right: 1px solid #DDD;
+        border-bottom: 1px solid #DDD;
+    }
+}
+
