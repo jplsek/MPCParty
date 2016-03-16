@@ -68,7 +68,8 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 ### 1) Dependencies
 * Install [MPD](http://www.musicpd.org/download.html) (`sudo apt-get update && sudo apt-get install mpd`), and get a running instance working (a sample mpd conf file is stored in utils/ to be ran as a local user (run it with `mpd ~/.config/mpd/mpd.conf`))
 * Install [nodejs](https://nodejs.org/download/) (`sudo apt-get install nodejs`)
-> MPCParty has only been tested on GNU/Linux. Thus I only have binaries for GNU/Linux. OSX and BSD should work via the development version. I have yet to get Windows to compile with the Download Player enabled on the development version.
+
+> MPCParty has only been tested on GNU/Linux. Thus I only have binaries for GNU/Linux. OSX and BSD should work via the development version. I have yet to get Windows to compile with the Download Player enabled (so Windows works, just without the Player).
 
 #### Optional dependencies for the Download Player (Youtube player)
 * Install [ffmpeg](http://ffmpeg.org/download.html) or [libav](https://libav.org/download/) (`sudo apt-get install libav-tools`), it is used for video conversion with youtube-dl
