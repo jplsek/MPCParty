@@ -5,6 +5,7 @@ $(function () {
 var host = window.document.location.host,
     socket = new WebSocket('ws://' + host);
 
+// convert int to mm:ss
 function toMMSS(str) {
     str = (!str ? '0' : str);
 
@@ -61,10 +62,8 @@ function getTime() {
         minutes = date.getMinutes(),
         seconds = date.getSeconds();
 
-    if (hours.toString().length == 1) hours = '0' + hours;
-
+    if (hours.  toString().length == 1) hours   = '0' + hours;
     if (minutes.toString().length == 1) minutes = '0' + minutes;
-
     if (seconds.toString().length == 1) seconds = '0' + seconds;
 
     return hours + ':' + minutes + ':' + seconds;
@@ -96,8 +95,9 @@ function stripSlash(str) {
     return str.substring(index+1);
 }
 
+// create the popup window for song information
 function parseSongInfo(err, values) {
-    if (err || !values) {
+    if (err || !values || Object.keys(values).length < 1) {
         toastr.warning('This is most likely a bug with MPCParty or the song is not in the live database.', 'Error getting song information.', {
             'closeButton': true,
             'positionClass': 'toast-bottom-left',
@@ -109,15 +109,8 @@ function parseSongInfo(err, values) {
 
     //console.log(values);
 
-    if (Object.keys(values).length < 1) {
-        return toastr.warning('This is most likely a bug with MPCParty or the song is not in the live database.', 'Error getting song information.', {
-            'closeButton': true,
-            'positionClass': 'toast-bottom-left',
-            'preventDuplicates': false,
-            'timeOut': '10000'
-        });
-    }
-
+    $('#song-info .gen').remove();
+    $('#song-info-modal h4').html('');
     $('#song-info-modal').modal('show');
 
     var title = getSimpleTitle(values.Title, values.Artist, values.file);
@@ -134,6 +127,7 @@ function parseSongInfo(err, values) {
     $('#song-info tbody').append(html);
 }
 
+// the header with music controls
 var player = {
     // current song to highlight the playlist
     current: null,
@@ -441,6 +435,7 @@ var player = {
     }
 };
 
+// the playlist
 var playlist = {
     // scroll down to bottom of playlist
     scrollDown: false,
@@ -826,7 +821,7 @@ var playlist = {
         console.log('got pl title from another user: ' + title);
 
         history.add('Loaded playlist: ' + title);
-        this.current = title;
+        this.current = title.replace(/ /g, '\u00a0');
 
         // fixes a bug where it doesn't get updated while a song is playing
         player.updateAll();
@@ -1068,8 +1063,6 @@ var playlist = {
 
     // show song information to the user
     getSongInfo: function (file) {
-        $('#song-info .gen').remove();
-        $('#song-info-modal h4').html('');
         komponist.playlistfind('file', file, function (err, value) {
             parseSongInfo(err, value[0]);
         });
@@ -1142,6 +1135,7 @@ var playlist = {
     }
 };
 
+// the file browser
 var browser = {
     // current directory the user is in
     current: '/',
@@ -1452,8 +1446,6 @@ var browser = {
 
     // show song information to the user
     getSongInfo: function (file) {
-        $('#song-info .gen').remove();
-        $('#song-info-modal h4').html('');
         komponist.find('file', file, function (err, value) {
             parseSongInfo(err, value[0]);
         });
@@ -1574,12 +1566,29 @@ var browser = {
     }
 };
 
+// the stored playlists
 var stored = {
+    // used for saving external playlists
+    fileArr: [],
+    // used for returning values for opening playlists
     call: null,
+    // current is used to tell what the save operation is (native being mpd)
+    current: 'native',
 
     // used show all playlists
-    updatePlaylists: function (id, fn) {
-        if (fn) this.call = fn;
+    // fileArr is used when saving the playlist externally after clicking save
+    updatePlaylists: function (id, type) {
+        if (type) {
+            if (typeof type == 'function') {
+                this.call = type;
+                this.current = 'native';
+            } else if (type.constructor === Array) {
+                this.fileArr = type;
+                this.current = 'fileids';
+            }
+        } else {
+            this.current = 'native';
+        }
 
         komponist.listplaylists(function (err, playlists) {
             //console.log(id + ':');
@@ -1611,6 +1620,7 @@ var stored = {
             }
 
             $(playlists).each(function (item, value) {
+                value.playlist = value.playlist.replace(/ /g, '\u00a0');
                 html += '<tr class="gen" data-fileid="' + value.playlist + '"><td>' + value.playlist + '</td><td class="text-right"><span class="faded playlist-remove text-danger glyphicon glyphicon-remove" data-fileid="' + value.playlist + '"></span></td>';
             });
             $('#' + id +' .playlists tbody').append(html);
@@ -1618,19 +1628,191 @@ var stored = {
     },
 
     // save the playlist. Wrapper for komponist.save()
-    save: function (file, call) {
-        if (this.call !== null) {
-            console.log('calling fn..');
-            this.call(file);
-            this.call = null;
+    save: function (file) {
+        file = file.trim().replace(/\u00a0/g, " ");
+        var msg = '';
+
+        if (this.current == 'fileids') {
+            if (this.fileArr.length === 0) {
+                msg = 'Playlist empty!';
+                history.add(msg, 'warning');
+
+                toastr.warning(msg, 'Playlist', {
+                    'closeButton': true,
+                    'positionClass': 'toast-bottom-left',
+                    'preventDuplicates': false
+                });
+
+                $('#playlist-save-modal').modal('hide');
+
+                return console.log('empty playlist');
+            }
+
+            // overwrite any existing playlist
+            komponist.rm(file, function (err, val) {
+                // TODO handle error better
+                if (err) console.log('No playlist to overwrite, continue...');
+                //console.log(stored.fileArr);
+
+                // continue saving...
+                var saved              = true,
+                updatedCurrentPlaylist = false,
+                invalid                = false,
+                noFile                 = false,
+                notFound               = false,
+                unknown                = false,
+                err2,
+                // since everything is async, we have to use a deferred object.
+                // i is counting the elements being added, which resolves the
+                // deferred.
+                i = 0,
+                def = $.Deferred();
+
+                //console.log(stored.fileArr);
+                $(stored.fileArr).each(function () {
+                    // this if statement doesn't actually work, async makes this loop
+                    // happen too quickly
+                    if (!saved) return false;
+                    var song = this;
+
+                    komponist.playlistadd(file, this, function (errPlAdd, val) {
+                        err2 = errPlAdd;
+                        // I would like to break from the each loop when an error
+                        // occurs, but getting that set up is hackish. For now,
+                        // it will run the each loop every time an error is
+                        // caught
+                        ++i;
+
+                        if (err2) {
+                            if (err2.message == 'playlist name is invalid: playlist names may not contain slashes, newlines or carriage returns [2@0] {playlistadd}') {
+                                invalid = true;
+                            } else if (err2.message == 'No such file or directory [52@0] {playlistadd}') {
+                                noFile = true;
+                            } else if (err2.message ==  'Not found [50@0] {playlistadd}') {
+                                // if this error happens, it *might* be the
+                                // fault of js, as somehow the string is
+                                // getting stripped. Restarting the server
+                                // fixes this issue, but I'd like this to get
+                                // fixed...
+                                err2 = song;
+                                notFound = true;
+                            } else {
+                                unknown = true;
+                            }
+
+                            saved = false;
+                            // resolves earlier because output would be the same
+                            // anyways
+                            def.resolve();
+                            return console.log(err2);
+                        }
+
+                        if (playlist.current == file) updatedCurrentPlaylist = true;
+                        if (i == stored.fileArr.length) def.resolve();
+                    });
+                });
+
+                def.done(function () {
+                    // in deferred because the loop can execute the playlistadd multiple times
+                    if (invalid) {
+                        msg = 'Playlist may not contain slashes, newlines, or carriage returns.';
+                        history.add(msg, 'warning');
+                        toastr.warning(msg, 'Invalid Characters', {
+                            'closeButton': true,
+                            'positionClass': 'toast-bottom-left',
+                            'preventDuplicates': false,
+                            'timeOut': '10000'
+                        });
+                    } else if (noFile) {
+                        msg = 'Is there a playlist directory and correct write permissions?';
+                        history.add(msg, 'danger');
+                        toastr.error(msg, 'Cannot read playlist directory!', {
+                            'closeButton': true,
+                            'positionClass': 'toast-bottom-left',
+                            'preventDuplicates': true,
+                            'timeOut': '-1',
+                            'extendedTimeOut': '-1'
+                        });
+                    } else if (notFound) {
+                        msg = 'File not found: ' + err2;
+                        history.add(msg, 'danger');
+                        toastr.error(msg, 'Playlist', {
+                            'closeButton': true,
+                            'positionClass': 'toast-bottom-left',
+                            'preventDuplicates': true,
+                            'timeOut': '-1',
+                            'extendedTimeOut': '-1'
+                        });
+                    } else if (unknown) {
+                        msg = err2;
+                        history.add(msg, 'danger');
+                        toastr.error(msg, 'Unhandled Error', {
+                            'closeButton': true,
+                            'positionClass': 'toast-bottom-left',
+                            'preventDuplicates': true,
+                            'timeOut': '-1',
+                            'extendedTimeOut': '-1'
+                        });
+                    }
+
+                    if (saved) {
+                        file = file.replace(/ /g, '\u00a0');
+                        msg = file + ' playlist saved!';
+                        history.add(msg, 'info');
+
+                        toastr.info(msg, 'Playlist update', {
+                            'closeButton': true,
+                            'positionClass': 'toast-bottom-left',
+                            'preventDuplicates': false
+                        });
+
+                        if (updatedCurrentPlaylist) {
+                            msg = 'You must open the updated playlist for it to update the current playlist.';
+                            history.add(msg, 'info');
+                            toastr.info(msg + '<button title="Reloads the playlist" class="playlist-reload btn btn-default pull-right"><span class="glyphicon glyphicon-repeat"></span></button>', 'Playlist update', {
+                                'closeButton': true,
+                                'positionClass': 'toast-bottom-left',
+                                'preventDuplicates': false,
+                                'timeOut': '-1',
+                                'extendedTimeOut': '-1'
+                            });
+                        }
+
+                        // clear fileArr after saving
+                        stored.fileArr = [];
+                    }
+                });
+            });
         } else {
+            var trs = $('#playlist-song-list .append').children('.gen');
+
+            // horrible check, whats the better way to check for
+            // 'Empty playlist'?
+            if (trs.length < 1 || (
+                    trs[0].childNodes[0].childNodes[0].childNodes[0] &&
+                    $(trs[0].childNodes[0].childNodes[0].childNodes[0].data).
+                    selector == 'Empty playlist')) {
+                msg = 'Playlist empty!';
+                history.add(msg, 'warning');
+
+                toastr.warning(msg, 'Playlist', {
+                    'closeButton': true,
+                    'positionClass': 'toast-bottom-left',
+                    'preventDuplicates': false
+                });
+
+                $('#playlist-save-modal').modal('hide');
+                return console.log('playlist empty');
+            }
+
             komponist.rm(file, function (err, val) {
                 // TODO check specific error messages
                 if (err) console.log('No playlist to overwrite');
-                var msg;
 
                 // continue saving...
                 komponist.save(file, function (err, val) {
+                    file = file.replace(/ /g, '\u00a0');
+
                     if (err) {
                         console.log(err.message);
 
@@ -1672,12 +1854,14 @@ var stored = {
                     });
                 });
             });
-            $('#playlist-save-modal').modal('hide');
         }
+
+        $('#playlist-save-modal').modal('hide');
     },
 
     // open the playlist. Wrapper for komponist.open()
     open: function (file) {
+        file = file.replace(/\u00a0/g, " ");
         if (this.call !== null) {
             console.log('calling fn..');
             this.call(file);
@@ -1687,12 +1871,15 @@ var stored = {
             console.log(file);
             // stops duplicate updating because of socket sending
             playlist.doUpdate = false;
+
             komponist.clear(function (err) {
                 if (err) console.log(err);
             });
+
             komponist.load(file, function (err) {
                 if (err) console.log(err);
             });
+
             socket.send(JSON.stringify({
                     'type': 'playlist-title', 'info': file
                     }), function (err) {
@@ -1713,7 +1900,7 @@ var stored = {
         });
 
         $(document).on('click', '.playlist-remove', function () {
-            var file = $(this).data().fileid;
+            var file = $(this).data().fileid.replace(/\u00a0/g, " ");
             komponist.rm(file, function (err) {
                 if (err) console.log(err);
             });
@@ -1735,10 +1922,19 @@ var stored = {
             var file = $(this).data().fileid;
             $('#playlist-save-input').val(file);
         });
+
+        // reset vars
+        $('#playlist-open-modal').on('hidden.bs.modal', function () {
+            stored.call = null;
+        });
+
+        $('#playlist-save-modal').on('hidden.bs.modal', function () {
+            stored.fileArr = [];
+        });
     }
 };
 
-// progress bar simulation
+// progress bar simulation for the player
 var progressbar = {
     progress: 0,
     musicprogress: 0,
@@ -1773,7 +1969,7 @@ var progressbar = {
     }
 };
 
-// playlist buffer
+// the playlist buffer
 var pb = {
     current: null,
     selector: '#pb',
@@ -2026,120 +2222,6 @@ var pb = {
         });
     },
 
-    // save the playlist
-    save: function (file) {
-        if ($(pb.table).children('.gen').length === 0) {
-            var msg = 'Playlist empty!';
-            history.add(msg, 'warning');
-            toastr.warning(msg, 'Playlist update', {
-                'closeButton': true,
-                'positionClass': 'toast-bottom-left',
-                'preventDuplicates': false
-            });
-            return console.log('empty playlist');
-        }
-
-        // overwrite any existing playlist
-        komponist.rm(file, function (err, val) {
-            // TODO handle error better
-            if (err) console.log('No playlist to overwrite, continue...');
-
-            // continue saving...
-            var saved                  = true,
-                updatedCurrentPlaylist = false,
-                invalid                = false,
-                nofile                 = false,
-                trs                    = $(pb.table).children('.gen'),
-                // since everything is async, we have to use a deferred object.
-                // i is counting the elements being added, which resolves the
-                // deferred.
-                i = 0,
-                def = $.Deferred();
-
-            //console.log(trs);
-            trs.each(function () {
-                // this if statement doesn't actually work, async makes this loop
-                // happen too quickly
-                if (!saved) return false;
-
-                var fileName = $(this).data().fileid;
-                komponist.playlistadd(file, fileName, function (err2, val) {
-                    // I would like to break from the each loop when an error
-                    // occurs, but getting that set up is hackish. For now,
-                    // it will run the each loop every time an error is
-                    // caught
-                    ++i;
-
-                    if (err2) {
-                        // TODO catch permission errors instead
-                        // of only invalid chars
-                        if (err.message == 'playlist name is invalid: playlist names may not contain slashes, newlines or carriage returns [2@0] {save}') {
-                            invalid = true;
-                        } else if (err.message == 'No such file or directory [52@0] {save}') {
-                            nofile = true;
-                        }
-                        saved = false;
-                        // resolves earlier because output would be the same
-                        // anyways
-                        def.resolve();
-                        return console.log(err);
-                    }
-
-                    if (playlist.current == file) updatedCurrentPlaylist = true;
-                    if (i == trs.length) def.resolve();
-                });
-            });
-
-            def.done(function () {
-                // in deferred because the loop can execute the playlistadd multiple times
-                var msg;
-
-                if (invalid) {
-                    msg = 'Playlist may not contain slashes, newlines, or carriage returns.';
-                    history.add(msg, 'warning');
-                    toastr.warning(msg, 'Invalid Characters', {
-                        'closeButton': true,
-                        'positionClass': 'toast-bottom-left',
-                        'preventDuplicates': false,
-                        'timeOut': '10000'
-                    });
-                } else if (nofile) {
-                    msg = 'Is there a playlist directory and correct write permissions?';
-                    history.add(msg, 'danger');
-                    toastr.error(msg, 'Cannot read playlist directory!', {
-                        'closeButton': true,
-                        'positionClass': 'toast-bottom-left',
-                        'preventDuplicates': true,
-                        'timeOut': '-1',
-                        'extendedTimeOut': '-1'
-                    });
-                }
-
-                if (saved) {
-                    msg = file + ' playlist saved!';
-                    history.add(msg, 'info');
-                    toastr.info(msg, 'Playlist update', {
-                        'closeButton': true,
-                        'positionClass': 'toast-bottom-left',
-                        'preventDuplicates': false
-                    });
-
-                    if (updatedCurrentPlaylist) {
-                        msg = 'You must open the updated playlist for it to update the current playlist.';
-                        history.add(msg, 'info');
-                        toastr.info(msg + '<button title="Reloads the playlist" class="playlist-reload btn btn-default pull-right"><span class="glyphicon glyphicon-repeat"></span></button>', 'Playlist update', {
-                            'closeButton': true,
-                            'positionClass': 'toast-bottom-left',
-                            'preventDuplicates': false,
-                            'timeOut': '-1',
-                            'extendedTimeOut': '-1'
-                        });
-                    }
-                }
-            });
-        });
-    },
-
     // open the playlist to the pb
     open: function (file) {
         komponist.listplaylistinfo(file, function (err, val) {
@@ -2254,7 +2336,13 @@ var pb = {
         $(document).on('click', '#pb-close', function () { pb.close(); });
 
         $(document).on('click', '#pb-save', function () {
-            stored.updatePlaylists('playlist-save-modal', pb.save);
+            var trs = $(pb.table).children('.gen'),
+                fileIds = [];
+
+            for (var i = 0; i < trs.length; ++i)
+                fileIds[i] = $(trs[i]).data().fileid;
+
+            stored.updatePlaylists('playlist-save-modal', fileIds);
         });
 
         $(document).on('click', '#pb-minimize', function () { pb.minimize(); });
@@ -2352,6 +2440,7 @@ var history = {
     }
 };
 
+// page support for browser, playlist, etc
 var pages = {
     // enable page support
     enabledPlaylist: true,
@@ -2708,6 +2797,7 @@ var settings = {
     }
 };
 
+// the video (audio) player
 var video = {
     // download the video
     download: function (url) {
@@ -2986,7 +3076,6 @@ socket.onmessage = function(event) {
             $('#next').removeClass('active');
             $('#previous').removeClass('active');
             break;
-
 
         case 'skipped':
             console.log('skip successful received');
@@ -3309,6 +3398,7 @@ function contextResponse(key, table, tr) {
     }
 }
 
+// enable the custom context menu
 $.contextMenu({
     selector: '.context-menu',
     // above pb
@@ -3489,6 +3579,7 @@ $('#playlist-song-list').multiSelect({
     }
 });
 
+// enable mutltiselect for the browser
 $('#song-list').multiSelect({
     actcls: 'info',
     selector: 'tr.gen',
@@ -3522,6 +3613,7 @@ $('#song-list').multiSelect({
     }
 });
 
+// enable multiselect for the playlist buffer
 $('#pb-song-list').multiSelect({
     actcls: 'info',
     selector: 'tr.gen',

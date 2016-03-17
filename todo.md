@@ -35,7 +35,7 @@ TODO
 * Switch to Bootstrap 4 when released?
 * Playlist queueing (so it doesnt stop the song playing when opening a playlist)
 * Some simple visualizer?
-* Afeer accessing a folder, check if there is only one folder and no songs, if so, automatically enter that folder (not when clicking location bar, however)
+* After accessing a folder, check if there is only one folder and no songs, if so, automatically enter that folder (not when clicking location bar, however)
 * Undo actions (like removing a song from the playlist)?
 * Add a max updates per second setting
 * Skip to remove mode (client)
@@ -47,6 +47,7 @@ TODO
 * Webkit: resizing pb makes the values "inverted". http://codepen.io/anon/pen/VeWwLa
 * This mostly affects pb: Certain situations make it so songs are not added to the playlist (such as objects not containing all metadata), but "fixing" them also adds duplicate songs to the playlist.
     * This also adds a bug where positions are not correctly aligned
+
 ---
 
 # server.js

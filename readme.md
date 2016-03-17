@@ -82,6 +82,7 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 * Clone this repository (`git clone https://github.com/jplsek/MPCParty`)
 * Run `npm install` from the project's directory (to install all the libraries)
 * If there are errors, you may need to install `nodejs-legacy`, and reinstall the libraries with `npm install`
+
 > If you are not using the Download Player, you can ignore compile errors when running `npm install`, and disable it via the config file.
 
 ### 3) Running
