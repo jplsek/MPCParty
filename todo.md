@@ -53,6 +53,9 @@ TODO
 # server.js
 
 ## Partially implemented
+* Video Player:
+    * General video controls are not very responsive
+    * Give more specific error messages to the client
 
 ## To implement
 

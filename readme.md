@@ -100,7 +100,6 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 
 ## Issues
 * Something, somewhere, crashes, at what seems to be random times. I've seen this happen with other web clients, so I'm not sure what the cause of this is. It could be MPCParty's code, the komponist library, or MPD itself. Restarting the MPCParty server fixes these issues. You *should* get a popup when it stops responding.
-* When adding folders, some songs may not be added (might be due to bad metadata on the file).
 * Not all errors from MPD are handled properly. When this happens, MPCParty will stop working. Refresh the page to fix it. If possible, check the console and report what the error was and what you were doing to cause the error.
 * If something is not working, and there is no notification, please report the issue as to what you were doing and what you were expecting. Check the console as to what the error was.
 

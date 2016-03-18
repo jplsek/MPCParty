@@ -108,7 +108,6 @@ function parseSongInfo(err, values) {
     }
 
     //console.log(values);
-
     $('#song-info .gen').remove();
     $('#song-info-modal h4').html('');
     $('#song-info-modal').modal('show');
@@ -125,6 +124,59 @@ function parseSongInfo(err, values) {
     });
 
     $('#song-info tbody').append(html);
+}
+
+// replace listAllInfo because of issues with it
+// loop through each directory, add each file to array, return array
+function getAllInfo(dir, callback) {
+    var arr = [],
+        dup = [];
+
+    komponist.lsinfo(dir, function (err, files) {
+        if (err) {
+            console.log(err);
+            callback(arr);
+        }
+
+        // make object to array (single items usually ... hopefully)
+        if (!Array.isArray(files))
+            files = [files];
+
+        if (files.length === 0) callback(arr);
+
+        //console.log(files);
+        var i = 0;
+
+        $(files).each(function (item, value) {
+            if (value.directory && value.file) {
+                // ignore?
+                if (++i == files.length) {
+                    callback(arr);
+                }
+            } else if (value.directory) {
+                // recurse through directory
+                getAllInfo(value.directory, function(newArr) {
+                    arr = arr.concat(newArr);
+
+                    if (++i == files.length) {
+                        callback(arr);
+                    }
+                });
+            } else if (value.file) {
+                // add file
+                arr.push(value);
+
+                if (++i == files.length) {
+                    callback(arr);
+                }
+            } else {
+                // fallback (such as empty directories)
+                if (++i == files.length) {
+                    callback(arr);
+                }
+            }
+        });
+    });
 }
 
 // the header with music controls
@@ -468,7 +520,7 @@ var playlist = {
             $('#playlist-song-list .gen').remove();
             playlist.local = playlistLoad;
 
-            if ($.isArray(playlistLoad) && $.isEmptyObject(playlistLoad[0])) {
+            if (Array.isArray(playlistLoad) && $.isEmptyObject(playlistLoad[0])) {
                 var html = '<tr class="gen"><td><em>Empty playlist</em></td></tr>';
                 $('#playlist-song-list').append(html);
                 // fix for removing the last song that's
@@ -712,11 +764,9 @@ var playlist = {
                     //playlist.toPulse.push(val.Id);
             });
         else
-            komponist.listallinfo(dir, function (err, files) {
+            getAllInfo(dir, function (files) {
                 //console.log(files);
-                if (err) return console.log(err);
-
-                if (!$.isArray(files) && $.isEmptyObject(files))
+                if (files.length === 0)
                     return console.log('Nothing in db');
 
                 $(files).each(function (item, value) {
@@ -1207,7 +1257,7 @@ var browser = {
             browser.localFolders = [];
             browser.localFiles = [];
 
-            if (!$.isArray(files) && $.isEmptyObject(files)) {
+            if (!Array.isArray(files) && $.isEmptyObject(files)) {
                 html = '<tr class="directory gen"><td colspan="6">' +
                     '<em>Empty directory</em></td></tr>';
                 $('#song-list').append(html);
@@ -1247,7 +1297,7 @@ var browser = {
             browser.localFiles = [];
             var html;
 
-            if ($.isArray(files) && $.isEmptyObject(files[0])) {
+            if (Array.isArray(files) && $.isEmptyObject(files[0])) {
                 html = '<tr class="directory gen"><td colspan="6">' +
                     '<em>No songs found</em></td></tr>';
                 $('#song-list').append(html);
@@ -1460,7 +1510,7 @@ var browser = {
                     function (err, files) {
                         if (err) return console.log(err);
 
-                        if ($.isArray(files) && $.isEmptyObject(files[0])) {
+                        if (Array.isArray(files) && $.isEmptyObject(files[0])) {
                             return console.log('No songs found');
                         }
 
@@ -1479,7 +1529,7 @@ var browser = {
 
                 if (err) return console.log(err);
 
-                if (!$.isArray(files) && $.isEmptyObject(files)) {
+                if (!Array.isArray(files) && $.isEmptyObject(files)) {
                     return console.log('Empty directory');
                 }
 
@@ -1582,7 +1632,7 @@ var stored = {
             if (typeof type == 'function') {
                 this.call = type;
                 this.current = 'native';
-            } else if (type.constructor === Array) {
+            } else if (Array.isArray(type)) {
                 this.fileArr = type;
                 this.current = 'fileids';
             }
@@ -1613,7 +1663,7 @@ var stored = {
             $('#' + id +' .modal-body .gen').remove();
 
             var html = '';
-            if (!$.isArray(playlists) && $.isEmptyObject(playlists)) {
+            if (!Array.isArray(playlists) && $.isEmptyObject(playlists)) {
                 html = '<em class="gen">No saved playlists</em>';
                 $('#' + id +' .modal-body').append(html);
                 return console.log('No playlists');
@@ -2011,17 +2061,11 @@ var pb = {
         var title, html;
         //console.log(file);
 
-        if (file instanceof Array) {
+        if (Array.isArray(file)) {
             $(file).each(function (item, value) {
-                if (value.file && !value.directory) {
-                    title = getSimpleTitle(value.Title, value.Artist,
-                        value.file);
-                    html += pb.getHtml(title, value.file);
-                }
-                // can have duplicate songs
-                //else if (value.file && value.directory) {
-                    //pb.addFile(value.file, pos);
-                //}
+                title = getSimpleTitle(value.Title, value.Artist,
+                    value.file);
+                html += pb.getHtml(title, value.file);
             });
         } else {
             title = getSimpleTitle(file.Title, file.Artist, file.file);
@@ -2153,18 +2197,14 @@ var pb = {
 
     // wrapper (similar to komponist.add)
     add: function (dir, pos) {
-        // using listallinfo because I need ALL files,
-        // not just files and directories.
-        //
-        // if multiselect, the dir's may be in "random" order
-        // because of async (when it gets to addSong). TODO fix this?
-        komponist.listallinfo(dir, function (err, files) {
-            //console.log(files);
-            if (err) return console.log(err);
-
-            if (!$.isArray(files) && $.isEmptyObject(files))
-                return console.log('Nothing in db');
-
+        // FUTURE SELF: DO NOT USE LISTALLINFO, IT WILL HAVE THE "OFF BY ONE"
+        // BUG, KEEP THIS 'getAllInfo'.
+        // Option 1: Loop through all directories recursively running lsinfo
+        // Option 2: Run listall, then loop through each item to get metadata
+        // Option 1 sends less requests to the server, so we'll implement that.
+        // Add All and Multiselect directories is still based on how fast the
+        // server can respond per directory (so it can look random)
+        getAllInfo(dir, function(files) {
             pb.addSong(files, pos);
         });
     },
