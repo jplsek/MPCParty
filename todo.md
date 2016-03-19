@@ -10,8 +10,8 @@ TODO
 ## To implement
 * More error handling notifications
 * Playlist buffer:
-    * Save pb on refresh (needs error handling)
-    * Sharing with other users? (use users object)
+    * Save pb on refresh with storage api?
+    * Sharing with other users? (utilize users object?)
     * Page support
 * Browser:
     * Drag and drop from browser to playlist:
@@ -22,7 +22,7 @@ TODO
 * Playlist:
     * Drag and drop through pages
     * Remove songs visually to the single user. (Do not update the playlist via mpd for the user editing it.) It will allow faster deletion for large playlists.
-    * Give a warning if the playlist was not saved when the user trys to clear it
+    * Give a warning if the playlist was not saved when the user tries to clear it
 * Download Player:
     * List available files to play from download directory? (What if user has it set to their music library? Have a config option?)
     * Make it into a video streamer (muted by default on the client)?
@@ -33,7 +33,7 @@ TODO
 * Keyboard shortcuts?
 * Album covers? (May use MusicBrainz)
 * Switch to Bootstrap 4 when released?
-* Playlist queueing (so it doesnt stop the song playing when opening a playlist)
+* Playlist queueing (so it doesn't stop the song playing when opening a playlist)
 * Some simple visualizer?
 * After accessing a folder, check if there is only one folder and no songs, if so, automatically enter that folder (not when clicking location bar, however)
 * Undo actions (like removing a song from the playlist)?
@@ -41,12 +41,9 @@ TODO
 * Skip to remove mode (client)
 
 ## Bugs
-* It seems crashing is due to refreshing too many times
+* It seems crashing is due to refreshing too many times?
 * Loading a theme will add another "theme load" every time.
-* Update music library: wait until database is finished before refreshing the browser
 * Webkit: resizing pb makes the values "inverted". http://codepen.io/anon/pen/VeWwLa
-* This mostly affects pb: Certain situations make it so songs are not added to the playlist (such as objects not containing all metadata), but "fixing" them also adds duplicate songs to the playlist.
-    * This also adds a bug where positions are not correctly aligned
 
 ---
 
@@ -67,5 +64,5 @@ TODO
 ---
 
 # Making Releases:
-* Set to felse: app.locals.pretty in server.js
+* Set to false: app.locals.pretty in server.js
 * Minify public/js/komponist.js and make sure index.jade uses the minified version

@@ -2,14 +2,14 @@ $(function () {
 
 "use strict";
 
-var host = window.document.location.host,
+var host   = window.document.location.host,
     socket = new WebSocket('ws://' + host);
 
 // convert int to mm:ss
 function toMMSS(str) {
     str = (!str ? '0' : str);
 
-    var secNum = parseInt(str, 10),
+    var secNum  = parseInt(str, 10),
         minutes = Math.floor(secNum / 60),
         seconds = secNum - (minutes * 60);
 
@@ -17,6 +17,19 @@ function toMMSS(str) {
     if (seconds < 10) seconds = '0' + seconds;
 
     var time = minutes + ':' + seconds;
+    return time;
+}
+
+// convert int to dd days, hh hours, mm minutes
+function toFriendlyDDHHMM(str) {
+    str = (!str ? '0' : str);
+
+    var secNum  = parseInt(str, 10),
+        days    = Math.floor(secNum / (60 * 60 * 24)),
+        hours   = Math.floor(secNum / (60 * 60)) - (days * 24),
+        minutes = Math.floor(secNum / 60) - (days * 24 + hours) * 60;
+
+    var time = days + ' days, ' + hours + ' hours, ' + minutes + ' minutes';
     return time;
 }
 
@@ -129,8 +142,7 @@ function parseSongInfo(err, values) {
 // replace listAllInfo because of issues with it
 // loop through each directory, add each file to array, return array
 function getAllInfo(dir, callback) {
-    var arr = [],
-        dup = [];
+    var arr = [];
 
     komponist.lsinfo(dir, function (err, files) {
         if (err) {
@@ -155,7 +167,7 @@ function getAllInfo(dir, callback) {
                 }
             } else if (value.directory) {
                 // recurse through directory
-                getAllInfo(value.directory, function(newArr) {
+                getAllInfo(value.directory, function (newArr) {
                     arr = arr.concat(newArr);
 
                     if (++i == files.length) {
@@ -176,6 +188,16 @@ function getAllInfo(dir, callback) {
                 }
             }
         });
+    });
+}
+
+// update database statistics to the client
+function updateStats() {
+    komponist.stats(function (err, stats) {
+        //console.log(stats);
+        var html = '<small>' + stats.artists + ' artists, ' + stats.albums + ' albums, ' + stats.songs + ' songs (' + toFriendlyDDHHMM(stats.db_playtime) + '). Last database update: ' + new Date(stats.db_update * 1000).toLocaleString() + '</small>';
+        //console.log(html);
+        $('#stats').html(html);
     });
 }
 
@@ -252,25 +274,27 @@ var player = {
             console.log('state: ' + status.state);
             player.state = status.state;
 
-            if (status.state == 'stop') {
-                $('#stop').hide();
-                $('#pause').hide();
-                $('#play').show();
-                progressbar.stopProgress();
-            }
+            switch (status.state) {
+                case 'stop':
+                    $('#stop').hide();
+                    $('#pause').hide();
+                    $('#play').show();
+                    progressbar.stopProgress();
+                    break;
 
-            if (status.state == 'play') {
-                $('#stop').show();
-                $('#pause').show();
-                $('#play').hide();
-                $('#pause').removeClass('active');
-                progressbar.startProgress();
-            }
+                case 'play':
+                    $('#stop').show();
+                    $('#pause').show();
+                    $('#play').hide();
+                    $('#pause').removeClass('active');
+                    progressbar.startProgress();
+                    break;
 
-            if (status.state == 'pause') {
-                $('#play').hide();
-                $('#pause').addClass('active');
-                progressbar.stopProgress();
+                case 'pause':
+                    $('#play').hide();
+                    $('#pause').addClass('active');
+                    progressbar.stopProgress();
+                    break;
             }
 
             // random
@@ -562,8 +586,8 @@ var playlist = {
 
         var html = '',
             // item start and end from current page
-            start = (pages.currentPlaylist - 1) * pages.maxPlaylist,
-            end = ((pages.currentPlaylist - 1) * pages.maxPlaylist) +
+            start =  (pages.currentPlaylist - 1) * pages.maxPlaylist,
+            end   = ((pages.currentPlaylist - 1) * pages.maxPlaylist) +
                 pages.maxPlaylist;
 
         //console.log(end);
@@ -580,9 +604,9 @@ var playlist = {
             }
 
             var title =
-                getSimpleTitle(value.Title, value.Artist, value.file);
+                getSimpleTitle(value.Title, value.Artist, value.file),
+                current = 'gen';
 
-            var current = 'gen';
             // highlight current song on first load
             if (player.current && parseInt(value.Id) ==
                     parseInt(player.current.Id))
@@ -1025,8 +1049,8 @@ var playlist = {
             playlist.clearSelected();
         } else {
             this.goToCurrent();
-            var fileid = $(file).data().fileid;
-            var pos = $(file).data().pos;
+            var fileid = $(file).data().fileid,
+                pos    = $(file).data().pos;
             playlist.toPulse.push(fileid);
 
             // currently playing song is above file to be moved
@@ -1199,14 +1223,24 @@ var browser = {
     selected: [],
     // the cloned tr in the browser when dragging
     cloned: null,
+    // whether to update the browser on the next update or not
+    doUpdate: true,
 
     // check which dir the user is in.
     // only update that dir
     update: function (dir, poppedState) {
+
+        // db update (ignore back / forward buttons)
+        if (!dir && !poppedState && !this.doUpdate) {
+            console.log('do not update browser...');
+            // doUpdate gets set to true in the onMessage update-browser
+            //this.doUpdate = true;
+            return;
+        }
+
         if (dir) this.current = dir;
 
-        //console.log(this.current);
-        //console.log(this.previous);
+        //console.log('previous directory: ' + this.previous);
         console.log('reloading directory: ' + this.current);
 
         if ((!poppedState && this.previous != this.current) ||
@@ -1236,10 +1270,10 @@ var browser = {
         // create a list item for each dir split
         $('#location .loc-dir').remove();
         // toString incase of number only directories
-        var dirs = directory.toString().split('/'),
+        var dirs  = directory.toString().split('/'),
             dirId = dirs[0],
-            html = '',
-            i = 0;
+            html  = '',
+            i     = 0;
 
         if (this.current != '/')
             for (i; i < dirs.length; ++i) {
@@ -1325,10 +1359,10 @@ var browser = {
     },
 
     getHtmlFolders: function (value) {
-        var tableStart = '<table class="fixed-table"><tr><td>',
-            tableEnd = '</td></tr></table>',
+        var tableStart  = '<table class="fixed-table"><tr><td>',
+            tableEnd    = '</td></tr></table>',
             strippedDir = '',
-            html = '';
+            html        = '';
 
         if (value.directory) {
             //console.log('dir');
@@ -1344,9 +1378,9 @@ var browser = {
 
     getHtmlFiles: function (value) {
         var tableStart = '<table class="fixed-table"><tr><td>',
-            tableEnd = '</td></tr></table>',
-            stripFile = '',
-            html = '';
+            tableEnd   = '</td></tr></table>',
+            stripFile  = '',
+            html       = '';
 
         if (value.file) {
             //console.log('file');
@@ -1382,8 +1416,8 @@ var browser = {
                 if (!$(element).hasClass('file')) return true;
 
                 var fileid = $(element).data().fileid,
-                    icon = '',
-                    index = playlist.list.files.indexOf(fileid);
+                    icon   = '',
+                    index  = playlist.list.files.indexOf(fileid);
 
                 if (index != -1) {
                     icon = (parseInt(playlist.list.positions[index]) + 1) + '.';
@@ -1417,8 +1451,8 @@ var browser = {
 
         $('#song-list .gen').remove();
         var start = 0,
-            end = browser.localFolders.length + browser.localFiles.length,
-            html = '';
+            end   = browser.localFolders.length + browser.localFiles.length,
+            html  = '';
 
         if (pages.enabledBrowser) {
             start = (pages.currentBrowser - 1) * pages.maxBrowser;
@@ -1558,9 +1592,58 @@ var browser = {
 
     initEvents: function () {
         $('#update').click(function () {
-            console.log('update');
+            console.log('update database');
+            // set to false until broadcast updates everyone
+            // for now, the other clients will still receive multiple updates
+            browser.doUpdate = false;
+
+            var msg = 'Updating music library...';
+            toastr.warning(msg, 'Library', {
+                'closeButton': true,
+                'positionClass': 'toast-bottom-left',
+                'preventDuplicates': true,
+                'timeOut': '-1'
+            });
+
             komponist.update(function (err) {
-                if (err) console.log(err);
+                // check if this is satus.updating_db is undefined
+                // if so, it is done updating (hopefully)
+                if (err) return console.log(err);
+
+                var updateInterval = setInterval(function () {
+                    console.log('checking if update db is done...');
+
+                    komponist.status(function (err, status) {
+                        if (err) {
+                            clearInterval(updateInterval);
+                            return console.log(err);
+                        }
+
+                        // incase job id is 0/1, just check if undefined
+                        if (status.updating_db === undefined) {
+                            // stop interval and send update-browser
+                            // to everyone
+                            clearInterval(updateInterval);
+
+                            toastr.remove();
+
+                            msg = 'Music library updated!';
+                            history.add(msg, 'info');
+                            toastr.info(msg, 'Library', {
+                                'closeButton': true,
+                                'positionClass': 'toast-bottom-left',
+                                'preventDuplicates': true,
+                                'timeOut': '5000'
+                            });
+
+                            socket.send(JSON.stringify(
+                                    {'type': 'update-browser'}),
+                                    function (err) {
+                                if (err) console.log(err);
+                            });
+                        }
+                    });
+                }, 500);
             });
         });
 
@@ -1715,13 +1798,13 @@ var stored = {
                 // since everything is async, we have to use a deferred object.
                 // i is counting the elements being added, which resolves the
                 // deferred.
-                i = 0,
+                i   = 0,
                 def = $.Deferred();
 
                 //console.log(stored.fileArr);
                 $(stored.fileArr).each(function () {
-                    // this if statement doesn't actually work, async makes this loop
-                    // happen too quickly
+                    // this if statement doesn't actually work, async makes
+                    // this loop happen too quickly
                     if (!saved) return false;
                     var song = this;
 
@@ -1751,13 +1834,15 @@ var stored = {
                             }
 
                             saved = false;
-                            // resolves earlier because output would be the same
-                            // anyways
+                            // resolves earlier because output would be the
+                            // same anyways
                             def.resolve();
                             return console.log(err2);
                         }
 
-                        if (playlist.current == file) updatedCurrentPlaylist = true;
+                        if (playlist.current == file)
+                            updatedCurrentPlaylist = true;
+
                         if (i == stored.fileArr.length) def.resolve();
                     });
                 });
@@ -2204,7 +2289,7 @@ var pb = {
         // Option 1 sends less requests to the server, so we'll implement that.
         // Add All and Multiselect directories is still based on how fast the
         // server can respond per directory (so it can look random)
-        getAllInfo(dir, function(files) {
+        getAllInfo(dir, function (files) {
             pb.addSong(files, pos);
         });
     },
@@ -2949,9 +3034,9 @@ var video = {
 function updateAll() {
     //player.updateAll(); // inside of playlist.updateTitle
     player.updateMixer();
-    player.updateControls();
     //playlist.updateAll(); // inside of playlist.updateTitle
     //browser.update(); // done lower in the function
+    updateStats();
 
     // sometimes the socket doesn't send the vote updates,
     // this is used for that
@@ -2994,18 +3079,37 @@ komponist.once('ready', updateAll, false);
 
 komponist.on('changed', function (system) {
     console.log('changed: ' + system);
-    if (system == 'player')   player.updateAll();
-    if (system == 'mixer')    player.updateMixer();
-    if (system == 'options')  player.updateControls();
+
+    switch (system) {
+        case 'player':
+            player.updateAll();
+            break;
+
+        case 'mixer':
+            player.updateMixer();
+            break;
+
+        case 'options':
+            player.updateControls();
+            break;
+
+        case 'update':
+            browser.update();
+            updateStats();
+            break;
+
+        case 'stored_playlist':
+            stored.updatePlaylists('playlist-open-modal');
+            stored.updatePlaylists('playlist-save-modal');
+            break;
+    }
+
+    // I don't really know what's going on here (past me didn't put a comment),
+    // but I'll allow it for now
     if (system == 'playlist' && playlist.doUpdate) {
         playlist.updateAll();
     } else {
         playlist.doUpdate = true;
-    }
-    if (system == 'update')   browser.update();
-    if (system == 'stored_playlist') {
-        stored.updatePlaylists('playlist-open-modal');
-        stored.updatePlaylists('playlist-save-modal');
     }
 });
 
@@ -3030,7 +3134,7 @@ $(document).on('click', '.playlist-reload', function () {
 });
 
 // Web socket configuration
-socket.onmessage = function(event) {
+socket.onmessage = function (event) {
     if (!event.data) return;
 
     //console.log(event.data);
@@ -3042,13 +3146,13 @@ socket.onmessage = function(event) {
             vote.received = true;
             vote.clients  = msg['total-clients'];
             vote.needed   = msg['song-skip-total'];
-            vote.setTitles(msg['song-skip-previous'], 'previous');
-            vote.setTitles(msg['song-skip-next'], 'next');
+            vote.setTitles( msg['song-skip-previous'], 'previous');
+            vote.setTitles( msg['song-skip-next'], 'next');
             break;
 
         case 'init':
             playlist.updateTitle(msg['playlist-title']);
-            vote.enabled = msg['song-vote'];
+            vote .enabled = msg['song-vote'];
             video.setVolume(msg['player-volume']);
             video.setStatus(msg['player-status']);
             video.setTitle (msg['player-title']);
@@ -3066,6 +3170,13 @@ socket.onmessage = function(event) {
         case 'update-playlist':
             console.log('user update-playlist called');
             playlist.updateAll();
+            break;
+
+        case 'update-browser':
+            console.log('user update-browser called');
+            browser.doUpdate = true;
+            browser.update();
+            updateStats();
             break;
 
         case 'playlist-title':
@@ -3157,7 +3268,7 @@ socket.onmessage = function(event) {
 
         // video
         case 'download-video':
-            video.setStatus('Downloading video...');
+            video.setStatus('Downloading and converting video...');
             break;
 
         case 'download-video-title':
@@ -3218,7 +3329,7 @@ socket.onclose = function (event) {
 function retryWebSocket(attempts) {
     socket = new WebSocket('ws://' + host);
 
-    socket.onclose = function() {
+    socket.onclose = function () {
         setTimeout(function () {
             console.log('WebSocket closed, retrying...');
             // Connection has closed so try to reconnect every few seconds
@@ -3241,7 +3352,7 @@ $(window).on('beforeunload', function () {
 
 // handle back and forwards
 window.onpopstate = function (event) {
-    var url = decodeURIComponent(document.location.pathname),
+    var url    = decodeURIComponent(document.location.pathname),
         option = url.substr(1, nthOccurrence(url, '/', 2) - 1),
         folder;
 
@@ -3431,9 +3542,7 @@ function contextResponse(key, table, tr) {
             pb.addFile(fileid, 0);
 
         if (key == 'atbPlaylist') playlist.addSong(fileid);
-
         if (key == 'atbPb') pb.addFile(fileid);
-
         if (key == 'atc') playlist.addToCurrent(fileid, 'file');
     }
 }
@@ -3481,8 +3590,8 @@ $.contextMenu({
         if (!inside) {
             //console.log('updating .selected');
             playlist.clearSelected();
-            pb.clearSelected();
-            browser.clearSelected();
+            pb.      clearSelected();
+            browser. clearSelected();
         }
 
         var table = $trigger.parent().parent(),
@@ -3513,10 +3622,10 @@ $.contextMenu({
             // only on pb
              } else if (table.attr('id') == 'pb-song-list') {
                 items = {
-                    'title': {name: title},
-                    'mttPb': {name: 'Move to top of playlist buffer'},
-                    'mtbPb': {name: 'Move to bottom of playlist buffer'},
-                    'remPb': {name: 'Remove'},
+                    'title':       {name: title},
+                    'mttPb':       {name: 'Move to top of playlist buffer'},
+                    'mtbPb':       {name: 'Move to bottom of playlist buffer'},
+                    'remPb':       {name: 'Remove'},
                     'infoBrowser': {name: 'Song information'}
                 };
             }
@@ -3526,22 +3635,22 @@ $.contextMenu({
             // song is playing
             if (player.current !== null)
                 items = {
-                    'title': {name: title},
-                    'play': {name: 'Play song'},
-                    'mttPlaylist': {name: 'Move to top of playlist'},
-                    'mtc': {name: 'Move after current playing song'},
-                    'mtbPlaylist': {name: 'Move to bottom of playlist'},
-                    'remPlaylist': {name: 'Remove'},
+                    'title':        {name: title},
+                    'play':         {name: 'Play song'},
+                    'mttPlaylist':  {name: 'Move to top of playlist'},
+                    'mtc':          {name: 'Move after current playing song'},
+                    'mtbPlaylist':  {name: 'Move to bottom of playlist'},
+                    'remPlaylist':  {name: 'Remove'},
                     'infoPlaylist': {name: 'Song information'}
                 };
             // song is not playing
             else if (player.current === null)
                 items = {
-                    'title': {name: title},
-                    'play': {name: 'Play song'},
-                    'mttPlaylist': {name: 'Move to top of playlist'},
-                    'mtbPlaylist': {name: 'Move to bottom of playlist'},
-                    'remPlaylist': {name: 'Remove'},
+                    'title':        {name: title},
+                    'play':         {name: 'Play song'},
+                    'mttPlaylist':  {name: 'Move to top of playlist'},
+                    'mtbPlaylist':  {name: 'Move to bottom of playlist'},
+                    'remPlaylist':  {name: 'Remove'},
                     'infoPlaylist': {name: 'Song information'}
                 };
         }
@@ -3550,15 +3659,15 @@ $.contextMenu({
             // song is playing
             if (player.current !== null)
                 items = {
-                    'title': {name: title},
+                    'title':       {name: title},
                     'attPlaylist': {name: 'Add to top of playlist'},
-                    'atc': {name: 'Add after current playing song'},
+                    'atc':         {name: 'Add after current playing song'},
                     'atbPlaylist': {name: 'Add to bottom of playlist'}
                 };
             // song is not playing
             else if (player.current === null)
                 items = {
-                    'title': {name: title},
+                    'title':       {name: title},
                     'attPlaylist': {name: 'Add to top of playlist'},
                     'atbPlaylist': {name: 'Add to bottom of playlist'}
                 };

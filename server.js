@@ -47,7 +47,7 @@ function getHostname(ip, callback) {
         // first hostname as a string
         if (!hostname || hostname.length === 0) {
             // in case response is not an array
-            hostname = [];
+            hostname    = [];
             hostname[0] = ip;
         }
         //console.log('hostname: ' + hostname[0]);
@@ -72,7 +72,7 @@ var video = {
     // TODO check if file already exists
     download: function (url) {
         io.broadcast(JSON.stringify({'type': 'download-video'}));
-        this.msg    = 'Downloading...';
+        this.msg    = 'Downloading and converting video...';
         this.paused = false;
         var option  = ['-x', '--audio-format', 'mp3'];
 
@@ -204,7 +204,7 @@ var video = {
         this.msg = 'Stopped...';
         this.player.stop();
         this.playing = false;
-        this.paused = false;
+        this.paused  = false;
     },
 
     setVolume: function (volume) {
@@ -396,17 +396,26 @@ fs.readFile('config.cfg', function (err, data) {
     if (video.enabled) {
         Player    = require('player');
         youtubedl = require('youtube-dl');
+        // tilde is only here because the Player is the only thing using a
+        // custom dir.
+        var tilde = require('expand-tilde');
+        video.directory = tilde(video.directory);
 
         fs.mkdir(video.directory, function (err) {
             // ignore exists error
-            if (err && err.code != 'EEXIST') {
-                console.log('!!! Error creating a directory for the ' +
-                    'Download Player, disabling...');
-                video.enabled = false;
-                console.log(err);
-            } else if (!err) {
-                console.log('Creating directory for the Download Player: ' +
-                    video.directory);
+            if (err) {
+                if (err.code == 'EEXIST') {
+                    console.log('Using directory for the ' +
+                        'Download Player: ' + video.directory);
+                } else {
+                    console.log('!!! Error creating a directory for the ' +
+                        'Download Player, disabling...');
+                    video.enabled = false;
+                    console.log(err);
+                }
+            } else {
+                console.log('Creating directory for the ' +
+                    'Download Player: ' + video.directory);
             }
         });
     }
@@ -428,7 +437,6 @@ fs.readFile('config.cfg', function (err, data) {
         }
 
         console.log('Connected to MPD!');
-
         setSong(client);
 
         client.on('changed', function (system) {
@@ -608,7 +616,7 @@ io.on('connection', function (socket) {
         switch(msg.type) {
             case 'playlist-title':
                 // sends the new playlist title to the other users
-                console.log('Got new title');
+                console.log('Sending new title of the playlist to all clients.');
                 playlisttitle = msg.info;
                 io.broadcast(JSON.stringify(
                     {'type': 'playlist-title', 'info': msg.info}));
@@ -620,15 +628,21 @@ io.on('connection', function (socket) {
                 break;
 
             case 'clear-playlist':
-                console.log('playlist-cleared');
+                console.log('Clearing the playlist for all clients.');
                 io.broadcast(JSON.stringify({'type': 'clear-playlist'}));
                 break;
 
             case 'update-playlist':
                 // used for updating the playlist when the client removes the
                 // currently playing song
-                console.log('update-playlist');
+                console.log('Updating the playlist for all clients.');
                 io.broadcast(JSON.stringify({'type': 'update-playlist'}));
+                break;
+
+            case 'update-browser':
+                // used for updating the browser after updaing the database
+                console.log('Updating the browser for all clients.');
+                io.broadcast(JSON.stringify({'type': 'update-browser'}));
                 break;
 
             case 'song-next':
@@ -734,7 +748,7 @@ io.on('connection', function (socket) {
                 break;
 
             case 'playlist-reload':
-                console.log('got reload request');
+                console.log('Reloading the playlist for all clients.');
                 mpd.clear();
                 mpd.load(msg.info);
                 io.broadcast(JSON.stringify(
