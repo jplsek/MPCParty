@@ -1,6 +1,6 @@
 {
   "name": "MPCParty",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Another MPC web client meant for multi-user usage.",
   "main": "server.js",
   "author": "Jeremy Plsek",

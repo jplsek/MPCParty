@@ -13,6 +13,7 @@ TODO
     * Save pb on refresh with storage api?
     * Sharing with other users? (utilize users object?)
     * Page support
+    * Searching
 * Browser:
     * Drag and drop from browser to playlist:
         * Making tr smaller while dragging >>> jquery sortable dragged item was not under cursor when changing the width (using .ui-sortable-helper to change the width)
@@ -44,6 +45,7 @@ TODO
 * It seems crashing is due to refreshing too many times?
 * Loading a theme will add another "theme load" every time.
 * Webkit: resizing pb makes the values "inverted". http://codepen.io/anon/pen/VeWwLa
+* Drag and drop inside multiselection is still a buggy
 
 ---
 

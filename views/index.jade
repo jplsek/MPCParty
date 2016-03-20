@@ -317,6 +317,15 @@ html
                                 span.glyphicon.glyphicon-repeat
                             button#remove-duplicates.btn.btn-default(title='Remove duplicate songs from the playlist based on the title')
                                 span.glyphicon.glyphicon-fire
+                            button#playlist-search-toggle.btn.btn-default(type='button')
+                                span.glyphicon.glyphicon-search
+                #playlist-search.none
+                    form(autocomplete='off')
+                        .input-group
+                            input#search-playlist.form-control(type='text', placeholder='Search playlist...')
+                            span.input-group-btn
+                                button#search-playlist-clear.btn.btn-default(type='button')
+                                    span.glyphicon.glyphicon-remove
                 #pslwrap
                     table#playlist-song-list.table.table-hover
                         tbody.append.connected

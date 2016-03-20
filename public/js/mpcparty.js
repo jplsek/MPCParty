@@ -500,11 +500,11 @@ var player = {
             if (e.keyCode == 13) {
                 var searchVal = $('#search-browser').val();
                 //console.log('attempting searching for ' + searchVal);
-                if (searchVal && searchVal != lastVal) {
+                if (searchVal === '') {
+                    browser.update();
+                } else {
                     browser.search(searchVal);
                     lastVal = searchVal;
-                } else if (searchVal === '') {
-                    browser.update();
                 }
             }
         });
@@ -527,6 +527,10 @@ var playlist = {
     selected: [],
     // add pulse effect on next update
     toPulse: [],
+    // check if searching as to keep search while updating
+    isSearching: false,
+    // current search term
+    searchTerm: '',
 
     // used to update the current playlist
     updateAll: function () {
@@ -535,39 +539,44 @@ var playlist = {
         // reset list
         playlist.list = {files: [], positions: []};
 
-        komponist.playlistinfo(function (err, playlistLoad) {
-            $('#playlist-title strong').html(playlist.current);
-            $('#playlist-title strong').attr('title', playlist.current);
+        if (this.isSearching) {
+            playlist.search();
+        } else {
+            komponist.playlistinfo(function (err, playlistLoad) {
+                $('#playlist-title strong').html(playlist.current);
+                $('#playlist-title strong').attr('title', playlist.current);
 
-            if (err) return console.log(err);
+                if (err) return console.log(err);
 
-            $('#playlist-song-list .gen').remove();
-            playlist.local = playlistLoad;
+                $('#playlist-song-list .gen').remove();
+                playlist.local = playlistLoad;
 
-            if (Array.isArray(playlistLoad) && $.isEmptyObject(playlistLoad[0])) {
-                var html = '<tr class="gen"><td><em>Empty playlist</em></td></tr>';
-                $('#playlist-song-list').append(html);
-                // fix for removing the last song that's
-                // playling from the playlist
-                playlist.doUpdate = true;
-                player.updateAll();
-                pages.update('playlist');
-                browser.updatePosition();
-                return console.log('Empty playlist');
-            }
+                if (Array.isArray(playlistLoad) &&
+                        $.isEmptyObject(playlistLoad[0])) {
+                    var html = '<tr class="gen"><td><em>Empty playlist</em></td></tr>';
+                    $('#playlist-song-list').append(html);
+                    // fix for removing the last song that's
+                    // playling from the playlist
+                    playlist.doUpdate = true;
+                    player.updateAll();
+                    pages.update('playlist');
+                    browser.updatePosition();
+                    return console.log('Empty playlist');
+                }
 
-            // TODO figure out a way to use playlist.local efficiently with
-            // browser.updatePlaylist instead of utilizing playlist.list
-            $(playlist.local).each(function (item, value) {
-                playlist.list.files.push(value.file);
-                playlist.list.positions.push(value.Pos);
+                // TODO figure out a way to use playlist.local efficiently with
+                // browser.updatePlaylist instead of utilizing playlist.list
+                $(playlist.local).each(function (item, value) {
+                    playlist.list.files.push(value.file);
+                    playlist.list.positions.push(value.Pos);
+                });
+
+                playlist.updateLocal(function () {
+                    // fixes issues such as the last song not updating the player;
+                    player.updateAll();
+                });
             });
-
-            playlist.updateLocal(function () {
-                // fixes issues such as the last song not updating the player;
-                player.updateAll();
-            });
-        });
+        }
     },
 
     updateLocal: function (callback) {
@@ -660,15 +669,22 @@ var playlist = {
             update: function (e, ui) {
                 //console.log(pages.currentPlaylist);
                 //console.log(ui.item.index());
-                var newIndex = ui.item.index() +
-                    (pages.maxPlaylist * (pages.currentPlaylist - 1)),
-                    file;
+                // grabs the item that used to be in that position.
+                // grabs the pos as newIndex
+                var newPos = $('#playlist-song-list .gen').
+                        eq(ui.item.index() + 1).data().pos;
+
+                var oldPos = $('#playlist-song-list .gen').
+                        eq(ui.item.index()).data().pos;
+
+                if (oldPos < newPos)
+                    newPos--;
 
                 // dragged from browser
                 if (ui.sender) {
-                    playlist.fromSender(ui, newIndex);
+                    playlist.fromSender(ui, newPos);
                 } else {
-                    playlist.fromSelf(ui, newIndex);
+                    playlist.fromSelf(ui, newPos);
                 }
             },
         }).disableSelection();
@@ -1142,6 +1158,49 @@ var playlist = {
         });
     },
 
+    search: function (val) {
+        if (!val)
+            val = playlist.searchTerm;
+        else
+            playlist.searchTerm = val;
+
+        // set to true (in case of after clicking clear)
+        this.isSearching = true;
+
+        komponist.playlistsearch('any', val, function(err, response) {
+            if (err) return console.log(err);
+
+            //console.log(response);
+
+            $('#playlist-song-list .gen').remove();
+            playlist.local = response;
+
+            if (Array.isArray(response) && $.isEmptyObject(response[0])) {
+                var html = '<tr class="gen"><td><em>No songs found</em></td></tr>';
+                $('#playlist-song-list').append(html);
+                // fix for removing the last song that's
+                // playling from the playlist
+                playlist.doUpdate = true;
+                player.updateAll();
+                pages.update('playlist');
+                browser.updatePosition();
+                return console.log('No songs found in playlist search');
+            }
+
+            // TODO figure out a way to use playlist.local efficiently with
+            // browser.updatePlaylist instead of utilizing playlist.list
+            $(playlist.local).each(function (item, value) {
+                playlist.list.files.push(value.file);
+                playlist.list.positions.push(value.Pos);
+            });
+
+            playlist.updateLocal(function () {
+                // fixes issues such as the last song not updating the player;
+                player.updateAll();
+            });
+        });
+    },
+
     initEvents: function () {
         $('#new-playlist').click(function () { pb.newLocal(); });
 
@@ -1189,6 +1248,77 @@ var playlist = {
             komponist.clear(function (err) {
                 if (err) console.log(err);
             });
+        });
+
+        $('#playlist-search-toggle').click(function () {
+            if ($('#playlist-search-toggle').hasClass('active')) {
+                $('#playlist-search-toggle').removeClass('active');
+                $('#playlist-search').hide();
+                playlist.isSearching = false;
+                $('#search-playlist').val('');
+                lastVal = '';
+                playlist.searchTerm = '';
+                playlist.updateAll();
+            } else {
+                $('#playlist-search-toggle').addClass('active');
+                $('#playlist-search').show();
+                $('#search-playlist').focus();
+                playlist.isSearching = true;
+            }
+        });
+
+        // searching the database, instant searching is "slowed"
+        // for better client and server performance
+        var searchInterval;
+        var lastVal = '';
+        $('#search-playlist').focus(function () {
+            // makes the instant search not as instant (instead of
+            // relying on every keyUp)
+            searchInterval = setInterval(function () {
+                var searchVal = $('#search-playlist').val();
+                //console.log('attempting searching for ' + searchVal);
+                if (searchVal && searchVal != lastVal) {
+                    playlist.search(searchVal);
+                    lastVal = searchVal;
+                } else if (searchVal === '' && lastVal !== '') {
+                    playlist.updateLocal();
+                }
+            }, 3000);
+        });
+
+        $('#search-playlist').focusout(function () {
+            clearInterval(searchInterval);
+            var searchVal = $('#search-playlist').val();
+            if (searchVal === '' && lastVal !== '') {
+                lastVal = '';
+                // to not confuse the user
+                playlist.isSearching = false;
+                playlist.updateAll();
+            }
+        });
+
+        $('#search-playlist-clear').click(function () {
+            //console.log('clearing search');
+            $('#search-playlist').val('');
+            $('#search-playlist').focus();
+            // to not confuse the user
+            playlist.isSearching = false;
+            lastVal = '';
+            playlist.updateAll();
+        });
+
+        // detect enter key
+        $('#search-playlist').keyup(function (e) {
+            if (e.keyCode == 13) {
+                var searchVal = $('#search-playlist').val();
+                //console.log('attempting searching for ' + searchVal);
+                if (searchVal === '') {
+                    playlist.updateAll();
+                } else {
+                    playlist.search(searchVal);
+                    lastVal = searchVal;
+                }
+            }
         });
 
         $(document).on('click', '.song-remove', function () {
@@ -1246,10 +1376,9 @@ var browser = {
         if ((!poppedState && this.previous != this.current) ||
                 (!poppedState && this.searching)) {
             this.searching = false;
-            if (this.current == '/') {
-                console.log('adding ' + this.current + ' to history');
-                window.history.pushState('', this.current + ' - MPCParty',
-                    this.current);
+            if (this.current == '/' || this.current === '') {
+                console.log('adding / to history');
+                window.history.pushState('', 'MPCParty', '/');
             } else {
                 console.log('adding /browser/' + this.current + ' to history');
                 window.history.pushState('', this.current + ' - MPCParty',
@@ -1411,23 +1540,23 @@ var browser = {
             if (player.current) {
                 $('#title-pos').html((parseInt(player.current.Pos) + 1) + '. ');
             }
+        });
 
-            $.each(tr, function (name, element) {
-                if (!$(element).hasClass('file')) return true;
+        $.each(tr, function (name, element) {
+            if (!$(element).hasClass('file')) return true;
 
-                var fileid = $(element).data().fileid,
-                    icon   = '',
-                    index  = playlist.list.files.indexOf(fileid);
+            var fileid = $(element).data().fileid,
+            icon   = '',
+            index  = playlist.list.files.indexOf(fileid);
 
-                if (index != -1) {
-                    icon = (parseInt(playlist.list.positions[index]) + 1) + '.';
-                    $(element).children('.pos').html(icon);
-                } else {
-                    icon = '<span class="text-primary glyphicon glyphicon-file">' +
-                        '</span>';
-                    $(element).children('.pos').html(icon);
-                }
-            });
+            if (index != -1) {
+                icon = (parseInt(playlist.list.positions[index]) + 1) + '.';
+                $(element).children('.pos').html(icon);
+            } else {
+                icon = '<span class="text-primary glyphicon glyphicon-file">' +
+                    '</span>';
+                $(element).children('.pos').html(icon);
+            }
         });
     },
 
@@ -3115,6 +3244,7 @@ komponist.on('changed', function (system) {
 
 // misc events
 $(document).on('click', '.stop-click-event', function (event) {
+    // stop bootstrap from closing the dropdown
     event.stopPropagation();
 });
 
