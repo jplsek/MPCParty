@@ -83,7 +83,6 @@ $.fn.sortColumn = function (options) {
 	        }
 
 	        if (format=='string') {
-
                 // in case of bad values
                 if (!dataA && !dataB)
                     return 0;
@@ -121,8 +120,8 @@ $.fn.sortColumn = function (options) {
                 var minA = parseInt(numsA[0]);
                 var minB = parseInt(numsB[0]);
 
-                var secA = (minA * 60) + secA;
-                var secB = (minB * 60) + secB;
+                secA = (minA * 60) + secA;
+                secB = (minB * 60) + secB;
 
                 return secA - secB;
             }

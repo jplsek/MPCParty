@@ -127,6 +127,15 @@ html
                     .modal-footer
                         button.btn.btn-default(type='button', data-dismiss='modal') Close
 
+        mixin playlists
+            table.playlists.table.table-hover
+                thead: tr
+                    th.col-playlists-title Title
+                    th.col-playlists-songs Songs
+                    th
+                tbody.append
+
+
         #playlist-open-modal.modal.fade(tabindex='-1')
             .modal-dialog
                 .modal-content
@@ -135,7 +144,7 @@ html
                             span ×
                         h4.modal-title Open playlist
                     .modal-body
-                        table.playlists.table.table-hover: tbody
+                        +playlists
                     .modal-footer
                         button.btn.btn-default(type='button', data-dismiss='modal') Cancel
                         button#playlist-open-confirm.btn.btn-primary(type='button', data-dismiss='modal') Open
@@ -150,7 +159,7 @@ html
                     .modal-body
                         input#playlist-save-input.form-control(type='text', placeholder='Enter new playlist name')
                         br
-                        table.playlists.table.table-hover: tbody
+                        +playlists
                     .modal-footer
                         button.btn.btn-default(type='button', data-dismiss='modal') Cancel
                         button#playlist-save-confirm.btn.btn-primary(type='button', data-dismiss='modal') Save
@@ -270,14 +279,13 @@ html
                                     | Add All
                 #slwrap
                     table#song-list.table.table-hover
-                        thead
-                            tr
-                                th#col-number #
-                                th#col-title Title
-                                th#col-artist Artist
-                                th#col-album Album
-                                th#col-time Time
-                                th
+                        thead: tr
+                            th#col-number #
+                            th#col-title Title
+                            th#col-artist Artist
+                            th#col-album Album
+                            th#col-time Time
+                            th
                         tbody.append.connected
                 #browser-pages.pages.navbar.navbar-default
                     button.btn.btn-default.first(title='Go to first page')

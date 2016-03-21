@@ -201,6 +201,15 @@ function updateStats() {
     });
 }
 
+// sometimes when komponist returns a length 0 or 1 item, it returns an object
+// instead of any array. This is used to fix that. (less need for jquery.each)
+function toArray(obj) {
+    if (!Array.isArray(obj))
+        return [obj];
+    else
+        return obj;
+}
+
 // the header with music controls
 var player = {
     // current song to highlight the playlist
@@ -551,8 +560,7 @@ var playlist = {
                 $('#playlist-song-list .gen').remove();
                 playlist.local = playlistLoad;
 
-                if (Array.isArray(playlistLoad) &&
-                        $.isEmptyObject(playlistLoad[0])) {
+                if ($.isEmptyObject(playlistLoad[0])) {
                     var html = '<tr class="gen"><td><em>Empty playlist</em></td></tr>';
                     $('#playlist-song-list').append(html);
                     // fix for removing the last song that's
@@ -566,10 +574,10 @@ var playlist = {
 
                 // TODO figure out a way to use playlist.local efficiently with
                 // browser.updatePlaylist instead of utilizing playlist.list
-                $(playlist.local).each(function (item, value) {
-                    playlist.list.files.push(value.file);
-                    playlist.list.positions.push(value.Pos);
-                });
+                for (var i in playlist.local) {
+                    playlist.list.files.push(playlist.local[i].file);
+                    playlist.list.positions.push(playlist.local[i].Pos);
+                }
 
                 playlist.updateLocal(function () {
                     // fixes issues such as the last song not updating the player;
@@ -601,15 +609,16 @@ var playlist = {
 
         //console.log(end);
 
-        $(playlist.local).each(function (item, value) {
-            //console.log(item);
+        for (var i in playlist.local) {
+            var value = playlist.local[i];
             //console.log(value.file);
 
+            // show only necessary files
             if (pages.enabledPlaylist) {
-                if (item < start)
-                    return true; // continue
-                else if (item >= end)
-                    return false; // break
+                if (i < start)
+                    continue;
+                else if (i >= end)
+                    break;
             }
 
             var title =
@@ -622,18 +631,18 @@ var playlist = {
                 current += ' bg-success';
 
             if (settings.pulse)
-                for (var i in playlist.toPulse) {
-                    if (playlist.toPulse[i] == value.Id) {
+                for (var j in playlist.toPulse) {
+                    if (playlist.toPulse[j] == value.Id) {
                         // pulses twice because of lag
                         current += ' pulse2';
                         break;
                     }
                 }
-            //console.log(item + ': start');
+            //console.log(i + ': start');
 
             html += '<tr class="drag context-menu ' + current + '" title="' + title + '" data-fileid="' + value.Id + '" data-file="' + value.file + '" data-pos="' + value.Pos +  '"><td class="playlist-song-list-icons"><span class="glyphicon glyphicon-play song-play faded text-success" title="Play song"></span>' + (parseInt(value.Pos) + 1) + '.</td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><span class="song-remove faded text-danger glyphicon glyphicon-remove" title="Remove song from playlist"></span></td></tr>';
 
-        });
+        }
 
         playlist.toPulse = [];
 
@@ -748,7 +757,7 @@ var playlist = {
                 // location
                 if (pos > newIndex) {
                     index = newIndex + item;
-                    console.log('dragged playlist: ' + file + ' to ' + index);
+                    //console.log('dragged playlist: ' + file + ' to ' + index);
                     komponist.moveid(file, index, function (err) {
                         if (err) console.log(err);
                     });
@@ -756,7 +765,7 @@ var playlist = {
                     // else if original location is about the
                     // "move to" location
                     index = newIndex;
-                    console.log('dragged playlist: ' + file + ' to ' + index);
+                    //console.log('dragged playlist: ' + file + ' to ' + index);
                     komponist.moveid(file, index, function (err) {
                         if (err) console.log(err);
                     });
@@ -767,7 +776,7 @@ var playlist = {
         } else {
             file = ui.item.data().fileid;
             playlist.toPulse.push(file);
-            console.log('dragged playlist: ' + file + ' to ' + newIndex);
+            //console.log('dragged playlist: ' + file + ' to ' + newIndex);
             komponist.moveid(file, newIndex, function (err) {
                 if (err) console.log(err);
             });
@@ -1175,7 +1184,7 @@ var playlist = {
             $('#playlist-song-list .gen').remove();
             playlist.local = response;
 
-            if (Array.isArray(response) && $.isEmptyObject(response[0])) {
+            if ($.isEmptyObject(response[0])) {
                 var html = '<tr class="gen"><td><em>No songs found</em></td></tr>';
                 $('#playlist-song-list').append(html);
                 // fix for removing the last song that's
@@ -1419,8 +1428,9 @@ var browser = {
             $('#song-list .gen').remove();
             browser.localFolders = [];
             browser.localFiles = [];
+            files = toArray(files);
 
-            if (!Array.isArray(files) && $.isEmptyObject(files)) {
+            if (files.length === 0) {
                 html = '<tr class="directory gen"><td colspan="6">' +
                     '<em>Empty directory</em></td></tr>';
                 $('#song-list').append(html);
@@ -1430,16 +1440,16 @@ var browser = {
 
             var html = '';
 
-            $(files).each(function (item, value) {
-                html = browser.getHtmlFolders(value);
+            for (i in files) {
+                html = browser.getHtmlFolders(files[i]);
 
                 if (html !== '')
                     browser.localFolders.push(html);
                 else {
-                    html = browser.getHtmlFiles(value);
+                    html = browser.getHtmlFiles(files[i]);
                     if (html !== '') browser.localFiles.push(html);
                 }
-            });
+            }
 
             browser.updateLocal();
         });
@@ -1460,7 +1470,7 @@ var browser = {
             browser.localFiles = [];
             var html;
 
-            if (Array.isArray(files) && $.isEmptyObject(files[0])) {
+            if ($.isEmptyObject(files[0])) {
                 html = '<tr class="directory gen"><td colspan="6">' +
                     '<em>No songs found</em></td></tr>';
                 $('#song-list').append(html);
@@ -1470,12 +1480,12 @@ var browser = {
 
             html = '';
 
-            $(files).each(function (item, value) {
-                html = browser.getHtmlFiles(value);
+            for (var i in files) {
+                html = browser.getHtmlFiles(files[i]);
 
                 if (html !== '')
                     browser.localFiles.push(html);
-            });
+            }
 
             if (!poppedState) {
                 console.log('pushing history search');
@@ -1669,30 +1679,31 @@ var browser = {
         console.log('add all songs from ' + browser.current);
 
         if (browser.searching) {
-            komponist.search('any', browser.searchTerm,
-                    function (err, files) {
-                        if (err) return console.log(err);
+            komponist.search('any', browser.searchTerm, function (err, files) {
+                if (err) return console.log(err);
 
-                        if (Array.isArray(files) && $.isEmptyObject(files[0])) {
-                            return console.log('No songs found');
-                        }
+                if ($.isEmptyObject(files[0])) {
+                    return console.log('No songs found');
+                }
 
-                        $(files).each(function (item, value) {
-                            if (pb.current !== null)
-                                pb.addSong(value.file);
-                            else
-                                komponist.add(value.file, function (err) {
-                                    if (err) console.log(err);
-                                });
+                if (pb.current !== null)
+                    pb.addSong(files);
+                else
+                    $(files).each(function (item, value) {
+                        komponist.add(value.file, function (err) {
+                            if (err) console.log(err);
                         });
                     });
+            });
         } else {
             komponist.lsinfo(browser.current, function (err, files) {
                 //console.log(files);
 
                 if (err) return console.log(err);
 
-                if (!Array.isArray(files) && $.isEmptyObject(files)) {
+                files = toArray(files);
+
+                if (files.length === 0) {
                     return console.log('Empty directory');
                 }
 
@@ -1836,6 +1847,12 @@ var stored = {
     call: null,
     // current is used to tell what the save operation is (native being mpd)
     current: 'native',
+    // whether to update the list
+    doUpdate: true,
+    // total number of places that update(id) is used (for doUpdate)
+    // may be changed in the future to be more dynamic
+    totalIds: 2,
+    currentId: 0,
 
     // used show all playlists
     // fileArr is used when saving the playlist externally after clicking save
@@ -1848,9 +1865,18 @@ var stored = {
                 this.fileArr = type;
                 this.current = 'fileids';
             }
+        } else if (!this.doUpdate) {
+            if (++this.currentId >= this.totalIds) {
+                this.doUpdate = true;
+                this.currentId = 0;
+            }
+
+            return;
         } else {
             this.current = 'native';
         }
+
+        console.log('update stored playlists table');
 
         komponist.listplaylists(function (err, playlists) {
             //console.log(id + ':');
@@ -1875,23 +1901,37 @@ var stored = {
             $('#' + id +' .modal-body .gen').remove();
 
             var html = '';
-            if (!Array.isArray(playlists) && $.isEmptyObject(playlists)) {
+
+            if (!Array.isArray(playlists))
+                playlists = [playlists];
+
+            if (playlists.length === 0) {
                 html = '<em class="gen">No saved playlists</em>';
                 $('#' + id +' .modal-body').append(html);
                 return console.log('No playlists');
             }
 
+            var i = 0;
             $(playlists).each(function (item, value) {
-                value.playlist = value.playlist.replace(/ /g, '\u00a0');
-                html += '<tr class="gen" data-fileid="' + value.playlist + '"><td>' + value.playlist + '</td><td class="text-right"><span class="faded playlist-remove text-danger glyphicon glyphicon-remove" data-fileid="' + value.playlist + '"></span></td>';
+                komponist.listplaylist(value.playlist, function (err, songs) {
+                    if (err) console.log(err);
+
+                    if (!Array.isArray(songs))
+                        songs = [songs];
+
+                    value.playlist = value.playlist.replace(/ /g, '\u00a0');
+                    html += '<tr class="gen" data-fileid="' + value.playlist + '"><td>' + value.playlist + '</td><td>' + songs.length + '</td><td class="text-right"><span class="faded playlist-remove text-danger glyphicon glyphicon-remove" data-fileid="' + value.playlist + '"></span></td>';
+                    if (++i == playlists.length) {
+                        $('#' + id +' .playlists tbody').append(html);
+                    }
+                });
             });
-            $('#' + id +' .playlists tbody').append(html);
         });
     },
 
     // save the playlist. Wrapper for komponist.save()
     save: function (file) {
-        file = file.trim().replace(/\u00a0/g, " ");
+        file = file.toString().trim().replace(/\u00a0/g, " ");
         var msg = '';
 
         if (this.current == 'fileids') {
@@ -2125,7 +2165,7 @@ var stored = {
 
     // open the playlist. Wrapper for komponist.open()
     open: function (file) {
-        file = file.replace(/\u00a0/g, " ");
+        file = file.toString().replace(/\u00a0/g, " ");
         if (this.call !== null) {
             console.log('calling fn..');
             this.call(file);
@@ -2154,7 +2194,7 @@ var stored = {
     },
 
     initEvents: function () {
-        $(document).on('click', '.playlists tr', function () {
+        $(document).on('click', '.playlists .gen', function () {
             console.log('select playlist');
             // bg to td instead of tr because of override
             $('.playlists td').removeClass('bg-primary');
@@ -2164,24 +2204,41 @@ var stored = {
         });
 
         $(document).on('click', '.playlist-remove', function () {
-            var file = $(this).data().fileid.replace(/\u00a0/g, " ");
+            var file = $(this).data().fileid.replace(/\u00a0/g, " "),
+                that = this;
+
+            // client side deletion, less jaring (stops flashing the list)
+            stored.doUpdate = false;
+
             komponist.rm(file, function (err) {
-                if (err) console.log(err);
+                if (err) {
+                    toastr.error(err, 'Error removing playlist!', {
+                        'closeButton': true,
+                        'positionClass': 'toast-bottom-left',
+                        'preventDuplicates': true,
+                        'timeOut': '-1',
+                        'extendedTimeOut': '-1'
+                    });
+                    history.add(err, 'danger');
+                    console.log(err);
+                } else {
+                    $(that).parent().parent().remove();
+                }
             });
             console.log('delete playlist ' + file);
         });
 
-        $(document).on('dblclick', '#playlist-open-modal tr', function () {
+        $(document).on('dblclick', '#playlist-open-modal .gen', function () {
             var file = $(this).data().fileid;
             stored.open(file);
         });
 
-        $(document).on('dblclick', '#playlist-save-modal tr', function () {
+        $(document).on('dblclick', '#playlist-save-modal .gen', function () {
             var file = $('#playlist-save-input').val();
             stored.save(file);
         });
 
-        $(document).on('click', '#playlist-save-modal tr', function () {
+        $(document).on('click', '#playlist-save-modal .gen', function () {
             console.log('appending playlist to text');
             var file = $(this).data().fileid;
             $('#playlist-save-input').val(file);
@@ -2276,11 +2333,11 @@ var pb = {
         //console.log(file);
 
         if (Array.isArray(file)) {
-            $(file).each(function (item, value) {
-                title = getSimpleTitle(value.Title, value.Artist,
-                    value.file);
-                html += pb.getHtml(title, value.file);
-            });
+            for (var i in file) {
+                title = getSimpleTitle(file[i].Title, file[i].Artist,
+                    file[i].file);
+                html += pb.getHtml(title, file[i].file);
+            }
         } else {
             title = getSimpleTitle(file.Title, file.Artist, file.file);
             html = pb.getHtml(title, file.file);
@@ -3505,16 +3562,12 @@ var sortOrder1='asc';
 $(document).on('click', '#col-number', function () {
     if (sortOrder1=='asc') {
         $('#song-list').sortColumn({
-            index: 1,
-            order: 'desc',
-            format: 'number'
+            index: 1, order: 'desc', format: 'number'
         });
         sortOrder1='desc';
     } else {
         $('#song-list').sortColumn({
-            index: 1,
-            order: 'asc',
-            format: 'number'
+            index: 1, order: 'asc', format: 'number'
         });
         sortOrder1='asc';
     }
@@ -3524,16 +3577,12 @@ var sortOrder2='asc';
 $(document).on('click', '#col-title', function () {
     if (sortOrder2=='asc') {
         $('#song-list').sortColumn({
-            index: 2,
-            order: 'desc',
-            format: 'string'
+            index: 2, order: 'desc', format: 'string'
         });
         sortOrder2='desc';
     } else {
         $('#song-list').sortColumn({
-            index: 2,
-            order: 'asc',
-            format: 'string'
+            index: 2, order: 'asc', format: 'string'
         });
         sortOrder2='asc';
     }
@@ -3543,16 +3592,12 @@ var sortOrder3='asc';
 $(document).on('click', '#col-artist', function () {
     if (sortOrder3=='asc') {
         $('#song-list').sortColumn({
-            index: 3,
-            order: 'desc',
-            format: 'string'
+            index: 3, order: 'desc', format: 'string'
         });
         sortOrder3='desc';
     } else {
         $('#song-list').sortColumn({
-            index: 3,
-            order: 'asc',
-            format: 'string'
+            index: 3, order: 'asc', format: 'string'
         });
         sortOrder3='asc';
     }
@@ -3562,16 +3607,12 @@ var sortOrder4='asc';
 $(document).on('click', '#col-album', function () {
     if (sortOrder4=='asc') {
         $('#song-list').sortColumn({
-            index: 4,
-            order: 'desc',
-            format: 'string'
+            index: 4, order: 'desc', format: 'string'
         });
         sortOrder4='desc';
     } else {
         $('#song-list').sortColumn({
-            index: 4,
-            order: 'asc',
-            format: 'string'
+            index: 4, order: 'asc', format: 'string'
         });
         sortOrder4='asc';
     }
@@ -3581,18 +3622,76 @@ var sortOrder5='asc';
 $(document).on('click', '#col-time', function () {
     if (sortOrder5=='asc') {
         $('#song-list').sortColumn({
-            index: 5,
-            order: 'desc',
-            format: '00:00'
+            index: 5, order: 'desc', format: '00:00'
         });
         sortOrder5='desc';
     } else {
         $('#song-list').sortColumn({
-            index: 5,
-            order: 'asc',
-            format: '00:00'
+            index: 5, order: 'asc', format: '00:00'
         });
         sortOrder5='asc';
+    }
+});
+
+// playlists table sorting
+// separate for open and save because of duplication issues
+var sortOrder6='asc';
+$(document).on('click', '#playlist-open-modal .col-playlists-title', function () {
+    if (sortOrder6=='asc') {
+        $('#playlist-open-modal table').sortColumn({
+            index: 1, order: 'desc', format: 'string'
+        });
+        sortOrder6='desc';
+    } else {
+        $('#playlist-open-modal table').sortColumn({
+            index: 1, order: 'asc', format: 'string'
+        });
+        sortOrder6='asc';
+    }
+});
+
+var sortOrder7='asc';
+$(document).on('click', '#playlist-open-modal .col-playlists-songs', function () {
+    if (sortOrder7=='asc') {
+        $('#playlist-open-modal table').sortColumn({
+            index: 2, order: 'desc', format: 'number'
+        });
+        sortOrder7='desc';
+    } else {
+        $('#playlist-open-modal table').sortColumn({
+            index: 2, order: 'asc', format: 'number'
+        });
+        sortOrder7='asc';
+    }
+});
+
+var sortOrder8='asc';
+$(document).on('click', '#playlist-save-modal .col-playlists-title', function () {
+    if (sortOrder8=='asc') {
+        $('#playlist-save-modal table').sortColumn({
+            index: 1, order: 'desc', format: 'string'
+        });
+        sortOrder8='desc';
+    } else {
+        $('#playlist-save-modal table').sortColumn({
+            index: 1, order: 'asc', format: 'string'
+        });
+        sortOrder8='asc';
+    }
+});
+
+var sortOrder9='asc';
+$(document).on('click', '#playlist-save-modal .col-playlists-songs', function () {
+    if (sortOrder9=='asc') {
+        $('#playlist-save-modal table').sortColumn({
+            index: 2, order: 'desc', format: 'number'
+        });
+        sortOrder9='desc';
+    } else {
+        $('#playlist-save-modal table').sortColumn({
+            index: 2, order: 'asc', format: 'number'
+        });
+        sortOrder9='asc';
     }
 });
 
