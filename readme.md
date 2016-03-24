@@ -78,7 +78,7 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 * Download the latest release from the GitHub [releases](https://github.com/jplsek/MPCParty/releases) page.
 
 ### 2) Development version (should be stable)
-* Install `npm`, `build-essential`, `libav-tools`, `libasound2`, and `libasound2-dev` depending on your distribution.
+* Install `npm`, `bower`, `build-essential`, `libav-tools`, `libasound2`, and `libasound2-dev` depending on your distribution.
 * Clone this repository (`git clone https://github.com/jplsek/MPCParty`)
 * Run `npm install` from the project's directory (to install all the libraries)
 * If there are errors, you may need to install `nodejs-legacy`, and reinstall the libraries with `npm install`

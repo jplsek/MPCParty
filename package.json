@@ -6,22 +6,18 @@
   "author": "Jeremy Plsek",
   "license": "LGPL-3.0",
   "scripts": {
+    "preinstall": "bower install",
     "start": "node server.js"
   },
   "dependencies": {
-    "bootstrap": "^3.3.5",
     "expand-tilde": "^1.2.0",
-    "express": "^4.13.3",
-    "floatthead": "^1.2.12",
+    "express": "^4.13.4",
     "fs": "0.0.2",
     "http": "0.0.0",
     "jade": "~1.11.0",
-    "jquery": "^2.1.4",
-    "jquery-contextmenu": "^2.1.0",
     "komponist": "~0.1.0",
     "less-middleware": "^2.0.1",
     "player": "^0.6.1",
-    "toastr": "~2.1.2",
     "toml": "^2.3.0",
     "ws": "^1.0.1",
     "youtube-dl": "^1.10.5"

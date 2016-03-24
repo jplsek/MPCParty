@@ -46,6 +46,7 @@ TODO
 * Loading a theme will add another "theme load" every time.
 * Webkit: resizing pb makes the values "inverted". http://codepen.io/anon/pen/VeWwLa
 * Drag and drop inside multiselection is still a buggy
+* Fix move to current context menu bugs (1158?)
 
 ---
 

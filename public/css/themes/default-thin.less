@@ -2,9 +2,11 @@
 
 /* This is meant as an example for simple bootstrap theming. This does add more bandwidth to the client. This may change in the future to completely re-compile bootstrap, rather than overwriting bootstrap. */
 
+@package: "../../../bower_components/bootstrap/less";
+
 // import variables
-@import "../../../node_modules/bootstrap/less/variables.less";
-@import "../../../node_modules/bootstrap/less/mixins.less";
+@import "@{package}/variables.less";
+@import "@{package}/mixins.less";
 
 // overwrite imported variables
 @table-cell-padding: 1px;
@@ -26,15 +28,15 @@
 }
 
 // import modified parts of the theme
-@import "../../../node_modules/bootstrap/less/utilities.less";
-@import "../../../node_modules/bootstrap/less/tables.less";
-@import "../../../node_modules/bootstrap/less/buttons.less";
-@import "../../../node_modules/bootstrap/less/modals.less";
-@import "../../../node_modules/bootstrap/less/breadcrumbs.less";
-@import "../../../node_modules/bootstrap/less/forms.less";
-@import "../../../node_modules/bootstrap/less/input-groups.less";
-@import "../../../node_modules/bootstrap/less/panels.less";
-@import "../../../node_modules/bootstrap/less/navbar.less";
+@import "@{package}/utilities.less";
+@import "@{package}/tables.less";
+@import "@{package}/buttons.less";
+@import "@{package}/modals.less";
+@import "@{package}/breadcrumbs.less";
+@import "@{package}/forms.less";
+@import "@{package}/input-groups.less";
+@import "@{package}/panels.less";
+@import "@{package}/navbar.less";
 
 .btn-default:focus {
     color: #333;

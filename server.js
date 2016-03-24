@@ -268,11 +268,10 @@ var skip = {
 app.disable('x-powered-by');
 // less config
 app.use(less(__dirname + '/public'));
-app.use(express.static(__dirname + '/public'));
 // serve static files here
-app.use(express.static('public'));
+app.use(express.static(__dirname + '/public'));
 // use jade with express
-app.set('views', 'views');
+app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 // used mostly for debugging
 app.locals.pretty = true;
@@ -313,17 +312,17 @@ app.get('/search/*', function (req, res) {
     });
 });
 
-// nodejs browser modules
+// browser modules
 app.use('/bootstrap',
-    express.static(__dirname + '/node_modules/bootstrap/dist/'));
+    express.static(__dirname + '/bower_components/bootstrap/dist/'));
 app.use('/jquery',
-    express.static(__dirname + '/node_modules/jquery/dist/'));
+    express.static(__dirname + '/bower_components/jquery/dist/'));
 app.use('/floatthead',
-    express.static(__dirname + '/node_modules/floatthead/dist/'));
+    express.static(__dirname + '/bower_components/jquery.floatThead/dist/'));
 app.use('/toastr',
-    express.static(__dirname + '/node_modules/toastr/build/'));
+    express.static(__dirname + '/bower_components/toastr/'));
 app.use('/jquery-contextmenu',
-    express.static(__dirname + '/node_modules/jquery-contextmenu/dist/'));
+    express.static(__dirname + '/bower_components/jQuery-contextMenu/dist/'));
 
 // 404 requests
 app.use(function (req, res, next) {

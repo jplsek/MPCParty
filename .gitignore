@@ -1,6 +1,7 @@
 *.swp
 *.swo
 node_modules
+bower_components
 public/css/overwrite.css
 public/css/jquery.contextMenu.css
 public/css/themes/default.css
