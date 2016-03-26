@@ -20,6 +20,7 @@ TODO
         * Fix jquery sortable bug when starting to drag from the right most part of the tr and not registering in the sortable playlist?
         * Drag into empty tables properly (only works in playlist if dragging over "empty playlist", but in pb, it will detect the playlist table instead of the pb table)
     * Loading icon between changing locations?
+    * Custom column picker
 * Playlist:
     * Drag and drop through pages
     * Remove songs visually to the single user. (Do not update the playlist via mpd for the user editing it.) It will allow faster deletion for large playlists.
@@ -27,7 +28,6 @@ TODO
 * Download Player:
     * List available files to play from download directory? (What if user has it set to their music library? Have a config option?)
     * Make it into a video streamer (muted by default on the client)?
-    * Search playlist
 * Option to disable notifications?
 * Navigator? (tag grouping)
 * MPD password support?
@@ -46,7 +46,6 @@ TODO
 * Loading a theme will add another "theme load" every time.
 * Webkit: resizing pb makes the values "inverted". http://codepen.io/anon/pen/VeWwLa
 * Drag and drop inside multiselection is still a buggy
-* Fix move to current context menu bugs (1158?)
 
 ---
 

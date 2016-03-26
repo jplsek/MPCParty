@@ -1,6 +1,6 @@
 {
   "name": "MPCParty",
-  "description": "Another MPC web client meant for multi-user usage.",
+  "description": "Another MPD web client meant for multi-user usage.",
   "main": "server.js",
   "authors": [
     "Jeremy Plsek"

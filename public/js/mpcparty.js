@@ -108,6 +108,11 @@ function stripSlash(str) {
     return str.substring(index+1);
 }
 
+// http://stackoverflow.com/a/9645447
+function ignoreCase(a, b) {
+    return a.toLowerCase().localeCompare(b.toLowerCase());
+}
+
 // create the popup window for song information
 function parseSongInfo(err, values) {
     if (err || !values || Object.keys(values).length < 1) {
@@ -132,7 +137,7 @@ function parseSongInfo(err, values) {
 
     // http://stackoverflow.com/a/31102605
     var html = '';
-    Object.keys(values).sort().forEach(function (key) {
+    Object.keys(values).sort(ignoreCase).forEach(function (key) {
         html += '<tr class="gen"><td>' + key + '</td><td>' + values[key] + '</td></tr>';
     });
 
@@ -154,7 +159,7 @@ function getAllInfo(dir, callback) {
         if (!Array.isArray(files))
             files = [files];
 
-        if (files.length === 0) callback(arr);
+        if (!files.length) callback(arr);
 
         //console.log(files);
         var i = 0;
@@ -219,7 +224,7 @@ var player = {
     // current state of the player
     state: '',
 
-    updateAll: function () {
+    updateAll: function (callback) {
         // set song title
         komponist.currentsong(function (err, song) {
             if (err) return console.log(err);
@@ -251,6 +256,7 @@ var player = {
             $('#time-total').html(' / ' + toMMSS(song.Time));
 
             // highlight song in playlist with song.Id and data-fileid
+            // this happens with only a player update
             $('#playlist-song-list .gen').each(function () {
                 var id = $(this).data().fileid;
                 if (parseInt(id) == parseInt(player.current.Id)) {
@@ -259,7 +265,10 @@ var player = {
                     $(this).removeClass('bg-success');
                 }
             });
+
+            if (callback) callback();
         });
+
         this.updateControls();
     },
 
@@ -540,6 +549,8 @@ var playlist = {
     isSearching: false,
     // current search term
     searchTerm: '',
+    // scroll to position after playlist update
+    goAfterUpdate: false,
 
     // used to update the current playlist
     updateAll: function () {
@@ -551,37 +562,48 @@ var playlist = {
         if (this.isSearching) {
             playlist.search();
         } else {
-            komponist.playlistinfo(function (err, playlistLoad) {
-                $('#playlist-title strong').html(playlist.current);
-                $('#playlist-title strong').attr('title', playlist.current);
+            // we update the player first to update the current song positison
+            // which is used for 'movetocurrent', the 'remove last song' bug
+            // and other operations
+            player.updateAll(function () {
+                komponist.playlistinfo(function (err, playlistLoad) {
+                    $('#playlist-title strong').html(playlist.current);
+                    $('#playlist-title strong').attr('title',
+                        playlist.current);
 
-                if (err) return console.log(err);
+                    if (err) return console.log(err);
 
-                $('#playlist-song-list .gen').remove();
-                playlist.local = playlistLoad;
+                    $('#playlist-song-list .gen').remove();
+                    playlist.local = playlistLoad;
 
-                if ($.isEmptyObject(playlistLoad[0])) {
-                    var html = '<tr class="gen"><td><em>Empty playlist</em></td></tr>';
-                    $('#playlist-song-list').append(html);
-                    // fix for removing the last song that's
-                    // playling from the playlist
-                    playlist.doUpdate = true;
-                    player.updateAll();
-                    pages.update('playlist');
-                    browser.updatePosition();
-                    return console.log('Empty playlist');
-                }
+                    if ($.isEmptyObject(playlistLoad[0])) {
+                        var html = '<tr class="gen"><td><em>Empty playlist</em></td></tr>';
+                        $('#playlist-song-list').append(html);
+                        // fix for removing the last song that's
+                        // playling from the playlist
+                        playlist.doUpdate = true;
+                        player.updateAll();
+                        pages.update('playlist');
+                        browser.updatePosition();
+                        return console.log('Empty playlist');
+                    }
 
-                // TODO figure out a way to use playlist.local efficiently with
-                // browser.updatePlaylist instead of utilizing playlist.list
-                for (var i in playlist.local) {
-                    playlist.list.files.push(playlist.local[i].file);
-                    playlist.list.positions.push(playlist.local[i].Pos);
-                }
+                    // TODO figure out a way to use playlist.local efficiently
+                    // with browser.updatePlaylist instead of utilizing
+                    // playlist.list
+                    for (var i in playlist.local) {
+                        playlist.list.files.push(playlist.local[i].file);
+                        playlist.list.positions.push(playlist.local[i].Pos);
+                    }
 
-                playlist.updateLocal(function () {
-                    // fixes issues such as the last song not updating the player;
-                    player.updateAll();
+                    // since goToCurrent runs updateLocal, skip the regular
+                    // updateLocal
+                    if (playlist.goAfterUpdate) {
+                        playlist.goAfterUpdate = false;
+                        playlist.goToCurrent();
+                    } else {
+                        playlist.updateLocal();
+                    }
                 });
             });
         }
@@ -744,7 +766,7 @@ var playlist = {
     // drag and drop came from the same table
     fromSelf: function (ui, newIndex) {
         var file;
-        if (playlist.selected.length !== 0) {
+        if (playlist.selected.length) {
             $(playlist.selected).each(function (item, tr) {
                 file = $(tr).data().fileid;
 
@@ -815,7 +837,7 @@ var playlist = {
         else
             getAllInfo(dir, function (files) {
                 //console.log(files);
-                if (files.length === 0)
+                if (!files.length)
                     return console.log('Nothing in db');
 
                 $(files).each(function (item, value) {
@@ -877,8 +899,7 @@ var playlist = {
                 this.goToPos(to);
             }
 
-        if (to === 0)
-            browser.selected = browser.selected.toArray().reverse();
+        if (!to) browser.selected = browser.selected.toArray().reverse();
 
         // TODO when there is both a file and directory, it will refresh
         // the playlist twice (then the browser twice). This also semi-brakes
@@ -976,7 +997,7 @@ var playlist = {
         var file;
 
         // multiselect check (any left clicks)
-        if (playlist.selected.length !== 0) {
+        if (playlist.selected.length) {
             $(playlist.selected).each(function (item, tr) {
                 //console.log(tr);
                 file = $(tr).data().fileid;
@@ -995,7 +1016,7 @@ var playlist = {
     // adds the song after the currently playing song
     addToCurrent: function (file, type) {
         var newPos = parseInt(player.current.Pos) + 1;
-        this.goToCurrent();
+        this.goAfterUpdate = true;
 
         if (browser.selected.length)
             browser.selected = browser.selected.toArray().reverse();
@@ -1015,11 +1036,12 @@ var playlist = {
         pages.go('playlist', 1);
 
         // multiselect check
-        if (playlist.selected.length !== 0) {
+        if (playlist.selected.length) {
             $(playlist.selected).each(function (item, tr) {
                 //console.log(tr);
                 file = $(tr).data().fileid;
                 playlist.toPulse.push(file);
+
                 komponist.moveid(file, item, function (err) {
                     if (err) console.log(err);
                 });
@@ -1030,6 +1052,7 @@ var playlist = {
         } else {
             playlist.toPulse.push(file);
             console.log(file);
+
             komponist.moveid(file, 0, function (err) {
                 if (err) console.log(err);
             });
@@ -1044,13 +1067,17 @@ var playlist = {
         var newPos = parseInt(player.current.Pos) + 1;
 
         // multiselect check
-        if (playlist.selected.length !== 0) {
-            var selLength = playlist.selected.length;
-            this.goToCurrent(selLength);
+        if (playlist.selected.length) {
+            // only do this if the the moved songs are above the current song
+            var lastPos = $(playlist.selected[playlist.selected.length-1]).
+                data().pos;
+
+            this.goAfterUpdate = true;
 
             $(playlist.selected).each(function (item, tr) {
-                var fileid = $(tr).data().fileid;
-                var pos = $(file).data().pos;
+                var fileid = $(tr).data().fileid,
+                    pos    = $(file).data().pos;
+
                 playlist.toPulse.push(fileid);
 
                 // currently playing song is above file to be moved
@@ -1064,7 +1091,7 @@ var playlist = {
                 else
                     newPos = 0 + item;
 
-                console.log(newPos);
+                //console.log(newPos);
                 komponist.moveid(fileid, newPos, function (err) {
                     if (err) console.log(err);
                 });
@@ -1073,7 +1100,7 @@ var playlist = {
             // clear playlist.selected just in case.
             playlist.clearSelected();
         } else {
-            this.goToCurrent();
+            this.goAfterUpdate = true;
             var fileid = $(file).data().fileid,
                 pos    = $(file).data().pos;
             playlist.toPulse.push(fileid);
@@ -1106,7 +1133,7 @@ var playlist = {
         $('#pslwrap').scrollTop($('#playlist-song-list')[0].scrollHeight);
 
         // multiselect check
-        if (playlist.selected.length !== 0) {
+        if (playlist.selected.length) {
             $(playlist.selected).each(function (item, tr) {
                 file = $(tr).data().fileid;
                 playlist.toPulse.push(file);
@@ -1141,23 +1168,27 @@ var playlist = {
         pages.go('playlist', pos / pages.maxPlaylist + 1);
     },
 
-    // goes to the current song in the playlist. Jump ammount is the value of
-    // changed rows to consider before scrolling.
-    goToCurrent: function (jumpAmmount) {
-        if (!jumpAmmount) jumpAmmount = 0;
+    // goes to the current song in the playlist.
+    goToCurrent: function () {
+        // scroll to top to avoid scrolling bugs
+        $('#pslwrap').scrollTop($('#playlist-song-list'));
 
         // go to the page the song is playing on
         this.goToPos(player.current.Pos);
         // try to go above the element, so the item is semi-centered
-        var to = (player.current.Pos % pages.maxPlaylist) - jumpAmmount - 5;
+        var to = (player.current.Pos % pages.maxPlaylist) - 5;
 
-        if (to < 0) to = 0;
+        if (to < 1) to = 1;
 
         console.log('scroll to ' + to);
 
-        $('#pslwrap').scrollTop($(
-            '#playlist-song-list .append .gen:nth-child(' +
-                to + ')').offset().top);
+        var toOffset = $('#playlist-song-list .append .gen:nth-child(' +
+            to + ')');
+
+        if (toOffset.length) {
+            var offset = toOffset.offset().top;
+            $('#pslwrap').scrollTop(offset);
+        }
     },
 
     // show song information to the user
@@ -1240,7 +1271,7 @@ var playlist = {
         });
 
         $('#playlist-open-confirm').click(function () {
-            if ($('#playlist-open-modal .selected').length !== 0) {
+            if ($('#playlist-open-modal .selected').length) {
                 var file = $('#playlist-open-modal .selected').data().fileid;
                 stored.open(file);
             }
@@ -1430,7 +1461,7 @@ var browser = {
             browser.localFiles = [];
             files = toArray(files);
 
-            if (files.length === 0) {
+            if (!files.length) {
                 html = '<tr class="directory gen"><td colspan="6">' +
                     '<em>Empty directory</em></td></tr>';
                 $('#song-list').append(html);
@@ -1524,8 +1555,8 @@ var browser = {
         if (value.file) {
             //console.log('file');
 
-            value.Album  = (!value.Album ? 'unknown' : value.Album);
-            value.Artist = (!value.Artist ? 'unknown' : value.Artist);
+            value.Album  = (!value.Album ? settings.unknown : value.Album);
+            value.Artist = (!value.Artist ? settings.unknown : value.Artist);
             stripFile    = stripSlash(value.file);
             value.Title  = (!value.Title ? stripFile : value.Title);
 
@@ -1703,7 +1734,7 @@ var browser = {
 
                 files = toArray(files);
 
-                if (files.length === 0) {
+                if (!files.length) {
                     return console.log('Empty directory');
                 }
 
@@ -1905,7 +1936,7 @@ var stored = {
             if (!Array.isArray(playlists))
                 playlists = [playlists];
 
-            if (playlists.length === 0) {
+            if (!playlists.length) {
                 html = '<em class="gen">No saved playlists</em>';
                 $('#' + id +' .modal-body').append(html);
                 return console.log('No playlists');
@@ -1935,7 +1966,7 @@ var stored = {
         var msg = '';
 
         if (this.current == 'fileids') {
-            if (this.fileArr.length === 0) {
+            if (!this.fileArr.length) {
                 msg = 'Playlist empty!';
                 history.add(msg, 'warning');
 
@@ -2344,7 +2375,7 @@ var pb = {
         }
 
         if (pos >= 0) {
-            if (pos === 0) {
+            if (!pos) {
                 $(pb.table).prepend(html);
                 $('#pb-main').scrollTop($('#pb-song-list'));
             } else {
@@ -2394,7 +2425,7 @@ var pb = {
                     pb.fromSender(ui, index);
                 }
 
-                if (pb.selected.length !== 0) {
+                if (pb.selected.length) {
                     index = (pb.selected).index(dropped);
                     var dropped = ui.item[0],
                     last;
@@ -2459,7 +2490,7 @@ var pb = {
 
     // add file to pb
     addFile: function (file, pos) {
-        if (browser.selected.length !== 0) {
+        if (browser.selected.length) {
             pb.addMulti(pos);
         } else {
             pb.addid(file, pos);
@@ -2508,7 +2539,7 @@ var pb = {
     // remove song from the pb
     removeSong: function (element) {
         // multiselect check (any left clicks)
-        if (pb.selected.length !== 0) {
+        if (pb.selected.length) {
             $(pb.selected).each(function (item, tr) {
                 //console.log(tr);
                 $(tr).remove();
@@ -2595,7 +2626,7 @@ var pb = {
 
     // move rows to top of pb
     moveToTop: function (tr) {
-        if (this.selected.length !== 0) {
+        if (this.selected.length) {
             this.selected = this.selected.toArray().reverse();
 
             $(this.selected).each(function (item, tr) {
@@ -2613,7 +2644,7 @@ var pb = {
 
     // move rows to bottom of pb
     moveToBottom: function (tr) {
-        if (this.selected.length !== 0) {
+        if (this.selected.length) {
             $(this.selected).each(function (item, tr) {
                 $(tr).appendTo(pb.table);
             });
@@ -2807,6 +2838,7 @@ var pages = {
 
     // type: browser or playlist, page: the page to go
     go: function (type, page) {
+        page = Math.floor(page);
         console.log('go to page ' + page + ' on ' + type);
 
         if (type == 'playlist' && this.enabledPlaylist) {
@@ -2901,6 +2933,8 @@ var settings = {
     // default theme to use
     theme: 'default-thin',
     pulse: true,
+    // 'unknown' text
+    unknown: 'unknown',
 
     // initially load all the settings
     loadAll: function () {
@@ -2910,6 +2944,7 @@ var settings = {
         this.loadPagination();
         this.loadShowAllErrors();
         this.loadPulse();
+        this.loadUnknown();
     },
 
     loadTheme: function () {
@@ -3062,6 +3097,32 @@ var settings = {
         localStorage.setItem('mpcp-use-pulse', use);
     },
 
+    loadUnknown: function () {
+        var use = localStorage.getItem('mpcp-use-unknown');
+
+        if (use !== undefined && use === '') {
+            settings.unknown = '';
+            $('#use-unknown').prop('checked', false);
+        } else {
+            settings.unknown = 'unknown';
+            $('#use-unknown').prop('checked', true);
+        }
+    },
+
+    saveUnknown: function (use) {
+        console.log('changed unknown');
+
+        if (use) {
+            localStorage.setItem('mpcp-use-unknown', 'unknown');
+            this.loadUnknown();
+        } else {
+            localStorage.setItem('mpcp-use-unknown', '');
+            this.loadUnknown();
+        }
+
+        browser.update();
+    },
+
     initEvents: function () {
         // settings event handling
         $('#themes').change(function () {
@@ -3093,6 +3154,11 @@ var settings = {
         $('#use-pulse').change(function () {
             var use = $(this).prop('checked');
             settings.savePulse(use);
+        });
+
+        $('#use-unknown').change(function () {
+            var use = $(this).prop('checked');
+            settings.saveUnknown(use);
         });
 
         $('#show-all-errors').change(function () {
@@ -3498,39 +3564,68 @@ socket.onmessage = function (event) {
 };
 
 socket.onclose = function (event) {
-    console.log('WebSocket disconnected');
-    setTimeout(function () { // timeout to not show if refreshing the page
-        var msg = 'The page will refresh when it comes back online.';
-        history.add(msg, 'danger');
-        toastr.error(msg, 'Server Disconnected!', {
-            'closeButton': true,
-            'positionClass': 'toast-bottom-left',
-            'preventDuplicates': true,
-            'timeOut': '-1',
-            'extendedTimeOut': '-1'
-        });
-    }, 200);
-    retryWebSocket(1);
+    disconnect.callSocketClose();
 };
 
-function retryWebSocket(attempts) {
-    socket = new WebSocket('ws://' + host);
+// server disconnect handling
+var disconnect = {
+    secInterval: null,
+    retryTimeout: null,
 
-    socket.onclose = function () {
+    callSocketClose: function () {
+        clearInterval(this.secInterval);
+        clearTimeout(this.retryTimeout);
+
+        console.log('WebSocket disconnected');
+        // timeout to not show if refreshing the page
         setTimeout(function () {
-            console.log('WebSocket closed, retrying...');
-            // Connection has closed so try to reconnect every few seconds
-            retryWebSocket(++attempts);
-        }, attempts * 1000);
-    };
+            var msg = 'The page will refresh when it comes back online.';
+            history.add(msg, 'danger');
+            toastr.error(msg + '<br>Retrying in <span id="count">1</span> second(s)... <button title="Force a retry" class="retry-server btn btn-warning pull-right"><span class="glyphicon glyphicon-repeat"></span></button>', 'Server Disconnected!', {
+                'closeButton': true,
+                'positionClass': 'toast-bottom-left',
+                'timeOut': '-1',
+                'extendedTimeOut': '-1'
+            });
+        }, 200);
+        this.retryWebSocket(1);
+    },
 
-    socket.onopen = function (event) {
-        // refresh browser on restart, maybe there is a better way
-        // (komponist needs to reconnect to its socket as well)
-        console.log('WebSocket connected');
-        window.location.reload();
-    };
-}
+    retryWebSocket: function (attempts) {
+        socket = new WebSocket('ws://' + host);
+
+        socket.onclose = function () {
+            var seconds = attempts;
+            $('#count').html(seconds--);
+
+            disconnect.secInterval = setInterval(function () {
+                $('#count').html(seconds--);
+            }, 1000);
+
+            disconnect.retryTimeout = setTimeout(function () {
+                clearInterval(disconnect.secInterval);
+                console.log('WebSocket closed, retrying... ' + attempts);
+                // Connection has closed so try to reconnect every few seconds
+                // max is 5 seconds
+                if (attempts < 5) ++attempts;
+                disconnect.retryWebSocket(attempts);
+            }, attempts * 1000);
+        };
+
+        socket.onopen = function (event) {
+            // refresh browser on restart, maybe there is a better way
+            // (komponist needs to reconnect to its socket as well)
+            console.log('WebSocket connected');
+            window.location.reload();
+        };
+    },
+
+    initEvents: function () {
+        $(document).on('click', '.retry-server', function () {
+            disconnect.callSocketClose();
+        });
+    }
+};
 
 // gracefully close the socket
 $(window).on('beforeunload', function () {
@@ -4054,6 +4149,7 @@ pb         .initEvents();
 history    .initEvents();
 stored     .initEvents();
 video      .initEvents();
+disconnect .initEvents();
 
 });
 

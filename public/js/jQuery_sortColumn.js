@@ -18,10 +18,10 @@ $.fn.sortColumn = function (options) {
             var dataB=$(b).children("td:nth-child("+index+")").html();
             // Format : dd-mm-yyyy
             if (format=='dd-mm-yyyy'){
-	            if (dataA==""){
+	            if (dataA===""){
 	                dataA='01-01-1970';
 	            }
-	            if (dataB==""){
+	            if (dataB===""){
 	                dataB='01-01-1970';
 	            }
 
@@ -40,10 +40,10 @@ $.fn.sortColumn = function (options) {
 	        }
 	        // Format : dd/mm/yyyy
 	        if (format=='dd/mm/yyyy'){
-	            if (dataA==""){
+	            if (dataA===""){
 	                dataA='01/01/1970';
 	            }
-	            if (dataB==""){
+	            if (dataB===""){
 	                dataB='01/01/1970';
 	            }
 
@@ -91,7 +91,8 @@ $.fn.sortColumn = function (options) {
                 if (!dataB)
                     return 1;
 
-	        	if (dataA>dataB) {
+                // http://stackoverflow.com/a/9645447
+	        	if (dataA.toLowerCase().localeCompare(dataB.toLowerCase()) == 1) {
 	        		return 1;
 	        	} else if (dataA==dataB) {
 	        		return 0;
@@ -129,7 +130,7 @@ $.fn.sortColumn = function (options) {
     }
 
     var original=[];
-    var sorte=[];
+    var sorted=[];
     $table.children("tbody").children("tr").each(function(index,ele){
         original.push(ele);
     });
