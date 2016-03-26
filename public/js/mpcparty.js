@@ -227,7 +227,10 @@ var player = {
     updateAll: function (callback) {
         // set song title
         komponist.currentsong(function (err, song) {
-            if (err) return console.log(err);
+            if (err) {
+                if (callback) callback();
+                return console.log(err);
+            }
 
             //console.log(song);
 
@@ -238,6 +241,7 @@ var player = {
                 $('#title-pos').html('');
                 $('#time-total').html('-- / --');
                 player.current = null;
+                if (callback) callback();
                 return console.log('No song selected');
             }
 
@@ -1170,6 +1174,8 @@ var playlist = {
 
     // goes to the current song in the playlist.
     goToCurrent: function () {
+        if (!player.current) return console.log('no song selected');
+
         // scroll to top to avoid scrolling bugs
         $('#pslwrap').scrollTop($('#playlist-song-list'));
 
