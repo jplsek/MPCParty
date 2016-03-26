@@ -124,6 +124,10 @@ html
                                     input#use-unknown(type='checkbox')
                                     | Use 'unknown' text in the browser (if false, it will show nothing)
                             .checkbox
+                                label(title='When enabled, whenever you skip a song, it will be removed from the playlist')
+                                    input#use-skip-to-remove(type='checkbox')
+                                    | Use skip to remove feature (only works when voting is disabled)
+                            .checkbox
                                 label(title='Note: some errors you may see are false-positives.')
                                     input#show-all-errors(type='checkbox')
                                     | Debug: Show all errors

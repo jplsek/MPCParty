@@ -39,7 +39,6 @@ TODO
 * After accessing a folder, check if there is only one folder and no songs, if so, automatically enter that folder (not when clicking location bar, however)
 * Undo actions (like removing a song from the playlist)?
 * Add a max updates per second setting
-* Skip to remove mode (client)
 
 ## Bugs
 * It seems crashing is due to refreshing too many times?

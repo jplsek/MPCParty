@@ -406,8 +406,15 @@ var player = {
                         }), function (err) {
                     if (err) console.log(err);
                 });
+
+                // if skipping too fast, race conditions happen
+                var current = player.current;
                 komponist.next(function (err) {
                     if (err) console.log(err);
+
+                    if (playlist.skipToRemove) {
+                        playlist.removeSong(current.Id);
+                    }
                 });
             }
         });
@@ -436,8 +443,15 @@ var player = {
                         }), function (err) {
                     if (err) console.log(err);
                 });
+
+                // if skipping too fast, race conditions happen
+                var current = player.current;
                 komponist.previous(function (err) {
                     if (err) console.log(err);
+
+                    if (playlist.skipToRemove) {
+                        playlist.removeSong(current.Id);
+                    }
                 });
             }
         });
@@ -555,6 +569,8 @@ var playlist = {
     searchTerm: '',
     // scroll to position after playlist update
     goAfterUpdate: false,
+    // remove after skipping songs
+    skipToRemove: false,
 
     // used to update the current playlist
     updateAll: function () {
@@ -2714,7 +2730,6 @@ var vote = {
     // gets from socket connection
     received: false,
     enabled: false,
-    clients: 1,
     needed: 1,
 
     // send a message to the client (using setTitle as the message)
@@ -2730,7 +2745,7 @@ var vote = {
     // create a title for the next and previous buttons
     setTitles: function (current, id) {
         var msg = 'Skip to ' + id + ' song: ' + current + ' / ' + vote.needed +
-            ' from ' + vote.clients + ' clients.';
+            ' from ' + users.total + ' clients.';
         $('#' + id).attr('title', msg);
         return msg;
     }
@@ -2741,6 +2756,8 @@ var vote = {
 var users = {
     //ip:hostname
     hostnames: {},
+    // total number of users
+    total: 1,
 
     // populate user list
     populate: function (hostnames) {
@@ -2951,6 +2968,7 @@ var settings = {
         this.loadShowAllErrors();
         this.loadPulse();
         this.loadUnknown();
+        this.loadSkipToRemove();
     },
 
     loadTheme: function () {
@@ -3107,10 +3125,10 @@ var settings = {
         var use = localStorage.getItem('mpcp-use-unknown');
 
         if (use !== undefined && use === '') {
-            settings.unknown = '';
+            this.unknown = '';
             $('#use-unknown').prop('checked', false);
         } else {
-            settings.unknown = 'unknown';
+            this.unknown = 'unknown';
             $('#use-unknown').prop('checked', true);
         }
     },
@@ -3127,6 +3145,24 @@ var settings = {
         }
 
         browser.update();
+    },
+
+    loadSkipToRemove: function () {
+        var use = localStorage.getItem('mpcp-use-skip-to-remove');
+
+        if (use && use == 'true') {
+            playlist.skipToRemove = true;
+        } else {
+            playlist.skipToRemove = false;
+        }
+
+        $('#use-skip-to-remove').prop('checked', playlist.skipToRemove);
+    },
+
+    saveSkipToRemove: function (use) {
+        console.log('changed skip-to-remove');
+        localStorage.setItem('mpcp-use-skip-to-remove', use);
+        this.loadSkipToRemove();
     },
 
     initEvents: function () {
@@ -3165,6 +3201,11 @@ var settings = {
         $('#use-unknown').change(function () {
             var use = $(this).prop('checked');
             settings.saveUnknown(use);
+        });
+
+        $('#use-skip-to-remove').change(function () {
+            var use = $(this).prop('checked');
+            settings.saveSkipToRemove(use);
         });
 
         $('#show-all-errors').change(function () {
@@ -3403,7 +3444,7 @@ socket.onmessage = function (event) {
     switch(msg.type) {
         case 'current-info':
             vote.received = true;
-            vote.clients  = msg['total-clients'];
+            users.total  = msg['total-clients'];
             vote.needed   = msg['song-skip-total'];
             vote.setTitles( msg['song-skip-previous'], 'previous');
             vote.setTitles( msg['song-skip-next'], 'next');
@@ -3446,6 +3487,10 @@ socket.onmessage = function (event) {
         case 'song-next':
             msg.info += ' skipped to the next song.';
             history.add(msg.info, 'info');
+
+            // don't show notification if only 1 person is using the client
+            if (users.total <= 1) return;
+
             toastr.info(msg.info, 'Song Skipped', {
                 'closeButton': true,
                 'positionClass': 'toast-bottom-left',
@@ -3457,6 +3502,10 @@ socket.onmessage = function (event) {
         case 'song-previous':
             msg.info += ' skipped to the previous song.';
             history.add(msg.info, 'info');
+
+            // don't show notification if only 1 person is using the client
+            if (users.total <= 1) return;
+
             toastr.info(msg.info, 'Song Skipped', {
                 'closeButton': true,
                 'positionClass': 'toast-bottom-left',
@@ -3497,7 +3546,7 @@ socket.onmessage = function (event) {
                 str += users.get(msg.info[i]) + ', ';
             }
 
-            if (vote.clients != 1) {
+            if (users.total > 1) {
                 str += 'skipped: ' + player.title + '.';
                 toastr.info(str, 'Song Skip', {
                     'closeButton': true,

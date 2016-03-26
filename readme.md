@@ -19,6 +19,7 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
     * Scramble the playlist
     * Right click to: play, remove, and move songs to the top, bottom, or after the currently playing song of the playlist
     * Multiselection (ctrl, shift: remove, weird drag and drop; right click: add to top, bottom, current)
+    * Skip to remove songs (when user voting is disabled)
 * File browser
     * Double click folders to browse them
     * Add songs to the playlist by pressing "+" or double clicking
@@ -46,7 +47,7 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 * Basic theming support
 
 ### Multi-user features
-* Vote to skip songs
+* Vote to skip songs (This can be easily bypassed. Might create a strict mode in the future)
 * Synchronization between all users (such as playlist modification and player updates)
 * Playlist buffer: Create and edit playlists without interrupting the current playlist
 * User lists (optional)
