@@ -96,7 +96,7 @@ var video = {
             console.log(output.join('\n'));
             console.log('============  end  youtube-dl ============');
 
-            for (var item in output) {
+            for (var item = 0; item < output.length; ++item) {
                 if (~output[item].indexOf('.mp3')) {
                     var str = output[item];
                     var colon = str.indexOf(':');
@@ -480,7 +480,7 @@ var sendUpdate = function (address, connect, customSocket) {
 
     addresses = [];
 
-    for (i in io.clients) {
+    for (i = 0; i < io.clients.length; ++i) {
         var remAdd = io.clients[i]._socket.remoteAddress;
         if (!~addresses.indexOf(remAdd))
             addresses.push(remAdd);
@@ -502,7 +502,7 @@ var sendUpdate = function (address, connect, customSocket) {
         });
     }
 
-    for (var item in addresses) {
+    for (var item = 0; item < addresses.length; ++item) {
         hostHandler(item);
     }
 
@@ -615,6 +615,8 @@ io.on('connection', function (socket) {
         switch(msg.type) {
             case 'playlist-title':
                 // sends the new playlist title to the other users
+                if (playlisttitle == msg.info) break;
+
                 console.log('Sending new title of the playlist to all clients.');
                 playlisttitle = msg.info;
                 io.broadcast(JSON.stringify(

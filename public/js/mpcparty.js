@@ -43,8 +43,7 @@ $.fn.randomize = function (childElem) {
 
         $this.detach(childElem);
 
-        var i = 0;
-        for (i; i < elems.length; ++i) $this.append(elems[i]);
+        for (var i = 0; i < elems.length; ++i) $this.append(elems[i]);
     });
 };
 
@@ -611,7 +610,7 @@ var playlist = {
                     // TODO figure out a way to use playlist.local efficiently
                     // with browser.updatePlaylist instead of utilizing
                     // playlist.list
-                    for (var i in playlist.local) {
+                    for (var i = 0; i < playlist.local.length; ++i) {
                         playlist.list.files.push(playlist.local[i].file);
                         playlist.list.positions.push(playlist.local[i].Pos);
                     }
@@ -651,7 +650,7 @@ var playlist = {
 
         //console.log(end);
 
-        for (var i in playlist.local) {
+        for (var i = 0; i < playlist.local.length; ++i) {
             var value = playlist.local[i];
             //console.log(value.file);
 
@@ -672,14 +671,11 @@ var playlist = {
                     parseInt(player.current.Id))
                 current += ' bg-success';
 
-            if (settings.pulse)
-                for (var j in playlist.toPulse) {
-                    if (playlist.toPulse[j] == value.Id) {
-                        // pulses twice because of lag
-                        current += ' pulse2';
-                        break;
-                    }
-                }
+            if (settings.pulse && ~playlist.toPulse.indexOf(Number(value.Id))) {
+                // pulses twice because of lag
+                current += ' pulse2';
+            }
+
             //console.log(i + ': start');
 
             html += '<tr class="drag context-menu ' + current + '" title="' + title + '" data-fileid="' + value.Id + '" data-file="' + value.file + '" data-pos="' + value.Pos +  '"><td class="playlist-song-list-icons"><span class="glyphicon glyphicon-play song-play faded text-success" title="Play song"></span>' + (parseInt(value.Pos) + 1) + '.</td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><span class="song-remove faded text-danger glyphicon glyphicon-remove" title="Remove song from playlist"></span></td></tr>';
@@ -1464,10 +1460,10 @@ var browser = {
         var dirs  = directory.toString().split('/'),
             dirId = dirs[0],
             html  = '',
-            i     = 0;
+            i;
 
         if (this.current != '/')
-            for (i; i < dirs.length; ++i) {
+            for (i = 0; i < dirs.length; ++i) {
                 html += '<li class="loc-dir" data-fileid="' + dirId + '">' +
                     dirs[i] + '</li>';
                 dirId += '/' + dirs[i+1];
@@ -1493,7 +1489,7 @@ var browser = {
 
             var html = '';
 
-            for (i in files) {
+            for (i = 0; i < files.length; ++i) {
                 html = browser.getHtmlFolders(files[i]);
 
                 if (html !== '')
@@ -1533,7 +1529,7 @@ var browser = {
 
             html = '';
 
-            for (var i in files) {
+            for (var i = 0; i < files.length; ++i) {
                 html = browser.getHtmlFiles(files[i]);
 
                 if (html !== '')
@@ -1669,7 +1665,7 @@ var browser = {
         //console.log(current);
         //console.log(i);
 
-        for (i; i < browser.localFiles.length; ++i) {
+        for (; i < browser.localFiles.length; ++i) {
             if (current > end || current - browser.localFolders.length >
                     browser.localFiles.length)
                 break;
@@ -2386,7 +2382,7 @@ var pb = {
         //console.log(file);
 
         if (Array.isArray(file)) {
-            for (var i in file) {
+            for (var i = 0; i < file.length; ++i) {
                 title = getSimpleTitle(file[i].Title, file[i].Artist,
                     file[i].file);
                 html += pb.getHtml(title, file[i].file);
@@ -3340,6 +3336,7 @@ function updateAll() {
     // sometimes the socket doesn't send the vote updates,
     // this is used for that
     var voteCheck = setInterval(function () {
+        // wait until socket is up berore asking
         if (socket.readyState == 1) {
             setTimeout(function () {
                 if (!vote.received) {
@@ -3349,7 +3346,7 @@ function updateAll() {
                         if (err) console.log(err);
                     });
                 }
-            }, 100);
+            }, 200);
             clearInterval(voteCheck);
         }
     }, 100);
@@ -3357,8 +3354,8 @@ function updateAll() {
     var path = window.location.pathname.
         slice(1, window.location.pathname.length).
         replace(/%20/g, ' '),
-    action = path.slice(0, path.indexOf('/')),
-    request = path.slice(path.indexOf('/') + 1, path.length);
+        action = path.slice(0, path.indexOf('/')),
+        request = path.slice(path.indexOf('/') + 1, path.length);
 
     //console.log(path);
     //console.log(action);
