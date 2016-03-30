@@ -59,7 +59,7 @@ var video = {
     // the current Player
     // some of these settings get set in config.json
     enabled: true,
-    directory: './downloads',
+    directory: __dirname + '/downloads',
     keepVideo: true,
     player: null,
     file: null,
@@ -600,7 +600,7 @@ io.on('connection', function (socket) {
         'song-vote': skip.voting, 'player-volume': video.volume,
         'player-status': video.msg, 'player-title': video.title
         }),
-        function(err) {
+        function (err) {
             if (err) console.log(err);
     });
 

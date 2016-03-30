@@ -573,6 +573,12 @@ var playlist = {
 
     // used to update the current playlist
     updateAll: function () {
+
+        if (!playlist.doUpdate) {
+            playlist.doUpdate = true;
+            return;
+        }
+
         console.log('updating playlist');
 
         // reset list
@@ -1626,8 +1632,7 @@ var browser = {
         // object. This fixes removeal of "Empty directory"
         if (browser.localFolders.length <= 1 &&
                 browser.localFiles.length <= 1) {
-            if ((browser.localFolders[0] &&
-                    Object.getOwnPropertyNames(
+            if ((browser.localFolders[0] && Object.getOwnPropertyNames(
                         browser.localFolders[0]).length <= 0) &&
                     (browser.localFiles[0] && Object.getOwnPropertyNames(
                         browser.localFiles[0]).length <= 0))
@@ -1638,6 +1643,7 @@ var browser = {
         }
 
         $('#song-list .gen').remove();
+
         var start = 0,
             end   = browser.localFolders.length + browser.localFiles.length,
             html  = '';
@@ -3333,6 +3339,16 @@ function updateAll() {
     //browser.update(); // done lower in the function
     updateStats();
 
+    var path = window.location.pathname.
+        slice(1, window.location.pathname.length).
+        replace(/%20/g, ' '),
+        action = path.slice(0, path.indexOf('/')),
+        request = path.slice(path.indexOf('/') + 1, path.length);
+
+    //console.log(path);
+    //console.log(action);
+    //console.log(request);
+
     // sometimes the socket doesn't send the vote updates,
     // this is used for that
     var voteCheck = setInterval(function () {
@@ -3346,29 +3362,19 @@ function updateAll() {
                         if (err) console.log(err);
                     });
                 }
+
+                if (action == 'search') {
+                    browser.search(request);
+                    $('#search-browser').val(request);
+                } else {
+                    browser.current  = request;
+                    browser.previous = request;
+                    browser.update();
+                }
             }, 200);
             clearInterval(voteCheck);
         }
     }, 100);
-
-    var path = window.location.pathname.
-        slice(1, window.location.pathname.length).
-        replace(/%20/g, ' '),
-        action = path.slice(0, path.indexOf('/')),
-        request = path.slice(path.indexOf('/') + 1, path.length);
-
-    //console.log(path);
-    //console.log(action);
-    //console.log(request);
-
-    if (action == 'search') {
-        browser.search(request);
-        $('#search-browser').val(request);
-    } else {
-        browser.current  = request;
-        browser.previous = request;
-        browser.update();
-    }
 }
 
 komponist.once('ready', updateAll, false);
@@ -3379,6 +3385,10 @@ komponist.on('changed', function (system) {
     switch (system) {
         case 'player':
             player.updateAll();
+            break;
+
+        case 'playlist':
+            playlist.updateAll();
             break;
 
         case 'mixer':
@@ -3398,14 +3408,6 @@ komponist.on('changed', function (system) {
             stored.updatePlaylists('playlist-open-modal');
             stored.updatePlaylists('playlist-save-modal');
             break;
-    }
-
-    // I don't really know what's going on here (past me didn't put a comment),
-    // but I'll allow it for now
-    if (system == 'playlist' && playlist.doUpdate) {
-        playlist.updateAll();
-    } else {
-        playlist.doUpdate = true;
     }
 });
 
