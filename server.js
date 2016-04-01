@@ -276,7 +276,7 @@ app.set('view engine', 'jade');
 // used mostly for debugging
 app.locals.pretty = true;
 
-fs.readFile('package.json', function (err, data) {
+fs.readFile(__dirname + '/package.json', function (err, data) {
     if (err) return console.log(err);
     pack = JSON.parse(data);
 });
@@ -360,7 +360,7 @@ var config = {
     }
 };
 
-fs.readFile('config.cfg', function (err, data) {
+fs.readFile(__dirname + '/config.cfg', function (err, data) {
     if (err) {
         console.log('Unable to read config file. ' +
             'Custom config will not be used.');
