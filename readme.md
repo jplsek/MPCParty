@@ -69,7 +69,7 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 ## Installation
 ### 1) Dependencies
 * Install [MPD](http://www.musicpd.org/download.html) (`sudo apt-get update && sudo apt-get install mpd`), and get a running instance working (a sample mpd conf file is stored in utils/ to be ran as a local user (run it with `mpd ~/.config/mpd/mpd.conf`))
-* Install [nodejs](https://nodejs.org/download/) (`sudo apt-get install nodejs`)
+* Install [nodejs](https://nodejs.org/download/) (`sudo apt-get install nodejs`) (Minimum node version is 0.12 for the Player)
 
 > MPCParty has only been tested on GNU/Linux. Thus I only have binaries for GNU/Linux. OSX and BSD should work via the development version. I have yet to get Windows to compile with the Download Player enabled (so Windows works, just without the Player).
 
@@ -83,7 +83,7 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 * Install `npm`, `bower`, `build-essential`, `libav-tools`, `libasound2`, and `libasound2-dev` depending on your distribution.
 * Clone this repository (`git clone https://github.com/jplsek/MPCParty`)
 * Run `npm install` from the project's directory (to install all the libraries)
-* If there are errors, you may need to install `nodejs-legacy`, and reinstall the libraries with `npm install`
+* If there are errors, make sure your node version is greater than 0.12
 
 > If you are not using the Download Player, you can ignore compile errors when running `npm install`, and disable it via the config file.
 

@@ -1,13 +1,14 @@
 [Unit]
-Description=A Web Server Frontend for Music Player Daemon
+Description=A Web Server and Client Frontend for Music Player Daemon
 After=mpd.service
 
 [Service]
 Type=forking
-User=dank
-Group=dank
-WorkingDirectory=/home/dank/mpcparty
-ExecStart=/usr/bin/screen -dmS mpcparty /usr/local/bin/forever /home/dank/mpcparty/server.js 
+Restart=always
+User=mpd
+Group=mpd
+WorkingDirectory=/home/mpd/mpcparty
+ExecStart=/usr/bin/screen -dmS mpcparty /usr/bin/node server.js
 ExecStop=/usr/bin/screen -S mpcparty -X quit
 
 [Install]
