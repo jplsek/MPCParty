@@ -134,6 +134,10 @@ html
                             h3 Server Settings
                             label Track crossfade (0 - 10 seconds)
                             input#crossfade(type='range', min='0', max='10')
+                            .checkbox
+                                label(title='Removes songs when skipping and when the song finishes')
+                                    input#consume(type='checkbox')
+                                    | Use consume mode
                     .modal-footer
                         button.btn.btn-default(type='button', data-dismiss='modal') Close
 
@@ -275,6 +279,7 @@ html
 
         main
             #browser.col-sm-8
+                noscript: h1 You have Javascript disabled. This does not work without Javascript.
                 // having the block wrapper fixes an issue with webkit not getting the childs height
                 #browser-header-wrap
                     #browser-header
