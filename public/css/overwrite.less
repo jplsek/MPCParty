@@ -5,6 +5,11 @@ html {
     overflow-x: hidden; // fixes an issue with context-menus
     overflow-y: hidden; // fixes random bugs that occur with changing the table widths dynamically
 }
+#page-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
 header {
     display: -webkit-box; /* fallback for apple webkit */
     display: flex;
@@ -19,7 +24,7 @@ header {
         align-items: stretch;
 
         #volume {
-            width: 30px;
+            width: 30px; // width set for webkit
             height: 60px;
             -webkit-appearance: slider-vertical;
         }
@@ -54,8 +59,8 @@ header {
 }
 main {
     display: flex;
-    height: 100vh;
-    padding-top: 75px;
+    flex: 2;
+    overflow: auto;
 
     #browser {
         display: flex;
@@ -120,7 +125,7 @@ main {
     flex-direction: column;
 
     #pb-main {
-        padding: 0 0 0 15px;
+        padding: 0;
         overflow: auto;
         flex-grow: 2;
 
@@ -158,6 +163,7 @@ main {
 }
 #download-player {
     min-width: 400px;
+    z-index: 1003; // above pb and floathead
 
     #download-player-title {
         min-height: 20px;
@@ -286,6 +292,9 @@ table.floatThead-table {
     html {
         overflow-y: auto;
         overflow-x: auto;
+    }
+    #page-wrapper {
+        height: auto;
     }
     main {
         flex-direction: column;
