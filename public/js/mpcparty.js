@@ -3000,7 +3000,7 @@ var settings = {
             console.log('theme loaded');
             // reflow header on theme change
             $('#song-list.table').trigger('reflow');
-        }).attr('href', '/css/themes/' + settings.theme + '.css');
+        }).attr('href', '/css/themes/' + settings.theme + '/main.css');
     },
 
     saveTheme: function (theme) {

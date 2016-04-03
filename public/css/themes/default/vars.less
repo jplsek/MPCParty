@@ -1,0 +1,34 @@
+// remove dotted outline on things
+.tab-focus() {
+    outline: none;
+}
+
+// import modified parts of the theme
+@import "@{package}/utilities.less";
+@import "@{package}/tables.less";
+@import "@{package}/buttons.less";
+@import "@{package}/modals.less";
+@import "@{package}/breadcrumbs.less";
+@import "@{package}/forms.less";
+@import "@{package}/input-groups.less";
+@import "@{package}/panels.less";
+@import "@{package}/navbar.less";
+
+// btn
+.btn {
+    margin: 1px;
+}
+
+.btn-group .btn {
+    margin-right: 0;
+}
+
+.input-group-btn:last-child > .btn, .input-group-btn:last-child > .btn-group {
+    margin-top: 0;
+}
+
+.btn-default:focus {
+    color: #333;
+    background-color: #FFF;
+    border-color: #CCC;
+}

@@ -1,0 +1,149 @@
+@font-family-sans-serif:         'Roboto', 'Helvetica', 'Arial', sans-serif;
+
+@headings-font-weight:           300;
+
+//colors
+@body-bg:                        #fafafa;
+
+@brand-primary:                  #2196f3;
+
+@state-success-text:             #4caf50;
+@state-success-bg:               #dff0d8;
+@state-success-border:           darken(spin(@state-success-bg, -10), 5%);
+
+@state-info-text:                #00bcd4;
+@state-info-bg:                  #d9edf7;
+@state-info-border:              darken(spin(@state-info-bg, -10), 7%);
+
+@state-warning-text:             #ff5722;
+@state-warning-bg:               #fcf8e3;
+@state-warning-border:           darken(spin(@state-warning-bg, -10), 5%);
+
+@state-danger-text:              #f44336;
+@state-danger-bg:                #f2dede;
+@state-danger-border:            darken(spin(@state-danger-bg, -10), 5%);
+
+// border
+@border-radius-base:             2px;
+@border-radius-large:            @border-radius-base;
+
+// modal
+@modal-content-border-color:     transparent;
+@modal-header-border-color:      transparent;
+@modal-backdrop-opacity:         0.2;
+
+// nav
+@navbar-default-bg:              @brand-primary;
+@navbar-default-border:          0;
+@navbar-border-radius:           0;
+@navbar-default-color:           #f7f7f7;
+@navbar-margin-bottom:           0;
+
+// btn
+@btn-default-border:             transparent;
+@btn-primary-border:             transparent;
+@btn-warning-border:             transparent;
+@btn-info-border:                transparent;
+@btn-success-border:             transparent;
+
+@btn-border-radius-base:         @border-radius-base;
+@btn-border-radius-small:        @border-radius-base;
+@btn-border-radius-large:        @border-radius-base;
+
+// input
+@input-border-radius:            2px;
+@input-border:                   transparent;
+
+// panel
+@panel-border-radius:            @border-radius-base;
+
+// remove dotted outline on things
+.tab-focus() {
+    outline: none;
+}
+
+// import modified parts of the theme
+@import "@{package}/type.less";
+@import "@{package}/scaffolding.less";
+@import "@{package}/utilities.less";
+@import "@{package}/tables.less";
+@import "@{package}/buttons.less";
+@import "@{package}/modals.less";
+@import "@{package}/breadcrumbs.less";
+@import "@{package}/forms.less";
+@import "@{package}/input-groups.less";
+@import "@{package}/panels.less";
+@import "@{package}/navbar.less";
+@import "@{package}/dropdowns.less";
+
+body {
+    font-weight: 300;
+}
+
+// navbar
+.navbar-default {
+    color: @navbar-default-color;
+}
+
+// forms
+.form-control {
+    box-shadow: inset 0 -1px 0px rgba(0,0,0,0.2);
+    transition: box-shadow 0.2s ease;
+    border: 2px solid transparent;
+    // custom padding
+    padding: 2px 0;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    box-shadow: inset 0 -1px 0px @brand-primary;
+    border-color: transparent;
+}
+
+label {
+    font-weight: 400;
+}
+
+// modal
+.modal-content {
+    box-shadow: 0 27px 24px 0 rgba(0, 0, 0, 0.2), 0 40px 77px 0 rgba(0, 0, 0, 0.22);
+    border: none;
+}
+
+// btn
+.btn {
+    margin: 1px;
+}
+
+.btn-group .btn {
+    margin-right: 0;
+}
+
+.input-group-btn:last-child > .btn, .input-group-btn:last-child > .btn-group {
+    margin-top: 0;
+}
+
+.btn-default:focus {
+    color: #333;
+    background-color: #FFF;
+}
+
+.btn.active, .btn:active {
+    box-shadow: none;
+}
+
+// dropdown
+.dropdown-menu {
+    border: 0;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+
+// panel
+.panel {
+    border: 0;
+    box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.12), 0 1px 6px 0 rgba(0, 0, 0, 0.12);
+}
+
+.panel-heading {
+    border: 0;
+}

@@ -60,7 +60,8 @@ header {
 main {
     display: flex;
     flex: 2;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden; // dragging off screen
 
     #browser {
         display: flex;
@@ -163,7 +164,6 @@ main {
 }
 #download-player {
     min-width: 400px;
-    z-index: 1003; // above pb and floathead
 
     #download-player-title {
         min-height: 20px;
@@ -241,10 +241,13 @@ table.floatThead-table {
 }
 .dropdown-menu > li > a.no-hover:hover {
     background: inherit;
-    color: inherit;
 }
+// bootstrap
 .modal-dialog {
     min-width: @minimumWidth;
+}
+.dropdown-menu {
+    z-index: 1003 !important; // above pb and floathead
 }
 // disables sorting for dragged item
 #song-list .no-placeholder {
