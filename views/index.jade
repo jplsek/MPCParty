@@ -173,7 +173,11 @@ html
                             span ×
                         h4.modal-title Save playlist
                     .modal-body
-                        input#playlist-save-input.form-control(type='text', placeholder='Enter new playlist name')
+                        .input-group
+                            input#playlist-save-input.form-control(type='text', placeholder='Enter new playlist name')
+                            span.input-group-btn
+                                button#playlist-save-clear.btn.btn-default(type='button')
+                                    span.glyphicon.glyphicon-remove
                         br
                         +playlists
                     .modal-footer

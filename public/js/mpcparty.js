@@ -1281,6 +1281,27 @@ var playlist = {
         });
     },
 
+    openFromStored: function () {
+        // disable events
+        $(document).off('keydown');
+        if ($('#playlist-open-modal .selected').length) {
+            var file = $('#playlist-open-modal .selected').data().fileid;
+            stored.open(file);
+        } else {
+            toastr.warning('No playlist was selected', 'Playlist', {
+                'closeButton': true,
+                'positionClass': 'toast-bottom-left',
+                'preventDuplicates': true,
+            });
+        }
+    },
+
+    saveFromStored: function () {
+        console.log('confirm save playlist');
+        var file = $('#playlist-save-input').val();
+        stored.save(file);
+    },
+
     initEvents: function () {
         $('#new-playlist').click(function () { pb.newLocal(); });
 
@@ -1305,16 +1326,11 @@ var playlist = {
         });
 
         $('#playlist-save-confirm').click(function () {
-            console.log('confirm save playlist');
-            var file = $('#playlist-save-input').val();
-            stored.save(file);
+            playlist.saveFromStored();
         });
 
         $('#playlist-open-confirm').click(function () {
-            if ($('#playlist-open-modal .selected').length) {
-                var file = $('#playlist-open-modal .selected').data().fileid;
-                stored.open(file);
-            }
+            playlist.openFromStored();
         });
 
         $('#clear-playlist').click(function () {
@@ -1924,6 +1940,8 @@ var stored = {
     // may be changed in the future to be more dynamic
     totalIds: 2,
     currentId: 0,
+    // currently opened modal (open or save)
+    active: '',
 
     // used show all playlists
     // fileArr is used when saving the playlist externally after clicking save
@@ -1968,6 +1986,11 @@ var stored = {
                 $('#' + id +' .modal-body').append(html);
                 return console.log(err);
             }
+
+            if (id == 'playlist-open-modal')
+                stored.active = 'open';
+            else if (id == 'playlist-save-modal')
+                stored.active = 'save';
 
             $('#' + id +' .modal-body .gen').remove();
 
@@ -2267,11 +2290,60 @@ var stored = {
     initEvents: function () {
         $(document).on('click', '.playlists .gen', function () {
             console.log('select playlist');
+            // unbind any previous keydowns
+            $(document).off('keydown');
             // bg to td instead of tr because of override
             $('.playlists td').removeClass('bg-primary');
             $(this).removeClass('selected');
+            // fix hover issues
             $(this).children().addClass('bg-primary');
             $(this).addClass('selected');
+
+            var file = $(this).data().fileid;
+            $('#playlist-save-input').val(file);
+
+            var ele = this;
+
+            $(document).keydown(function (e) {
+                switch (e.keyCode) {
+                    // enter key
+                    case 13:
+                        if (stored.active == 'open')
+                            playlist.openFromStored();
+                        else if (stored.active == 'save')
+                            playlist.saveFromStored();
+
+                        break;
+
+                    // down arrow
+                    case 40:
+                        if (!$(ele).next().length) break;
+
+                        $(ele).removeClass('selected');
+                        $('.playlists td').removeClass('bg-primary');
+                        ele = $(ele).next();
+                        $(ele).children().addClass('bg-primary');
+                        $(ele).addClass('selected');
+
+                        file = $(ele).data().fileid;
+                        $('#playlist-save-input').val(file);
+                        break;
+
+                    // up arrow
+                    case 38:
+                        if (!$(ele).prev().length) break;
+
+                        $(ele).removeClass('selected');
+                        $('.playlists td').removeClass('bg-primary');
+                        ele = $(ele).prev();
+                        $(ele).children().addClass('bg-primary');
+                        $(ele).addClass('selected');
+
+                        file = $(ele).data().fileid;
+                        $('#playlist-save-input').val(file);
+                        break;
+                }
+            });
         });
 
         $(document).on('click', '.playlist-remove', function () {
@@ -2300,28 +2372,39 @@ var stored = {
         });
 
         $(document).on('dblclick', '#playlist-open-modal .gen', function () {
-            var file = $(this).data().fileid;
-            stored.open(file);
+            playlist.openFromStored();
         });
 
         $(document).on('dblclick', '#playlist-save-modal .gen', function () {
-            var file = $('#playlist-save-input').val();
-            stored.save(file);
-        });
-
-        $(document).on('click', '#playlist-save-modal .gen', function () {
-            console.log('appending playlist to text');
-            var file = $(this).data().fileid;
-            $('#playlist-save-input').val(file);
+            playlist.saveFromStored();
         });
 
         // reset vars
         $('#playlist-open-modal').on('hidden.bs.modal', function () {
             stored.call = null;
+            stored.active = '';
         });
 
         $('#playlist-save-modal').on('hidden.bs.modal', function () {
             stored.fileArr = [];
+            stored.active = '';
+        });
+
+        $('#playlist-save-clear').click(function () {
+            $('#playlist-save-input').val('');
+            $('#playlist-save-input').focus();
+
+            // unbind any previous keydowns
+            $(document).off('keydown');
+            // bg to td instead of tr because of override
+            $('.playlists td').removeClass('bg-primary');
+            $(this).removeClass('selected');
+        });
+
+        $('#playlist-save-input').focus(function () {
+            $(document).keydown(function (e) {
+                if (e.keyCode == 13) playlist.saveFromStored();
+            });
         });
     }
 };
