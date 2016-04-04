@@ -486,8 +486,9 @@ var sendUpdate = function (address, connect, customSocket) {
             addresses.push(remAdd);
     }
 
-    var oldSize = oldAddresses.length;
-    var newSize = addresses.length;
+    var oldSize = oldAddresses.length,
+        newSize = addresses.length;
+
     i = 0;
 
     function hostHandler(item) {
@@ -538,9 +539,11 @@ var sendUpdate = function (address, connect, customSocket) {
 
         console.log(addresses);
 
-        var totalClients = addresses.length;
-        var songSkipFloat = totalClients * skip.votePercent;
+        var totalClients = addresses.length,
+            songSkipFloat = totalClients * skip.votePercent;
+
         skip.total = parseInt((songSkipFloat), 10);
+
         if (skip.total < 1) skip.total = 1;
 
         // in case a user votes, and another user disconnects that

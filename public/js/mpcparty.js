@@ -1281,6 +1281,7 @@ var playlist = {
         });
     },
 
+    // open playlist from stored element
     openFromStored: function () {
         // disable events
         $(document).off('keydown');
@@ -1296,6 +1297,7 @@ var playlist = {
         }
     },
 
+    // save playlist from stored element
     saveFromStored: function () {
         // disable events
         $(document).off('keydown');
@@ -3337,6 +3339,9 @@ var settings = {
 
 // the video (audio) player
 var video = {
+    // current tile on player.
+    title: '',
+
     // download the video
     download: function (url) {
         if (url !== '') socket.send(JSON.stringify(
@@ -3345,12 +3350,24 @@ var video = {
         });
     },
 
+    // grab url from player element
+    downloadFromPlayer: function () {
+        var url = $('#download-player-url').val();
+        video.download(url);
+    },
+
     // play the Player (after download)
     play: function () {
-        socket.send(JSON.stringify(
-                {'type': 'download-video-play'}), function (err) {
-            if (err) console.log(err);
-        });
+        // if there is no title, and the user clicks play, just download
+        // the video.
+        if (this.title === '') {
+            this.downloadFromPlayer();
+        } else {
+            socket.send(JSON.stringify(
+                    {'type': 'download-video-play'}), function (err) {
+                if (err) console.log(err);
+            });
+        }
     },
 
     // pause or play the Player
@@ -3378,6 +3395,7 @@ var video = {
     },
 
     setTitle: function (title) {
+        this.title = title;
         $('#download-player-title').html(title);
     },
 
@@ -3413,8 +3431,7 @@ var video = {
 
     initEvents: function () {
         $('#download-player-search').click(function () {
-            var url = $('#download-player-url').val();
-            video.download(url);
+            video.downloadFromPlayer();
         });
 
         $('#download-player-play').click(function () {
