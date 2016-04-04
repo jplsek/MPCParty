@@ -1297,6 +1297,8 @@ var playlist = {
     },
 
     saveFromStored: function () {
+        // disable events
+        $(document).off('keydown');
         console.log('confirm save playlist');
         var file = $('#playlist-save-input').val();
         stored.save(file);
