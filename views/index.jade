@@ -285,6 +285,63 @@ html
                                     span.glyphicon.glyphicon-remove
 
             main
+                #browser-selection
+                    button#update.btn.btn-default(title='Update the music database (after uploading new music to the folder)')
+                        span.glyphicon.glyphicon-repeat
+                    button#open-file-browser.btn.btn-default(title='Show the file browser')
+                        span.glyphicon.glyphicon-folder-open
+                    button#open-library.btn.btn-default(title='Show the library')
+                        span.glyphicon.glyphicon-align-justify
+
+                #library.col-sm-8
+                    #library-top
+                        #library-artists
+                            #library-artists-header
+                                form(autocomplete='off')
+                                    .input-group
+                                        input#search-artists.form-control(type='text', placeholder='Search artists...')
+                                        span.input-group-btn
+                                            button#search-clear.btn.btn-default(type='button')
+                                                span.glyphicon.glyphicon-remove
+                            #library-artists-wrap
+                                table#library-artists-list.table.table-hover
+                                    thead: tr
+                                        th#library-col-artist Artist
+                                        th
+                                    tbody.append.connected
+                        #library-albums
+                            #library-albums-header
+                                form(autocomplete='off')
+                                    .input-group
+                                        input#search-albums.form-control(type='text', placeholder='Search albums from artist...')
+                                        span.input-group-btn
+                                            button#search-clear.btn.btn-default(type='button')
+                                                span.glyphicon.glyphicon-remove
+                            #library-albums-wrap
+                                table#library-albums-list.table.table-hover
+                                    thead: tr
+                                        th#library-col-album Album
+                                        th
+                                    tbody.append.connected
+                    #library-songs
+                        #library-songs-header
+                            form(autocomplete='off')
+                                .input-group
+                                    input#search-songs.form-control(type='text', placeholder='Search songs from album...')
+                                    span.input-group-btn
+                                        button#search-clear.btn.btn-default(type='button')
+                                            span.glyphicon.glyphicon-remove
+                        #library-songs-wrap
+                            table#library-songs-list.table.table-hover
+                                thead: tr
+                                    th#library-col-songs-number #
+                                    th#library-col-songs-title Title
+                                    th#library-col-songs-artist Artist
+                                    th#library-col-songs-album Album
+                                    th#library-col-songs-time Time
+                                    th
+                                tbody.append.connected
+
                 #browser.col-sm-8
                     noscript: h1 You have Javascript disabled. This does not work without Javascript.
                     // having the block wrapper fixes an issue with webkit not getting the childs height
@@ -295,8 +352,6 @@ html
                                     li: span#home.glyphicon.glyphicon-home(title='Go to the root of the music database.')
                             #browser-bottons
                                 .btn-group
-                                    button#update.btn.btn-default(title='Update the music database (after uploading new music to the folder)')
-                                        | Update Music Library
                                     button#add-all.btn.btn-default(title='Add all songs from the current page')
                                         | Add All
                     #slwrap

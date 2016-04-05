@@ -21,6 +21,16 @@ TODO
         * Drag into empty tables properly (only works in playlist if dragging over "empty playlist", but in pb, it will detect the playlist table instead of the pb table)
     * Loading icon between changing locations?
     * Custom column picker
+* Library:
+    * Search bars
+    * Context menus
+    * Drag and drop
+    * thead fixed
+    * Auto select "all" songs per artist
+    * Disable updates depending on browser or library
+    * URL's
+    * Popstates
+    * Global search brings browser back, closing global search brings library back
 * Playlist:
     * Drag and drop through pages
     * Remove songs visually to the single user. (Do not update the playlist via mpd for the user editing it.) It will allow faster deletion for large playlists.

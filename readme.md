@@ -29,14 +29,14 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
     * Sort by title, artist, album or time
     * Location bar
     * Add all songs based on current page to the playlist
-    * Update music database
-        * Note: you may need to refresh the page for the browser to become updated
     * Library searching
     * Playlist position indication
     * Folder url linking
     * Search url linking
     * Right click to add a song (or folder) to the top, bottom, or after the currently playing song of the playlist (or playlist buffer)
     * Multiselection (ctrl, shift: add, weird drag and drop; right click: add to top, bottom, current)
+* Library browser (WIP)
+    * Select songs from their respective artist and album, without worring about files and folders
 * Playlist buffer
     * Create and edit playlists without interrupting the current playlist
     * Multiselection (ctrl, shift: remove, weird drag and drop; right click: add to top, bottom)
@@ -44,6 +44,7 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
     * Scramble and remove duplicates
 * Download Player
     * Download videos, such as from youtube, and play the audio on the server.
+* Update music database
 * Basic mobile support
 * Basic theming support
 
