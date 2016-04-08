@@ -225,6 +225,13 @@ function rowSelect(ele, par, style) {
     $(ele).addClass('selected');
 }
 
+function reflowAll() {
+    $('#song-list.table').trigger('reflow');
+    $('#library-artists-list.table').trigger('reflow');
+    $('#library-albums-list.table').trigger('reflow');
+    $('#library-songs-list.table').trigger('reflow');
+}
+
 // the header with music controls
 var player = {
     // current song to highlight the playlist
@@ -1998,7 +2005,7 @@ var library = {
     },
 
     // put albums in table
-    updateAlbums: function (artist) {
+    updateAlbums: function (artist, callback) {
         console.log('update albums');
 
         komponist.list('album', artist, function (err, files) {
@@ -2007,17 +2014,18 @@ var library = {
             $('#library-albums-list .gen').remove();
             files = toArray(files);
 
-            var html = '';
+            var html       = '',
+                tableStart = '<table class="fixed-table"><tr><td>',
+                tableEnd   = '</td></tr></table>';
+
+            // All row
+            html += '<tr class="context-menu gen library-artist-all" data-artist="' + artist + '" data-album="mpcp-all"><td title="All">' + tableStart + 'All' + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
 
             if (!files.length || files[0].Album === '') {
-                html = '<tr class="gen"><td colspan="2">' +
-                    '<em>No albums</em></td></tr>';
                 $('#library-albums-list .append').append(html);
+                if (callback) callback();
                 return console.log('No albums found');
             }
-
-            var tableStart = '<table class="fixed-table"><tr><td>',
-                tableEnd   = '</td></tr></table>';
 
             for (var i = 0; i < files.length; ++i) {
                 var album = files[i].Album;
@@ -2026,6 +2034,8 @@ var library = {
             }
 
             $('#library-albums-list .append').append(html);
+
+            if (callback) callback();
         });
     },
 
@@ -2033,7 +2043,17 @@ var library = {
     updateSongs: function (artist, album) {
         console.log('update songs');
 
-        komponist.find('artist', artist, 'album', album, function (err, files) {
+        if (album == 'mpcp-all') {
+            komponist.find('artist', artist, function (err, files) {
+                setSongs(err, files);
+            });
+        } else {
+            komponist.find('artist', artist, 'album', album, function (err, files) {
+                setSongs(err, files);
+            });
+        }
+
+        function setSongs(err, files) {
             //console.log(files);
 
             $('#library-songs-list .gen').remove();
@@ -2041,9 +2061,10 @@ var library = {
 
             var html = '';
 
-            if (!files.length || files[0].Album === '') {
-                html = '<tr class="gen"><td colspan="2">' +
-                    '<em>No albums</em></td></tr>';
+            if (!files.length || (files.length == 1 && !files[0].Album &&
+                    !files[0].Artist)) {
+                html = '<tr class="gen"><td colspan="6">' +
+                    '<em>No songs</em></td></tr>';
                 $('#library-songs-list .append').append(html);
                 return console.log('No songs found');
             }
@@ -2064,13 +2085,16 @@ var library = {
             }
 
             $('#library-songs-list .append').append(html);
-            //$('').trigger('reflow');
-        });
+            //$('#library-songs-list.table').trigger('reflow');
+        }
     },
 
     show: function () {
         library.hidden = false;
         $('#library').show();
+        $('#library-artists-list.table').trigger('reflow');
+        $('#library-albums-list.table').trigger('reflow');
+        $('#library-songs-list.table').trigger('reflow');
     },
 
     hide: function () {
@@ -2088,7 +2112,12 @@ var library = {
             var artist = $(this).data().id;
 
             rowSelect(this, '#library-artists-list', 'bg-info');
-            library.updateAlbums(artist);
+            library.updateAlbums(artist, function () {
+                rowSelect('.library-artist-all', '#library-albums-list', 'bg-info');
+            });
+
+            // show all songs initially
+            library.updateSongs(artist, 'mpcp-all');
         });
 
         $(document).on('click', '#library-albums-list .gen', function () {
@@ -3255,7 +3284,7 @@ var settings = {
         $('#theme').load(function () {
             console.log('theme loaded');
             // reflow header on theme change
-            $('#song-list.table').trigger('reflow');
+            reflowAll();
         }).attr('href', '/css/themes/' + settings.theme + '/main.css');
     },
 
@@ -4040,7 +4069,7 @@ window.onpopstate = function (event) {
     }
 };
 
-// table sorting
+// table sorting (browser)
 var sortOrder1='asc';
 $(document).on('click', '#col-number', function () {
     if (sortOrder1=='asc') {
@@ -4178,11 +4207,144 @@ $(document).on('click', '#playlist-save-modal .col-playlists-songs', function ()
     }
 });
 
-// seperate scrolling for main
+// library (songs)
+var sortOrder10='asc';
+$(document).on('click', '#library-col-songs-number', function () {
+    if (sortOrder10=='asc') {
+        $('#library-songs-list').sortColumn({
+            index: 1, order: 'desc', format: 'number'
+        });
+        sortOrder10='desc';
+    } else {
+        $('#library-songs-list').sortColumn({
+            index: 1, order: 'asc', format: 'number'
+        });
+        sortOrder10='asc';
+    }
+});
+
+var sortOrder11='asc';
+$(document).on('click', '#library-col-songs-title', function () {
+    if (sortOrder11=='asc') {
+        $('#library-songs-list').sortColumn({
+            index: 2, order: 'desc', format: 'string'
+        });
+        sortOrder11='desc';
+    } else {
+        $('#library-songs-list').sortColumn({
+            index: 2, order: 'asc', format: 'string'
+        });
+        sortOrder11='asc';
+    }
+});
+
+var sortOrder12='asc';
+$(document).on('click', '#library-col-songs-artist', function () {
+    if (sortOrder12=='asc') {
+        $('#library-songs-list').sortColumn({
+            index: 3, order: 'desc', format: 'string'
+        });
+        sortOrder12='desc';
+    } else {
+        $('#library-songs-list').sortColumn({
+            index: 3, order: 'asc', format: 'string'
+        });
+        sortOrder12='asc';
+    }
+});
+
+var sortOrder13='asc';
+$(document).on('click', '#library-col-songs-album', function () {
+    if (sortOrder13=='asc') {
+        $('#library-songs-list').sortColumn({
+            index: 4, order: 'desc', format: 'string'
+        });
+        sortOrder13='desc';
+    } else {
+        $('#library-songs-list').sortColumn({
+            index: 4, order: 'asc', format: 'string'
+        });
+        sortOrder13='asc';
+    }
+});
+
+var sortOrder14='asc';
+$(document).on('click', '#library-col-songs-time', function () {
+    if (sortOrder14=='asc') {
+        $('#library-songs-list').sortColumn({
+            index: 5, order: 'desc', format: '00:00'
+        });
+        sortOrder14='desc';
+    } else {
+        $('#library-songs-list').sortColumn({
+            index: 5, order: 'asc', format: '00:00'
+        });
+        sortOrder14='asc';
+    }
+});
+
+// library (artist)
+var sortOrder15='asc';
+$(document).on('click', '#library-col-artist', function () {
+    if (sortOrder15=='asc') {
+        $('#library-artists-list').sortColumn({
+            index: 1, order: 'desc', format: 'string'
+        });
+        sortOrder15='desc';
+    } else {
+        $('#library-artists-list').sortColumn({
+            index: 1, order: 'asc', format: 'string'
+        });
+        sortOrder15='asc';
+    }
+});
+
+// library (album)
+var sortOrder16='asc';
+$(document).on('click', '#library-col-album', function () {
+    if (sortOrder16=='asc') {
+        $('#library-albums-list').sortColumn({
+            index: 1, order: 'desc', format: 'string'
+        });
+        sortOrder16='desc';
+    } else {
+        $('#library-albums-list').sortColumn({
+            index: 1, order: 'asc', format: 'string'
+        });
+        sortOrder16='asc';
+    }
+});
+
+
+// thead floating
 $('#song-list.table').floatThead({
     position: 'fixed',
     scrollContainer: function ($table) {
         return $table.closest('#slwrap');
+    },
+    autoReflow: true
+});
+
+$('#library-artists-list.table').floatThead({
+    position: 'fixed',
+    scrollContainer: function ($table) {
+        return $table.closest('#library-artists-wrap');
+    },
+    autoReflow: true
+});
+
+$('#library-albums-list.table').floatThead({
+    position: 'fixed',
+    scrollContainer: function ($table) {
+        return $table.closest('#library-albums-wrap');
+    },
+    autoReflow: true
+});
+
+$('#library-songs-list.table').floatThead({
+    position: 'fixed',
+    scrollContainer: function ($table) {
+        return $table.closest('#library-songs-wrap');
     },
     autoReflow: true
 });

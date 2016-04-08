@@ -25,9 +25,6 @@ TODO
     * Search bars
     * Context menus
     * Drag and drop
-    * thead fixed
-    * Auto select "all" songs per artist
-    * Disable updates depending on browser or library
     * URL's
     * Popstates
     * Global search brings browser back, closing global search brings library back
@@ -49,6 +46,7 @@ TODO
 * After accessing a folder, check if there is only one folder and no songs, if so, automatically enter that folder (not when clicking location bar, however)
 * Undo actions (like removing a song from the playlist)?
 * Add a max updates per second setting
+* Found out that the way I'm using floathead makes the app comparatively slower than not using it. So I might one day create a "lightweight" version from scratch.
 
 ## Bugs
 * It seems crashing is due to refreshing too many times?
