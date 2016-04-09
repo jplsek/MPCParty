@@ -21,6 +21,7 @@ TODO
         * Drag into empty tables properly (only works in playlist if dragging over "empty playlist", but in pb, it will detect the playlist table instead of the pb table)
     * Loading icon between changing locations?
     * Custom column picker
+    * Add a 'file' search mode in case the file doesn't have tag
 * Library:
     * Search bars
     * Context menus

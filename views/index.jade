@@ -284,6 +284,18 @@ html
                                 button#search-clear.btn.btn-default(type='button')
                                     span.glyphicon.glyphicon-remove
 
+
+            mixin songList(id)
+                table.song-list.table.table-hover(id=id)
+                    thead: tr
+                        th(id=id+'-col-number') #
+                        th(id=id+'-col-title') Title
+                        th(id=id+'-col-artist') Artist
+                        th(id=id+'-col-album') Album
+                        th(id=id+'-col-time') Time
+                        th
+                    tbody.append.connected
+
             main
                 #browser-selection
                     button#update.btn.btn-default(title='Update the music database (after uploading new music to the folder)')
@@ -332,15 +344,7 @@ html
                                         button#search-clear.btn.btn-default(type='button')
                                             span.glyphicon.glyphicon-remove
                         #library-songs-wrap
-                            table#library-songs-list.table.table-hover
-                                thead: tr
-                                    th#library-col-songs-number #
-                                    th#library-col-songs-title Title
-                                    th#library-col-songs-artist Artist
-                                    th#library-col-songs-album Album
-                                    th#library-col-songs-time Time
-                                    th
-                                tbody.append.connected
+                            +songList('library-songs-list')
 
                 #browser.col-sm-8
                     noscript: h1 You have Javascript disabled. This does not work without Javascript.
@@ -355,15 +359,7 @@ html
                                     button#add-all.btn.btn-default(title='Add all songs from the current page')
                                         | Add All
                     #slwrap
-                        table#song-list.table.table-hover
-                            thead: tr
-                                th#col-number #
-                                th#col-title Title
-                                th#col-artist Artist
-                                th#col-album Album
-                                th#col-time Time
-                                th
-                            tbody.append.connected
+                        +songList('file-browser-song-list')
                     #browser-pages.pages.navbar.navbar-default
                         button.btn.btn-default.first(title='Go to first page')
                             span.glyphicon.glyphicon-step-backward
