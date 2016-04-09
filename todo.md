@@ -23,9 +23,9 @@ TODO
     * Custom column picker
     * Add a 'file' search mode in case the file doesn't have tag
 * Library:
-    * Search bars
-    * Context menus
-    * Drag and drop
+    * Search bar (all)
+    * Context menus (artists, albums)
+    * Drag and drop (aritsts, albums)
     * URL's
     * Popstates
     * Global search brings browser back, closing global search brings library back

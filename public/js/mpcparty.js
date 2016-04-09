@@ -611,7 +611,6 @@ var playlist = {
 
     // used to update the current playlist
     updateAll: function () {
-
         if (!playlist.doUpdate) {
             playlist.doUpdate = true;
             return;
@@ -673,6 +672,11 @@ var playlist = {
     },
 
     updateLocal: function (callback) {
+        if (!playlist.doUpdate) {
+            playlist.doUpdate = true;
+            return;
+        }
+
         console.log('update playlist locally');
 
         // length is always 1 for playlist.local, this fixes the empty object
@@ -687,15 +691,21 @@ var playlist = {
         $('#playlist-song-list .gen').remove();
 
         var html = '',
+            i,
             // item start and end from current page
             start =  (pages.currentPlaylist - 1) * pages.maxPlaylist,
             end   = ((pages.currentPlaylist - 1) * pages.maxPlaylist) +
                 pages.maxPlaylist;
 
         //console.log(end);
+        // make all toPulse to ints
+        for (i = 0; i < playlist.toPulse.length; ++i) {
+            playlist.toPulse[i] = parseInt(playlist.toPulse[i]);
+        }
 
-        for (var i = 0; i < playlist.local.length; ++i) {
+        for (i = 0; i < playlist.local.length; ++i) {
             var value = playlist.local[i];
+
             value.Pos = parseInt(value.Pos);
             value.Id  = parseInt(value.Id);
             //console.log(value.file);
@@ -797,14 +807,16 @@ var playlist = {
     // drag and drop came from a different table
     fromSender: function (ui, newIndex) {
         //console.log(ui.item);
-        var file;
-        if (browser.selected.length)
+        if (browser.selected.length) {
             browser.selected = browser.selected.toArray().reverse();
+            browser.addMulti(newIndex);
+            return;
+        }
 
         // file
         // note: multiselect is checked in addDir and addSong!
         if ($(ui.item).hasClass('file')) {
-            file = ui.item.data().fileid;
+            var file = ui.item.data().fileid;
             // check if nothing in playlist
             if (playlist.local.length <= 1) {
                 playlist.addid(file, undefined, true);
@@ -909,73 +921,61 @@ var playlist = {
             });
     },
 
-    // addSong, if multiselect, it sends to addMulti
+    // addSong
     addSong: function (file, to, dontScroll) {
         console.log('adding song to playlist');
 
-        if (browser.selected.length) {
-            this.addMulti(to, dontScroll);
-        } else {
-            if (!dontScroll)
-                if (to === undefined || isNaN(to)) {
-                    pages.go('playlist', pages.totalPlaylist);
-                    this.scrollDown = true;
-                } else {
-                    this.goToPos(to);
-                }
-
-            this.addid(file, to);
-        }
-    },
-
-    // addDir, if multiselect, it sends to addMulti
-    addDir: function (dir, to, dontScroll) {
-        console.log('adding dir to playlist');
-
-        // check multiselect
-        if (browser.selected.length) {
-            this.addMulti(to, dontScroll);
-        } else {
-            if (!dontScroll)
-                if (to === undefined || isNaN(to)) {
-                    pages.go('playlist', pages.totalPlaylist);
-                    this.scrollDown = true;
-                } else {
-                    this.goToPos(to);
-                }
-
-            this.add(dir, to);
-        }
-    },
-
-    // add from multiselect
-    addMulti: function (to, dontScroll) {
-        console.log('addMulti to playlist');
-
-        if (!dontScroll)
+        if (!dontScroll) {
+            playlist.doUpdate = false;
             if (to === undefined || isNaN(to)) {
                 pages.go('playlist', pages.totalPlaylist);
                 this.scrollDown = true;
             } else {
                 this.goToPos(to);
             }
+        }
 
-        if (!to) browser.selected = browser.selected.toArray().reverse();
+        this.addid(file, to);
+    },
 
-        // TODO when there is both a file and directory, it will refresh
-        // the playlist twice (then the browser twice). This also semi-brakes
-        // the pulsing effect
-        $(browser.selected).each(function (item, tr) {
-            if ($(tr).hasClass('file')) {
-                var file = $(tr).data().fileid;
-                playlist.addid(file, to);
-            } else if ($(tr).hasClass('directory')) {
-                var dir = $(tr).data().dirid;
-                playlist.add(dir, to);
+    // addDir
+    addDir: function (dir, to, dontScroll) {
+        console.log('adding dir to playlist');
+
+        if (!dontScroll) {
+            playlist.doUpdate = false;
+            if (to === undefined || isNaN(to)) {
+                pages.go('playlist', pages.totalPlaylist);
+                this.scrollDown = true;
+            } else {
+                this.goToPos(to);
             }
-        });
+        }
 
-        browser.clearSelected();
+        this.add(dir, to);
+    },
+
+    // wrapper for komponist.findadd
+    findAdd: function (artist, album) {
+
+        if (!album) {
+            komponist.findadd('artist', artist, function (err, files) {
+                setSongs(err, files);
+            });
+        } else {
+            komponist.findadd('artist', artist, 'album', album, function (err, files) {
+                setSongs(err, files);
+            });
+        }
+
+        function setSongs (err, files) {
+            if (err) console.log(err);
+            // no files in response
+
+            playlist.doUpdate = false;
+            pages.go('playlist', pages.totalPlaylist);
+            playlist.scrollDown = true;
+        }
     },
 
     // plays the song in the playlist
@@ -1079,8 +1079,11 @@ var playlist = {
         var newPos = player.current.Pos + 1;
         this.goAfterUpdate = true;
 
-        if (browser.selected.length)
+        if (browser.selected.length) {
             browser.selected = browser.selected.toArray().reverse();
+            browser.addMulti(newPos);
+            return;
+        }
 
         if (type == 'file') {
             playlist.addSong(file, newPos, true);
@@ -1746,9 +1749,15 @@ var browser = {
 
         //console.log(current);
 
-        // draggable bowser
-        // used: jsfiddle.net/BrianDillingham/v265q/320
-        $('#file-browser-song-list .append').sortable({
+        browser.createDraggable('#file-browser-song-list');
+        browser.updatePosition();
+        pages.update('browser');
+    },
+
+    // draggable song-list
+    // used: jsfiddle.net/BrianDillingham/v265q/320
+    createDraggable: function (ele) {
+        $(ele + ' .append').sortable({
             items: 'tr.gen',
             connectWith: '.connected',
             placeholder: 'no-placeholder',
@@ -1769,9 +1778,6 @@ var browser = {
             // above flothead and pb
             zIndex: 1003
         }).disableSelection();
-
-        browser.updatePosition();
-        pages.update('browser');
     },
 
     clearSelected: function () {
@@ -1827,7 +1833,7 @@ var browser = {
                 $(files).each(function (item, value) {
                     if (value.directory) {
                         if (pb.current !== null)
-                            pb.addDir(value.directory);
+                            pb.add(value.directory);
                         else
                             komponist.add(value.directory, function (err) {
                                 if (err) console.log(err);
@@ -1836,7 +1842,7 @@ var browser = {
 
                     if (value.file) {
                         if (pb.current !== null)
-                            pb.addFile(value.file);
+                            pb.addid(value.file);
                         else
                             komponist.add(value.file, function (err) {
                                 if (err) console.log(err);
@@ -1856,6 +1862,33 @@ var browser = {
     hide: function () {
         $('#browser').hide();
         browser.hidden = true;
+    },
+
+    addMulti: function (to) {
+        if (pb.current) {
+            $(browser.selected).each(function (item, tr) {
+                if ($(tr).hasClass('file')) {
+                    var file = $(tr).data().fileid;
+                    pb.addid(file, to++);
+                } else if ($(tr).hasClass('directory')) {
+                    var dir = $(tr).data().dirid;
+                    console.log(dir);
+                    pb.add(dir, to++);
+                }
+            });
+        } else {
+            $(browser.selected).each(function (item, tr) {
+                if ($(tr).hasClass('file')) {
+                    var file = $(tr).data().fileid;
+                    playlist.addSong(file, to);
+                } else if ($(tr).hasClass('directory')) {
+                    var dir = $(tr).data().dirid;
+                    playlist.addDir(dir, to);
+                }
+            });
+        }
+
+        browser.clearSelected();
     },
 
     initEvents: function () {
@@ -1922,16 +1955,20 @@ var browser = {
 
         $(document).on('click', '.song-add', function () {
             var file = $(this).parent().parent().data().fileid;
-            if (pb.current !== null)
-                pb.addFile(file);
+            if (browser.selected.length)
+                browser.addMulti();
+            else if (pb.current)
+                pb.addid(file);
             else
                 playlist.addSong(file);
         });
 
         $(document).on('dblclick', 'tr.file', function () {
             var file = $(this).data().fileid;
-            if (pb.current !== null)
-                pb.addFile(file);
+            if (browser.selected.length)
+                browser.addMulti();
+            else if (pb.current)
+                pb.addid(file);
             else
                 playlist.addSong(file);
         });
@@ -1948,8 +1985,10 @@ var browser = {
 
         $(document).on('click', '.dir-add', function () {
             var dir = $(this).parent().parent().data().dirid;
-            if (pb.current !== null)
-                pb.addDir(dir);
+            if (browser.selected.length)
+                browser.addMulti();
+            else if (pb.current)
+                pb.add(dir);
             else
                 playlist.addDir(dir);
         });
@@ -1973,6 +2012,7 @@ var browser = {
     }
 };
 
+// the library (alternative to file browser)
 var library = {
     hidden: true,
 
@@ -2003,7 +2043,7 @@ var library = {
             for (var i = 0; i < files.length; ++i) {
                 var artist = files[i].Artist;
 
-                html += '<tr class="context-menu gen" data-id="' + artist + '"><td title="' + artist + '">' + tableStart + artist + tableEnd + '</td><td class="song-list-icons text-right"><span class="artist-add faded text-success glyphicon glyphicon-plus" title="Add artist to the bottom of the playlist"></span></td></tr>';
+                html += '<tr class="context-menu gen" data-artist="' + artist + '"><td title="' + artist + '">' + tableStart + artist + tableEnd + '</td><td class="song-list-icons text-right"><span class="artist-add faded text-success glyphicon glyphicon-plus" title="Add artist to the bottom of the playlist"></span></td></tr>';
             }
 
             $('#library-artists-list .append').append(html);
@@ -2025,7 +2065,7 @@ var library = {
                 tableEnd   = '</td></tr></table>';
 
             // All row
-            html += '<tr class="context-menu gen library-artist-all" data-artist="' + artist + '" data-album="mpcp-all"><td title="All">' + tableStart + 'All' + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
+            html += '<tr class="context-menu gen library-artist-all" data-artist="' + artist + '"><td title="All">' + tableStart + 'All' + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
 
             if (!files.length || files[0].Album === '') {
                 $('#library-albums-list .append').append(html);
@@ -2049,7 +2089,7 @@ var library = {
     updateSongs: function (artist, album) {
         console.log('update songs');
 
-        if (album == 'mpcp-all') {
+        if (!album) {
             komponist.find('artist', artist, function (err, files) {
                 setSongs(err, files);
             });
@@ -2083,6 +2123,7 @@ var library = {
             }
 
             $('#library-songs-list .append').append(html);
+            browser.createDraggable('#library-songs-list');
             browser.updatePosition();
             //$('#library-songs-list.table').trigger('reflow');
         }
@@ -2102,6 +2143,32 @@ var library = {
         $('#library').hide();
     },
 
+    // return a file list from an album
+    getSongsFromAlbum: function (artist, album, callback) {
+
+        if (!album) {
+            komponist.find('artist', artist, function (err, files) {
+                setSongs(err, files);
+            });
+        } else {
+            komponist.find('artist', artist, 'album', album, function (err, files) {
+                setSongs(err, files);
+            });
+        }
+
+        function setSongs (err, files) {
+            //console.log(files);
+            files = toArray(files);
+
+            if (!files.length || (files.length == 1 && !files[0].Album &&
+                        !files[0].Artist)) {
+                return console.log('No songs found');
+            }
+
+            if (callback) callback(files);
+        }
+    },
+
     initEvents: function () {
         $('#open-library').click(function () {
             settings.saveBrowser('library');
@@ -2109,7 +2176,7 @@ var library = {
         });
 
         $(document).on('click', '#library-artists-list .gen', function () {
-            var artist = $(this).data().id;
+            var artist = $(this).data().artist;
 
             rowSelect(this, '#library-artists-list', 'bg-info');
             library.updateAlbums(artist, function () {
@@ -2117,7 +2184,7 @@ var library = {
             });
 
             // show all songs initially
-            library.updateSongs(artist, 'mpcp-all');
+            library.updateSongs(artist);
         });
 
         $(document).on('click', '#library-albums-list .gen', function () {
@@ -2126,6 +2193,29 @@ var library = {
 
             rowSelect(this, '#library-albums-list', 'bg-info');
             library.updateSongs(artist, album);
+        });
+
+        $(document).on('click', '.album-add', function () {
+            var artist = $(this).parent().parent().data().artist;
+            var album  = $(this).parent().parent().data().album;
+
+            if (pb.current)
+                library.getSongsFromAlbum(artist, album, function (files) {
+                    pb.addSong(files);
+                });
+            else
+                playlist.findAdd(artist, album);
+        });
+
+        $(document).on('click', '.artist-add', function () {
+            var artist = $(this).parent().parent().data().artist;
+
+            if (pb.current)
+                library.getSongsFromAlbum(artist, undefined, function (files) {
+                    pb.addSong(files);
+                });
+            else
+                playlist.findAdd(artist);
         });
     }
 };
@@ -2786,13 +2876,18 @@ var pb = {
     // mutliselect is handled in addDir and addfile
     fromSender: function (ui, index) {
         // file
+        if (browser.selected) {
+            browser.addMulti(index);
+            return;
+        }
+
         if ($(ui.item).hasClass('file')) {
             var fileName = ui.item.data().fileid;
-            pb.addFile(fileName, index);
+            pb.addid(fileName, index);
         } else if ($(ui.item).hasClass('directory')) {
             // directory
             var dir = ui.item.data().dirid;
-            pb.addDir(dir, index);
+            pb.add(dir, index);
         }
     },
 
@@ -2810,15 +2905,6 @@ var pb = {
         });
     },
 
-    // add file to pb
-    addFile: function (file, pos) {
-        if (browser.selected.length) {
-            pb.addMulti(pos);
-        } else {
-            pb.addid(file, pos);
-        }
-    },
-
     // wrapper (similar to komponist.add)
     add: function (dir, pos) {
         // FUTURE SELF: DO NOT USE LISTALLINFO, IT WILL HAVE THE "OFF BY ONE"
@@ -2829,33 +2915,9 @@ var pb = {
         // Add All and Multiselect directories is still based on how fast the
         // server can respond per directory (so it can look random)
         getAllInfo(dir, function (files) {
+            console.log(files);
             pb.addSong(files, pos);
         });
-    },
-
-    // add dir to pb
-    addDir: function (dir, pos) {
-        if (browser.selected.length) {
-            pb.addMulti(pos);
-        } else {
-            pb.add(dir, pos);
-        }
-    },
-
-    // multi-select adding to pb
-    addMulti: function (pos) {
-        $(browser.selected).each(function (item, tr) {
-            if ($(tr).hasClass('file')) {
-                var file = $(tr).data().fileid;
-                pb.addid(file, pos++);
-            } else if ($(tr).hasClass('directory')) {
-                var dir = $(tr).data().dirid;
-                console.log(dir);
-                pb.add(dir, pos++);
-            }
-        });
-
-        browser.clearSelected();
     },
 
     // remove song from the pb
@@ -4176,31 +4238,78 @@ function contextResponse(key, table, tr) {
     if ($(tr).hasClass('directory')) {
         var dirid = tr.data().dirid;
 
-        if (key == 'attPlaylist')
-            playlist.addDir(dirid, 0);
-        else if (key == 'attPb')
-            pb.addDir(dirid, 0);
-
-        if (key == 'atbPlaylist')
-            playlist.addDir(dirid);
-        else if (key == 'atbPb')
-            pb.addDir(dirid);
-
-        if (key == 'atc') playlist.addToCurrent(dirid, 'dir');
+        switch(key) {
+            case 'attPlaylist':
+                if (browser.selected.length) {
+                    browser.addMulti(0);
+                } else {
+                    playlist.addDir(dirid, 0);
+                }
+                break;
+            case 'attPb':
+                if (browser.selected.length) {
+                    browser.addMulti(0);
+                } else {
+                    pb.add(dirid, 0);
+                }
+                break;
+            case 'atbPlaylist':
+                if (browser.selected.length) {
+                    browser.addMulti();
+                } else {
+                    playlist.addDir(dirid);
+                }
+                break;
+            case 'atbPb':
+                if (browser.selected.length) {
+                    browser.addMulti();
+                } else {
+                    pb.add(dirid);
+                }
+                break;
+            case 'atc':
+                playlist.addToCurrent(dirid, 'dir');
+                break;
+        }
     }
 
     // file
     if ($(tr).hasClass('file')) {
         var fileid = tr.data().fileid;
 
-        if (key == 'attPlaylist')
-            playlist.addSong(fileid, 0);
-        else if (key == 'attPb')
-            pb.addFile(fileid, 0);
-
-        if (key == 'atbPlaylist') playlist.addSong(fileid);
-        if (key == 'atbPb') pb.addFile(fileid);
-        if (key == 'atc') playlist.addToCurrent(fileid, 'file');
+        switch(key) {
+            case 'attPlaylist':
+                if (browser.selected.length) {
+                    browser.addMulti(0);
+                } else {
+                    playlist.addSong(fileid, 0);
+                }
+                break;
+            case 'attPb':
+                if (browser.selected.length) {
+                    browser.addMulti(0);
+                } else {
+                    pb.addid(fileid, 0);
+                }
+                break;
+            case 'atbPlaylist':
+                if (browser.selected.length) {
+                    browser.addMulti();
+                } else {
+                    playlist.addSong(fileid);
+                }
+                break;
+            case 'atbPb':
+                if (browser.selected.length) {
+                    browser.addMulti();
+                } else {
+                    pb.addid(fileid);
+                }
+                break;
+            case 'atc':
+                playlist.addToCurrent(fileid, 'file');
+                break;
+        }
     }
 }
 
@@ -4265,9 +4374,9 @@ $.contextMenu({
 
         // only apply when playlist buffer is active and not right clicking
         // the playlist
-        if (pb.current !== null && table.attr('id') != 'playlist-song-list') {
+        if (pb.current && table.attr('id') != 'playlist-song-list') {
             // browser
-            if (table.attr('id') == 'song-list') {
+            if (table.hasClass('song-list')) {
                 items = {
                     'title': {name: title},
                     'attPb': {name: 'Add to top of playlist buffer'},
@@ -4276,7 +4385,7 @@ $.contextMenu({
 
                 if (!$($trigger).hasClass('directory'))
                     items.infoBrowser = {name: 'Song information'};
-            // only on pb
+             // only on pb
              } else if (table.attr('id') == 'pb-song-list') {
                 items = {
                     'title':       {name: title},
@@ -4285,12 +4394,16 @@ $.contextMenu({
                     'remPb':       {name: 'Remove'},
                     'infoBrowser': {name: 'Song information'}
                 };
+            } else {
+                items = {
+                    'temp': {name: 'Context menu not implemented yet'}
+                };
             }
         }
         // only on playlist
         else if (table.attr('id') == 'playlist-song-list') {
             // song is playing
-            if (player.current !== null)
+            if (player.current)
                 items = {
                     'title':        {name: title},
                     'play':         {name: 'Play song'},
@@ -4301,7 +4414,7 @@ $.contextMenu({
                     'infoPlaylist': {name: 'Song information'}
                 };
             // song is not playing
-            else if (player.current === null)
+            else if (!player.current)
                 items = {
                     'title':        {name: title},
                     'play':         {name: 'Play song'},
@@ -4314,7 +4427,7 @@ $.contextMenu({
         // only on browser
         else if (table.hasClass('song-list')) {
             // song is playing
-            if (player.current !== null)
+            if (player.current)
                 items = {
                     'title':       {name: title},
                     'attPlaylist': {name: 'Add to top of playlist'},
@@ -4322,7 +4435,7 @@ $.contextMenu({
                     'atbPlaylist': {name: 'Add to bottom of playlist'}
                 };
             // song is not playing
-            else if (player.current === null)
+            else if (!player.current)
                 items = {
                     'title':       {name: title},
                     'attPlaylist': {name: 'Add to top of playlist'},
@@ -4389,39 +4502,46 @@ $('#playlist-song-list').multiSelect({
     }
 });
 
-// enable mutltiselect for the browser
-$('.song-list').multiSelect({
-    actcls: 'info',
-    selector: 'tr.gen',
-    callback: function (items, e) {
-        // don't clear browser.selected when clicking song-add
-        // and if song-remove is part of the playlist.selected list
-        //console.log(e);
-        //console.log(items);
-        //console.log(playlist.selected);
+// multiselection for the browser
+// (using a class introduced multiselect issues)
+function browserMultiSelect(ele) {
+    // enable mutltiselect for the browser
+    $(ele).multiSelect({
+        actcls: 'info',
+        selector: 'tr.gen',
+        callback: function (items, e) {
+            // don't clear browser.selected when clicking song-add
+            // and if song-remove is part of the playlist.selected list
+            //console.log(e);
+            //console.log(items);
+            //console.log(playlist.selected);
 
-        // checks if song-remove clicked is inside the playlist.selected
-        // so it wont delete previous playlist.selected if it was
-        // clicked outside of playlist.selected
-        var inside = false;
-        for (var i = 0; i < browser.selected.length; ++i) {
-            //console.log(browser.selected[i]);
-            if (($(e.target).hasClass('song-add') ||
-                    $(e.target).hasClass('dir-add')) &&
-                    browser.selected[i].isEqualNode(e.currentTarget)) {
-                console.log('slms: setting inside to true');
-                inside = true;
-                break;
+            // checks if song-remove clicked is inside the playlist.selected
+            // so it wont delete previous playlist.selected if it was
+            // clicked outside of playlist.selected
+            var inside = false;
+            for (var i = 0; i < browser.selected.length; ++i) {
+                //console.log(browser.selected[i]);
+                if (($(e.target).hasClass('song-add') ||
+                            $(e.target).hasClass('dir-add')) &&
+                        browser.selected[i].isEqualNode(e.currentTarget)) {
+                    console.log('slms: setting inside to true');
+                    inside = true;
+                    break;
+                }
+            }
+
+            // if its not in browser.selected, update it.
+            if (!inside) {
+                //console.log('updating playlist.selected');
+                browser.selected = items;
             }
         }
+    });
+}
 
-        // if its not in browser.selected, update it.
-        if (!inside) {
-            //console.log('updating playlist.selected');
-            browser.selected = items;
-        }
-    }
-});
+browserMultiSelect('#file-browser-song-list');
+browserMultiSelect('#library-songs-list');
 
 // enable multiselect for the playlist buffer
 $('#pb-song-list').multiSelect({
