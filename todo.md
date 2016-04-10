@@ -23,7 +23,7 @@ TODO
     * Custom column picker
     * Add a 'file' search mode in case the file doesn't have tag
 * Library:
-    * Search bar (all)
+    * Search bar (songs)
     * Context menus (artists, albums)
     * Drag and drop (aritsts, albums)
     * URL's

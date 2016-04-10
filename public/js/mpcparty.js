@@ -237,6 +237,90 @@ function reflowAll() {
     $('#library-songs-list.table').trigger('reflow');
 }
 
+// creates a search input setup (input, search callback [returns searchVal],
+// reset callback, input clear button, time it takes to search
+function createSearch(input, callSearch, callReset, inputClear, time) {
+
+    if (!time) time = 3000;
+
+    function getSearchVal() { return $(input).val().toLowerCase(); }
+
+    // searching the database, instant searching is "slowed"
+    // for better client and server performance
+    var searchInterval;
+    var lastVal = '';
+    $(input).focus(function () {
+        // makes the instant search not as instant (instead of
+        // relying on every keyUp)
+        searchInterval = setInterval(function () {
+            var searchVal = getSearchVal();
+            //console.log('attempting searching for ' + searchVal);
+            if (searchVal && searchVal != lastVal) {
+                callSearch(searchVal);
+                lastVal = searchVal;
+            } else if (searchVal === '' && lastVal !== '') {
+                callReset();
+            }
+        }, time);
+    });
+
+    $(input).focusout(function () {
+        clearInterval(searchInterval);
+        var searchVal = getSearchVal();
+        if (searchVal === '' && lastVal !== '') {
+            lastVal = '';
+            callReset();
+        }
+    });
+
+    $(inputClear).click(function () {
+        //console.log('clearing search');
+        $(input).val('');
+        $(input).focus();
+        lastVal = '';
+        callReset();
+    });
+
+    // detect enter key
+    $(input).keyup(function (e) {
+        if (e.keyCode == 13) {
+            var searchVal = getSearchVal();
+            //console.log('attempting searching for ' + searchVal);
+            if (searchVal === '') {
+                callReset();
+            } else {
+                callSearch(searchVal);
+                lastVal = searchVal;
+            }
+        }
+    });
+}
+
+// hides table rows as the user searches (input text box, table, data-*,
+// clear input button)
+function lazySearch(input, table, data, inputClear, time) {
+
+    if (!time) time = 1000;
+
+    createSearch(
+        input,
+        function (search) {
+            $(table + ' .gen').each(function (item, val) {
+                var str = String($(val).data()[data]).toLowerCase();
+                if (~str.indexOf(search)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }, function () {
+            $(table + ' .gen').show();
+        },
+        inputClear,
+        time
+    );
+}
+
 // the header with music controls
 var player = {
     // current song to highlight the playlist
@@ -532,55 +616,8 @@ var player = {
                 });
         });
 
-        // searching the database, instant searching is "slowed"
-        // for better client and server performance
-        var searchInterval;
-        var lastVal = '';
-        $('#search-browser').focus(function () {
-            // makes the instant search not as instant (instead of
-            // relying on every keyUp)
-            searchInterval = setInterval(function () {
-                var searchVal = $('#search-browser').val();
-                //console.log('attempting searching for ' + searchVal);
-                if (searchVal && searchVal != lastVal) {
-                    browser.search(searchVal);
-                    lastVal = searchVal;
-                } else if (searchVal === '' && lastVal !== '') {
-                    browser.update();
-                }
-            }, 3000);
-        });
-
-        $('#search-browser').focusout(function () {
-            clearInterval(searchInterval);
-            var searchVal = $('#search-browser').val();
-            if (searchVal === '' && lastVal !== '') {
-                lastVal = '';
-                browser.update();
-            }
-        });
-
-        $('#search-clear').click(function () {
-            //console.log('clearing search');
-            $('#search-browser').val('');
-            $('#search-browser').focus();
-            lastVal = '';
-            browser.update();
-        });
-
-        // detect enter key
-        $('#search-browser').keyup(function (e) {
-            if (e.keyCode == 13) {
-                var searchVal = $('#search-browser').val();
-                //console.log('attempting searching for ' + searchVal);
-                if (searchVal === '') {
-                    browser.update();
-                } else {
-                    browser.search(searchVal);
-                    lastVal = searchVal;
-                }
-            }
-        });
+        createSearch('#search-browser', browser.search, browser.update,
+            '#search-clear');
     }
 };
 
@@ -611,6 +648,7 @@ var playlist = {
 
     // used to update the current playlist
     updateAll: function () {
+        // do not use 'this'. Can be used in a callback.
         if (!playlist.doUpdate) {
             playlist.doUpdate = true;
             return;
@@ -621,7 +659,7 @@ var playlist = {
         // reset list
         playlist.list = {files: [], positions: []};
 
-        if (this.isSearching) {
+        if (playlist.isSearching) {
             playlist.search();
         } else {
             // we update the player first to update the current song positison
@@ -1265,13 +1303,14 @@ var playlist = {
     },
 
     search: function (val) {
+        // do not use 'this' keyword. May be used in callback.
         if (!val)
             val = playlist.searchTerm;
         else
             playlist.searchTerm = val;
 
         // set to true (in case of after clicking clear)
-        this.isSearching = true;
+        playlist.isSearching = true;
 
         komponist.playlistsearch('any', val, function(err, response) {
             if (err) return console.log(err);
@@ -1393,59 +1432,10 @@ var playlist = {
             }
         });
 
-        // searching the database, instant searching is "slowed"
-        // for better client and server performance
-        var searchInterval;
-        var lastVal = '';
-        $('#search-playlist').focus(function () {
-            // makes the instant search not as instant (instead of
-            // relying on every keyUp)
-            searchInterval = setInterval(function () {
-                var searchVal = $('#search-playlist').val();
-                //console.log('attempting searching for ' + searchVal);
-                if (searchVal && searchVal != lastVal) {
-                    playlist.search(searchVal);
-                    lastVal = searchVal;
-                } else if (searchVal === '' && lastVal !== '') {
-                    playlist.updateLocal();
-                }
-            }, 3000);
-        });
-
-        $('#search-playlist').focusout(function () {
-            clearInterval(searchInterval);
-            var searchVal = $('#search-playlist').val();
-            if (searchVal === '' && lastVal !== '') {
-                lastVal = '';
-                // to not confuse the user
+        createSearch('#search-playlist', playlist.search, function () {
                 playlist.isSearching = false;
                 playlist.updateAll();
-            }
-        });
-
-        $('#search-playlist-clear').click(function () {
-            //console.log('clearing search');
-            $('#search-playlist').val('');
-            $('#search-playlist').focus();
-            // to not confuse the user
-            playlist.isSearching = false;
-            lastVal = '';
-            playlist.updateAll();
-        });
-
-        // detect enter key
-        $('#search-playlist').keyup(function (e) {
-            if (e.keyCode == 13) {
-                var searchVal = $('#search-playlist').val();
-                //console.log('attempting searching for ' + searchVal);
-                if (searchVal === '') {
-                    playlist.updateAll();
-                } else {
-                    playlist.search(searchVal);
-                    lastVal = searchVal;
-                }
-            }
-        });
+            }, '#search-playlist-clear');
 
         $(document).on('click', '.song-remove', function () {
             var ele = $(this).parent().parent();
@@ -1487,38 +1477,40 @@ var browser = {
     // check which dir the user is in.
     // only update that dir
     update: function (dir, poppedState) {
-        if (this.hidden) return;
+        // NOTE: do not use 'this' keyword, as this can be in a callback
+        // function
+        if (browser.hidden) return;
 
         // db update (ignore back / forward buttons)
-        if (!dir && !poppedState && !this.doUpdate) {
+        if (!dir && !poppedState && !browser.doUpdate) {
             console.log('do not update browser...');
             // doUpdate gets set to true in the onMessage update-browser
-            //this.doUpdate = true;
+            //browser.doUpdate = true;
             return;
         }
 
-        if (dir) this.current = dir;
+        if (dir) browser.current = dir;
 
-        //console.log('previous directory: ' + this.previous);
-        console.log('reloading directory: ' + this.current);
+        //console.log('previous directory: ' + browser.previous);
+        console.log('reloading directory: ' + browser.current);
 
-        if ((!poppedState && this.previous != this.current) ||
-                (!poppedState && this.searching)) {
-            this.searching = false;
-            if (this.current == '/' || this.current === '') {
+        if ((!poppedState && browser.previous != browser.current) ||
+                (!poppedState && browser.searching)) {
+            browser.searching = false;
+            if (browser.current == '/' || browser.current === '') {
                 console.log('adding / to history');
                 window.history.pushState('', 'MPCParty', '/');
             } else {
-                console.log('adding /browser/' + this.current + ' to history');
-                window.history.pushState('', this.current + ' - MPCParty',
-                    '/browser/' + this.current);
+                console.log('adding /browser/' + browser.current + ' to history');
+                window.history.pushState('', browser.current + ' - MPCParty',
+                    '/browser/' + browser.current);
             }
 
             $('#slwrap').scrollTop($('#file-browser-song-list'));
         }
-        browser.updateBrowser(this.current);
+        browser.updateBrowser(browser.current);
 
-        if (dir) this.previous = dir;
+        if (dir) browser.previous = dir;
     },
 
     // shows directories. use '/' for root
@@ -1533,7 +1525,7 @@ var browser = {
             html  = '',
             i;
 
-        if (this.current != '/')
+        if (browser.current != '/')
             for (i = 0; i < dirs.length; ++i) {
                 html += '<li class="loc-dir" data-fileid="' + dirId + '">' +
                     dirs[i] + '</li>';
@@ -2151,7 +2143,8 @@ var library = {
                 setSongs(err, files);
             });
         } else {
-            komponist.find('artist', artist, 'album', album, function (err, files) {
+            komponist.find('artist', artist, 'album', album,
+                    function (err, files) {
                 setSongs(err, files);
             });
         }
@@ -2170,6 +2163,11 @@ var library = {
     },
 
     initEvents: function () {
+        lazySearch('#search-artists', '#library-artists-list', 'artist',
+            '#search-artists-clear');
+        lazySearch('#search-albums',  '#library-albums-list',  'album',
+            '#search-albums-clear');
+
         $('#open-library').click(function () {
             settings.saveBrowser('library');
             library.updateArtists();
@@ -2180,7 +2178,8 @@ var library = {
 
             rowSelect(this, '#library-artists-list', 'bg-info');
             library.updateAlbums(artist, function () {
-                rowSelect('.library-artist-all', '#library-albums-list', 'bg-info');
+                rowSelect('.library-artist-all', '#library-albums-list',
+                    'bg-info');
             });
 
             // show all songs initially

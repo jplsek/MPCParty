@@ -313,7 +313,7 @@ html
                                     .input-group
                                         input#search-artists.form-control(type='text', placeholder='Search artists...')
                                         span.input-group-btn
-                                            button#search-clear.btn.btn-default(type='button')
+                                            button#search-artists-clear.btn.btn-default(type='button')
                                                 span.glyphicon.glyphicon-remove
                             #library-artists-wrap
                                 table#library-artists-list.table.table-hover
@@ -327,7 +327,7 @@ html
                                     .input-group
                                         input#search-albums.form-control(type='text', placeholder='Search albums from artist...')
                                         span.input-group-btn
-                                            button#search-clear.btn.btn-default(type='button')
+                                            button#search-albums-clear.btn.btn-default(type='button')
                                                 span.glyphicon.glyphicon-remove
                             #library-albums-wrap
                                 table#library-albums-list.table.table-hover
@@ -341,7 +341,7 @@ html
                                 .input-group
                                     input#search-songs.form-control(type='text', placeholder='Search songs from album...')
                                     span.input-group-btn
-                                        button#search-clear.btn.btn-default(type='button')
+                                        button#search-songs-clear.btn.btn-default(type='button')
                                             span.glyphicon.glyphicon-remove
                         #library-songs-wrap
                             +songList('library-songs-list')
