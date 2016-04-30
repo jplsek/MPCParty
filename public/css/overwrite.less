@@ -80,7 +80,13 @@ main {
     }
     #library {
         display: flex;
-        flex-direction: column;
+        // set flex-direction to column when fixed in webkit
+        flex-direction: row;
+        @-moz-document url-prefix() {
+            flex-direction: column;
+        }
+
+        -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
 
         #library-top {
             display: flex;
@@ -101,7 +107,8 @@ main {
 
         #library-songs {
             flex: 1;
-            overflow: auto;
+            overflow-y: auto;
+            overflow-x: hidden; // fix issues with dragging
             display: flex;
             flex-direction: column;
 
@@ -111,9 +118,9 @@ main {
         }
     }
     #playlist {
-        -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
         display: flex;
         flex-direction: column;
+        -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
 
         #playlist-header {
             display: -webkit-box; /* fallback for apple webkit */
@@ -316,6 +323,10 @@ table.floatThead-table {
 .pulse2 {
     animation: pulse ease 1s 2;
 }
+.main-link {
+    flex: 1;
+    text-align: center;
+}
 @keyframes pulse {
     0%, 100% {
         background-color: inherit;
@@ -341,7 +352,7 @@ table.floatThead-table {
     #pb, #pb-tab { // playlist buffer
         width: 100%;
     }
-    #browser, #playlist {
+    #browser, #playlist, #library {
         margin-top: 16px;
         height: 500px;
     }

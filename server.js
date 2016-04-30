@@ -432,7 +432,7 @@ fs.readFile(__dirname + '/config.cfg', function (err, data) {
             function (err, client) {
         if (err) {
             console.log(err);
-            process.exit(3);
+            process.exit(-5);
         }
 
         console.log('Connected to MPD!');
@@ -628,7 +628,7 @@ io.on('connection', function (socket) {
 
             case 'stop-server':
                 console.log(address + ' closed the server.');
-                process.exit(1);
+                process.exit(-1);
                 break;
 
             case 'clear-playlist':
@@ -791,11 +791,11 @@ http.on('error', function (err) {
     if (err.code == 'EADDRINUSE') {
         console.error('Web server port already in use! ' +
             'Edit config.cfg to change the port.');
-        process.exit(2);
+        process.exit(-4);
     } else {
-        console.log('Uncaught Exception!');
+        console.log('Uncaught HTTP Exception!');
         console.error(err);
-        process.exit(1);
+        process.exit(-3);
     }
 });
 
@@ -804,10 +804,10 @@ http.on('error', function (err) {
 process.on('uncaughtException', function(err) {
     if (err.code == 'ECONNREFUSED') {
         console.log('Connection refused! Is MPD running?');
-        process.exit(4);
+        process.exit(-6);
     } else {
         console.log('Uncaught Exception!');
         console.log(err);
-        process.exit(0);
+        process.exit(-2);
     }
 });

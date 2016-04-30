@@ -40,6 +40,7 @@ html
                             = pack.description
                         h4 Database Statistics
                         p#stats
+                        hr
                         h4 Libraries used in #{pack.name}
                         p
                             a(href='https://github.com/hughsk/komponist', target='_blank') Komponist
@@ -76,14 +77,16 @@ html
                         p
                             a(href='https://www.npmjs.com/pack/player', target='_blank') player
                             |  - Play local audio files
+                        hr
                         h4 Themes
                         p: a(href='http://getbootstrap.com/', target='_blank') Default Theme
+                        hr
                         h4 License of #{pack.name}
                         p #{pack.license}
-                        p: a(href='https://github.com/jplsek/MPCParty', target='_blank') https://github.com/jplsek/MPCParty
-                    .modal-footer
-                        button.stop-server.btn.btn-danger.pull-left(title='Stops the server. Depending on the server admin configuration, the server will restart ASAP.')
+                    .modal-footer.space-between
+                        button.stop-server.btn.btn-danger(title='Stops the server. Depending on the server admin configuration, the server will restart ASAP.')
                             span.glyphicon.glyphicon-off
+                        p.main-link: a(href='https://github.com/jplsek/MPCParty', target='_blank') https://github.com/jplsek/MPCParty
                         button.btn.btn-default(data-dismiss='modal') Close
 
         #settings-modal.modal.fade(tabindex='-1')
@@ -300,6 +303,7 @@ html
                 #browser-selection
                     button#update.btn.btn-default(title='Update the music database (after uploading new music to the folder)')
                         span.glyphicon.glyphicon-repeat
+                    hr
                     button#open-file-browser.btn.btn-default(title='Show the file browser')
                         span.glyphicon.glyphicon-folder-open
                     button#open-library.btn.btn-default(title='Show the library')

@@ -849,7 +849,14 @@ var playlist = {
             browser.selected = browser.selected.toArray().reverse();
             browser.addMulti(newIndex);
             return;
+        } else if (library.selected.length) {
+            console.log(library.selected);
+            library.selected = library.selected.toArray().reverse();
+            library.addMulti(newIndex);
+            return;
         }
+
+        var artist, album, i;
 
         // file
         // note: multiselect is checked in addDir and addSong!
@@ -871,6 +878,25 @@ var playlist = {
             } else {
                 playlist.addDir(dir, newIndex, true);
             }
+        } else if ($(ui.item).hasClass('album')) {
+            artist = $(ui.item).data().artist;
+            album  = $(ui.item).data().album;
+
+            library.getSongsFromAlbum(artist, album, function (files) {
+                for (i = 0; i < files.length; ++i) {
+                    playlist.addSong(files[i].file, newIndex, true);
+                }
+            });
+        } else if ($(ui.item).hasClass('artist')) {
+            artist = $(ui.item).data().artist;
+
+            library.getSongsFromAlbum(artist, undefined, function (files) {
+                for (i = 0; i < files.length; ++i) {
+                    playlist.addSong(files[i].file, newIndex, true);
+                }
+            });
+        } else {
+            console.log('not supported drag for: ' + $(ui.item).attr('class'));
         }
     },
 
@@ -1120,6 +1146,10 @@ var playlist = {
         if (browser.selected.length) {
             browser.selected = browser.selected.toArray().reverse();
             browser.addMulti(newPos);
+            return;
+        } else if (library.selected.length) {
+            library.selected = library.selected.toArray().reverse();
+            library.addMulti(newPos);
             return;
         }
 
@@ -1452,6 +1482,8 @@ var playlist = {
             var file = $(this).parent().parent().data().fileid;
             playlist.playSong(file);
         });
+
+        multiSelect('#playlist-song-list', playlist, ['song-remove']);
     }
 };
 
@@ -1479,7 +1511,14 @@ var browser = {
     update: function (dir, poppedState) {
         // NOTE: do not use 'this' keyword, as this can be in a callback
         // function
-        if (browser.hidden) return;
+        if (browser.hidden && !library.hidden) {
+            // update library here. Just use browser.update as a general
+            // library/browser update. May change later to reduce coupling.
+            library.updateArtists(library.artist);
+            library.updateAlbums(library.artist, library.album);
+            library.updateSongs(library.artist, library.album);
+            return;
+        }
 
         // db update (ignore back / forward buttons)
         if (!dir && !poppedState && !browser.doUpdate) {
@@ -1741,18 +1780,41 @@ var browser = {
 
         //console.log(current);
 
-        browser.createDraggable('#file-browser-song-list');
+        browser.createDraggable('#file-browser-song-list', browser);
         browser.updatePosition();
         pages.update('browser');
     },
 
     // draggable song-list
     // used: jsfiddle.net/BrianDillingham/v265q/320
-    createDraggable: function (ele) {
+    createDraggable: function (ele, obj) {
         $(ele + ' .append').sortable({
             items: 'tr.gen',
             connectWith: '.connected',
             placeholder: 'no-placeholder',
+            start: function (e, ui) {
+                //console.log(e);
+                //console.log(ui);
+                // check is things are selected before continuing.
+                // If right click is outside selected, clear selection
+                // (like in all file managers).
+                var inside = false;
+                for (var i = 0; i < obj.selected.length; ++i) {
+                    //console.log(playlist.selected[i]);
+                    if (obj.selected[i].isEqualNode(ui.item.context)) {
+                        console.log('setting inside to true');
+                        inside = true;
+                        break;
+                    }
+                }
+                console.log('test');
+
+                // if its not in playlist.selected, update it.
+                if (!inside) {
+                    console.log('updating ' + ele + ' selected');
+                    obj.clearSelected();
+                }
+            },
             helper: function (e, tr) {
                 // clones the tr to not "remove" from browser
                 this.copyHelper = tr.clone().insertAfter(tr);
@@ -1870,17 +1932,29 @@ var browser = {
             });
         } else {
             $(browser.selected).each(function (item, tr) {
+                var dontScroll = false;
+                if (to) dontScroll = true;
+
                 if ($(tr).hasClass('file')) {
                     var file = $(tr).data().fileid;
-                    playlist.addSong(file, to);
+                    playlist.addSong(file, to, dontScroll);
                 } else if ($(tr).hasClass('directory')) {
                     var dir = $(tr).data().dirid;
-                    playlist.addDir(dir, to);
+                    playlist.addDir(dir, to, dontScroll);
                 }
             });
         }
 
         browser.clearSelected();
+    },
+
+    addExternal: function (file) {
+        if (browser.selected.length)
+            browser.addMulti();
+        else if (pb.current)
+            pb.addid(file);
+        else
+            playlist.addSong(file);
     },
 
     initEvents: function () {
@@ -1947,22 +2021,12 @@ var browser = {
 
         $(document).on('click', '.song-add', function () {
             var file = $(this).parent().parent().data().fileid;
-            if (browser.selected.length)
-                browser.addMulti();
-            else if (pb.current)
-                pb.addid(file);
-            else
-                playlist.addSong(file);
+            browser.addExternal(file);
         });
 
         $(document).on('dblclick', 'tr.file', function () {
             var file = $(this).data().fileid;
-            if (browser.selected.length)
-                browser.addMulti();
-            else if (pb.current)
-                pb.addid(file);
-            else
-                playlist.addSong(file);
+            browser.addExternal(file);
         });
 
         $(document).on('dblclick', '.song-list tr.directory', function () {
@@ -1977,12 +2041,7 @@ var browser = {
 
         $(document).on('click', '.dir-add', function () {
             var dir = $(this).parent().parent().data().dirid;
-            if (browser.selected.length)
-                browser.addMulti();
-            else if (pb.current)
-                pb.add(dir);
-            else
-                playlist.addDir(dir);
+            browser.addExternal(dir);
         });
 
         $(document).on('click', '.loc-dir', function () {
@@ -2001,15 +2060,38 @@ var browser = {
             $('#file-browser-song-list.table').trigger('reflow');
             browser.update();
         });
+
+        floatTable('#file-browser-song-list.table', '#slwrap');
+
+        // this cannot be part of .song-list because of a bug with sortColumn
+        // (overwrites contens from one tabe to other tables).
+        tableSort('#file-browser-song-list',
+                '#file-browser-song-list-col-number', 1, 'number');
+        tableSort('#file-browser-song-list',
+                '#file-browser-song-list-col-title',  2, 'string');
+        tableSort('#file-browser-song-list',
+                '#file-browser-song-list-col-artist', 3, 'string');
+        tableSort('#file-browser-song-list',
+                '#file-browser-song-list-col-album',  4, 'string');
+        tableSort('#file-browser-song-list',
+                '#file-browser-song-list-col-time',   5, '00:00');
+
+        multiSelect('#file-browser-song-list', browser, ['song-add', 'dir-add']);
     }
 };
 
 // the library (alternative to file browser)
 var library = {
     hidden: true,
+    // used for artist and album selection
+    selected: [],
+    // save these when updating the library externally
+    artist: null,
+    album: null,
 
     // put artists in table
-    updateArtists: function () {
+    // artistUse: highlight in table
+    updateArtists: function (artistUse) {
         if (this.hidden) return;
 
         console.log('update artists');
@@ -2030,21 +2112,33 @@ var library = {
             }
 
             var tableStart = '<table class="fixed-table"><tr><td>',
-                tableEnd   = '</td></tr></table>';
+                tableEnd   = '</td></tr></table>',
+                addClass   = '';
 
             for (var i = 0; i < files.length; ++i) {
                 var artist = files[i].Artist;
 
-                html += '<tr class="context-menu gen" data-artist="' + artist + '"><td title="' + artist + '">' + tableStart + artist + tableEnd + '</td><td class="song-list-icons text-right"><span class="artist-add faded text-success glyphicon glyphicon-plus" title="Add artist to the bottom of the playlist"></span></td></tr>';
+                if (artist == artistUse)
+                    addClass = 'info';
+
+                html += '<tr class="context-menu gen artist ' + addClass + '" data-artist="' + artist + '"><td title="' + artist + '">' + tableStart + artist + tableEnd + '</td><td class="song-list-icons text-right"><span class="artist-add faded text-success glyphicon glyphicon-plus" title="Add artist to the bottom of the playlist"></span></td></tr>';
+                addClass = '';
             }
 
+            browser.createDraggable('#library-artists-list', library);
             $('#library-artists-list .append').append(html);
         });
     },
 
     // put albums in table
-    updateAlbums: function (artist, callback) {
+    // albumUse: highlight in table
+    updateAlbums: function (artist, albumUse) {
+        // if still null, return (user updates library without clicking an
+        // artist)
+        if (!artist) return;
+
         console.log('update albums');
+        library.artist = artist;
 
         komponist.list('album', artist, function (err, files) {
             //console.log(files);
@@ -2054,32 +2148,45 @@ var library = {
 
             var html       = '',
                 tableStart = '<table class="fixed-table"><tr><td>',
-                tableEnd   = '</td></tr></table>';
+                tableEnd   = '</td></tr></table>',
+                addClass   = '';
+
+            if (!albumUse)
+                addClass = 'info';
 
             // All row
-            html += '<tr class="context-menu gen library-artist-all" data-artist="' + artist + '"><td title="All">' + tableStart + 'All' + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
+            html += '<tr class="context-menu gen artist library-artist-all ' + addClass + '" data-artist="' + artist + '"><td title="All">' + tableStart + 'All' + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
+            addClass = '';
 
             if (!files.length || files[0].Album === '') {
                 $('#library-albums-list .append').append(html);
-                if (callback) callback();
                 return console.log('No albums found');
             }
 
             for (var i = 0; i < files.length; ++i) {
                 var album = files[i].Album;
 
-                html += '<tr class="context-menu gen" data-artist="' + artist + '" data-album="' + album + '"><td title="' + album + '">' + tableStart + album + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
+                if (album == albumUse)
+                    addClass = 'info';
+
+                html += '<tr class="context-menu gen album ' + addClass + '" data-artist="' + artist + '" data-album="' + album + '"><td title="' + album + '">' + tableStart + album + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
+                addClass = '';
             }
 
             $('#library-albums-list .append').append(html);
 
-            if (callback) callback();
+            browser.createDraggable('#library-albums-list', library);
         });
     },
 
     // put songs in table
     updateSongs: function (artist, album) {
+        // if still null, return (user updates library without clicking an
+        // artist)
+        if (!artist) return;
+
         console.log('update songs');
+        library.album = album;
 
         if (!album) {
             komponist.find('artist', artist, function (err, files) {
@@ -2115,7 +2222,7 @@ var library = {
             }
 
             $('#library-songs-list .append').append(html);
-            browser.createDraggable('#library-songs-list');
+            browser.createDraggable('#library-songs-list', browser);
             browser.updatePosition();
             //$('#library-songs-list.table').trigger('reflow');
         }
@@ -2134,6 +2241,35 @@ var library = {
         library.hidden = true;
         $('#library').hide();
     },
+
+    addMulti: function (to) {
+        if (pb.current) {
+            $(library.selected).each(function (item, tr) {
+                var artist = $(tr).data().artist,
+                    album  = $(tr).data().album;
+
+                library.getSongsFromAlbum(artist, album, function (files) {
+                    pb.addSong(files, to);
+                });
+            });
+        } else {
+            $(library.selected).each(function (item, tr) {
+                var artist = $(tr).data().artist,
+                    album  = $(tr).data().album;
+
+                library.getSongsFromAlbum(artist, album, function (files) {
+                    for (var i = 0; i < files.length; ++i) {
+                        playlist.addSong(files[i].file, to++, true);
+                    }
+                });
+            });
+        }
+    },
+
+    clearSelected: function () {
+        // for createDraggable.
+    },
+
 
     // return a file list from an album
     getSongsFromAlbum: function (artist, album, callback) {
@@ -2162,6 +2298,17 @@ var library = {
         }
     },
 
+    addExternal: function (artist, album) {
+        if (library.selected.length)
+            library.addMulti();
+        else if (pb.current)
+            library.getSongsFromAlbum(artist, album, function (files) {
+                pb.addSong(files);
+            });
+        else
+            playlist.findAdd(artist, album);
+    },
+
     initEvents: function () {
         lazySearch('#search-artists', '#library-artists-list', 'artist',
             '#search-artists-clear');
@@ -2176,46 +2323,68 @@ var library = {
         $(document).on('click', '#library-artists-list .gen', function () {
             var artist = $(this).data().artist;
 
-            rowSelect(this, '#library-artists-list', 'bg-info');
-            library.updateAlbums(artist, function () {
-                rowSelect('.library-artist-all', '#library-albums-list',
-                    'bg-info');
-            });
+            library.updateAlbums(artist);
 
             // show all songs initially
             library.updateSongs(artist);
         });
 
         $(document).on('click', '#library-albums-list .gen', function () {
-            var album = $(this).data().album,
-                artist = $(this).data().artist;
+            var artist = $(this).data().artist,
+                album  = $(this).data().album;
 
-            rowSelect(this, '#library-albums-list', 'bg-info');
             library.updateSongs(artist, album);
         });
 
         $(document).on('click', '.album-add', function () {
             var artist = $(this).parent().parent().data().artist;
             var album  = $(this).parent().parent().data().album;
-
-            if (pb.current)
-                library.getSongsFromAlbum(artist, album, function (files) {
-                    pb.addSong(files);
-                });
-            else
-                playlist.findAdd(artist, album);
+            library.addExternal(artist, album);
         });
 
         $(document).on('click', '.artist-add', function () {
             var artist = $(this).parent().parent().data().artist;
-
-            if (pb.current)
-                library.getSongsFromAlbum(artist, undefined, function (files) {
-                    pb.addSong(files);
-                });
-            else
-                playlist.findAdd(artist);
+            library.addExternal(artist);
         });
+
+        $(document).on('dblclick', '.album', function () {
+            var artist = $(this).parent().parent().data().artist;
+            var album  = $(this).parent().parent().data().album;
+            library.addExternal(artist, album);
+        });
+
+        $(document).on('dblclick', '.artist', function () {
+            var artist = $(this).parent().parent().data().artist;
+            library.addExternal(artist);
+        });
+
+        floatTable('#library-artists-list.table',  '#library-artists-wrap');
+        floatTable('#library-albums-list.table',   '#library-albums-wrap');
+        floatTable('#library-songs-list.table',    '#library-songs-wrap');
+
+        // songs
+        // this cannot be part of .song-list because of a bug with sortColumn
+        // (overwrites contens from one tabe to other tables).
+        tableSort('#library-songs-list', '#library-songs-list-col-number',
+                1, 'number');
+        tableSort('#library-songs-list', '#library-songs-list-col-title',
+                2, 'string');
+        tableSort('#library-songs-list', '#library-songs-list-col-artist',
+                3, 'string');
+        tableSort('#library-songs-list', '#library-songs-list-col-album',
+                4, 'string');
+        tableSort('#library-songs-list', '#library-songs-list-col-time',
+                5, '00:00');
+
+        // artist
+        tableSort('#library-artists-list', '#library-col-artist', 1, 'string');
+
+        // album
+        tableSort('#library-albums-list', '#library-col-album', 1, 'string');
+
+        multiSelect('#library-songs-list', browser, ['song-add']);
+        multiSelect('#library-artists-list', library, ['artist-add, album-add'], ['body']);
+        multiSelect('#library-albums-list', library, ['album-add, artist-add'], ['body']);
     }
 };
 
@@ -2694,6 +2863,12 @@ var stored = {
                 if (e.keyCode == 13) playlist.saveFromStored();
             });
         });
+
+        // separate for open and save because of duplication issues
+        tableSort('#playlist-open-modal table', '#playlist-open-modal .col-playlists-title', 1, 'string');
+        tableSort('#playlist-open-modal table', '#playlist-open-modal .col-playlists-songs', 2, 'number');
+        tableSort('#playlist-save-modal table', '#playlist-save-modal .col-playlists-title', 1, 'string');
+        tableSort('#playlist-save-modal table', '#playlist-save-modal .col-playlists-songs', 2, 'number');
     }
 };
 
@@ -2875,10 +3050,15 @@ var pb = {
     // mutliselect is handled in addDir and addfile
     fromSender: function (ui, index) {
         // file
-        if (browser.selected) {
+        if (browser.selected.length) {
             browser.addMulti(index);
             return;
+        } else if (library.selected.length) {
+            library.addMulti(index);
+            return;
         }
+
+        var artist, album;
 
         if ($(ui.item).hasClass('file')) {
             var fileName = ui.item.data().fileid;
@@ -2887,6 +3067,21 @@ var pb = {
             // directory
             var dir = ui.item.data().dirid;
             pb.add(dir, index);
+        } else if ($(ui.item).hasClass('album')) {
+            artist = $(ui.item).data().artist;
+            album  = $(ui.item).data().album;
+
+            library.getSongsFromAlbum(artist, album, function (files) {
+                pb.addSong(files, index);
+            });
+        } else if ($(ui.item).hasClass('artist')) {
+            artist = $(ui.item).data().artist;
+
+            library.getSongsFromAlbum(artist, null, function (files) {
+                pb.addSong(files, index);
+            });
+        } else {
+            console.log('not supported drag for: ' + $(ui.item).attr('class'));
         }
     },
 
@@ -2914,7 +3109,7 @@ var pb = {
         // Add All and Multiselect directories is still based on how fast the
         // server can respond per directory (so it can look random)
         getAllInfo(dir, function (files) {
-            console.log(files);
+            //console.log(files);
             pb.addSong(files, pos);
         });
     },
@@ -3083,6 +3278,8 @@ var pb = {
         $(document).on('click', '#pb-remove-duplicates', function () {
             pb.removeDuplicates();
         });
+
+        multiSelect('#pb-song-list', pb, ['pb-song-remove']);
     }
 };
 
@@ -3823,7 +4020,6 @@ komponist.on('changed', function (system) {
 
         case 'update':
             browser.update();
-            library.updateArtists();
             updateStats();
             break;
 
@@ -4148,35 +4344,6 @@ function tableSort(table, thead, index, format) {
     });
 }
 
-// browser
-// this cannot be part of .song-list because of a bug with sortColumn
-// (overwrites contens from one tabe to other tables).
-tableSort('#file-browser-song-list', '#file-browser-song-list-col-number', 1, 'number');
-tableSort('#file-browser-song-list', '#file-browser-song-list-col-title', 2, 'string');
-tableSort('#file-browser-song-list', '#file-browser-song-list-col-artist', 3, 'string');
-tableSort('#file-browser-song-list', '#file-browser-song-list-col-album', 4, 'string');
-tableSort('#file-browser-song-list', '#file-browser-song-list-col-time', 5, '00:00');
-
-// libaray (songs)
-tableSort('#library-songs-list', '#library-songs-list-col-number', 1, 'number');
-tableSort('#library-songs-list', '#library-songs-list-col-title', 2, 'string');
-tableSort('#library-songs-list', '#library-songs-list-col-artist', 3, 'string');
-tableSort('#library-songs-list', '#library-songs-list-col-album', 4, 'string');
-tableSort('#library-songs-list', '#library-songs-list-col-time', 5, '00:00');
-
-// libaray (artist)
-tableSort('#library-artists-list', '#library-col-artist', 1, 'string');
-
-// library (album)
-tableSort('#library-albums-list', '#library-col-album', 1, 'string');
-
-// playlists
-// separate for open and save because of duplication issues
-tableSort('#playlist-open-modal table', '#playlist-open-modal .col-playlists-title', 1, 'string');
-tableSort('#playlist-open-modal table', '#playlist-open-modal .col-playlists-songs', 2, 'number');
-tableSort('#playlist-save-modal table', '#playlist-save-modal .col-playlists-title', 1, 'string');
-tableSort('#playlist-save-modal table', '#playlist-save-modal .col-playlists-songs', 2, 'number');
-
 // thead floating
 function floatTable(table, par) {
     $(table).floatThead({
@@ -4187,11 +4354,6 @@ function floatTable(table, par) {
         autoReflow: true
     });
 }
-
-floatTable('#file-browser-song-list.table', '#slwrap');
-floatTable('#library-artists-list.table', '#library-artists-wrap');
-floatTable('#library-albums-list.table', '#library-albums-wrap');
-floatTable('#library-songs-list.table', '#library-songs-wrap');
 
 // context menu
 function contextResponse(key, table, tr) {
@@ -4467,113 +4629,46 @@ $('form').submit(function (e) {
     return false;
 });
 
-// MultiSelect. Multiselections  handled by playlist.*. Events handled in
-// callback and contextMenu.
-$('#playlist-song-list').multiSelect({
-    actcls: 'info',
-    selector: 'tr.gen',
-    callback: function (items, e) {
-        // don't clear playlist.selected when clicking song-remove
-        // and if song-remove is part of the playlist.selected list
-        //console.log(e);
-        //console.log(items);
-        //console.log(playlist.selected);
+// MultiSelect. Multiselections handled by respective object.
+// Events handled in callback and contextMenu.
+// table for multislection, obj used for multiselection (must contain selected
+// variable. Because it needs to pass by reference to selected.
+function multiSelect(ele, obj, cancel, exclude) {
+    var disable = ['tbody'];
 
-        // checks if song-remove clicked is inside the playlist.selected
-        // so it wont delete previous playlist.selected if it was
-        // clicked outside of playlist.selected
-        var inside = false;
-        for (var i = 0; i < playlist.selected.length; ++i) {
-            //console.log(playlist.selected[i]);
-            if ($(e.target).hasClass('song-remove') &&
-                    playlist.selected[i].isEqualNode(e.currentTarget)) {
-                console.log('plms: setting inside to true');
-                inside = true;
-                break;
-            }
-        }
+    if (exclude) disable = disable.concat(exclude);
 
-        // if its not in playlist.selected, update it.
-        if (!inside) {
-            //console.log('updating playlist.selected');
-            playlist.selected = items;
-        }
-    }
-});
-
-// multiselection for the browser
-// (using a class introduced multiselect issues)
-function browserMultiSelect(ele) {
     // enable mutltiselect for the browser
     $(ele).multiSelect({
         actcls: 'info',
         selector: 'tr.gen',
+        except: disable,
         callback: function (items, e) {
-            // don't clear browser.selected when clicking song-add
-            // and if song-remove is part of the playlist.selected list
-            //console.log(e);
-            //console.log(items);
-            //console.log(playlist.selected);
+            if (!items.length) return;
 
-            // checks if song-remove clicked is inside the playlist.selected
-            // so it wont delete previous playlist.selected if it was
-            // clicked outside of playlist.selected
-            var inside = false;
-            for (var i = 0; i < browser.selected.length; ++i) {
-                //console.log(browser.selected[i]);
-                if (($(e.target).hasClass('song-add') ||
-                            $(e.target).hasClass('dir-add')) &&
-                        browser.selected[i].isEqualNode(e.currentTarget)) {
-                    console.log('slms: setting inside to true');
-                    inside = true;
-                    break;
+            // checks if cancel* is clicked to stop selection
+            // so it wont use the previous *.selected if it was
+            // clicked outside of *.selected
+            var cancel = false;
+            for (var i = 0; i < obj.selected.length; ++i) {
+                for (var j = 0; j < cancel; ++j) {
+                    if ($(e.target).hasClass(cancel[j]) &&
+                            obj.selected[i].isEqualNode(e.currentTarget)) {
+                        //console.log('slms: ' + ele + ', cancel selection');
+                        cancel = true;
+                        break;
+                    }
                 }
             }
 
-            // if its not in browser.selected, update it.
-            if (!inside) {
-                //console.log('updating playlist.selected');
-                browser.selected = items;
+            // if its not in *.selected, update it.
+            if (!cancel) {
+                //console.log('updating ' + ele + ' selected');
+                obj.selected = items;
             }
         }
     });
 }
-
-browserMultiSelect('#file-browser-song-list');
-browserMultiSelect('#library-songs-list');
-
-// enable multiselect for the playlist buffer
-$('#pb-song-list').multiSelect({
-    actcls: 'info',
-    selector: 'tr.gen',
-    callback: function (items, e) {
-        // don't clear pb.selected when clicking song-remove
-        // and if song-remove is part of the playlist.selected list
-        //console.log(e);
-        //console.log(items);
-        //console.log(playlist.selected);
-
-        // checks if pb-song-remove clicked is inside the playlist.selected
-        // so it wont delete previous playlist.selected if it was
-        // clicked outside of playlist.selected
-        var inside = false;
-        for (var i = 0; i < pb.selected.length; ++i) {
-            //console.log(pb.selected[i]);
-            if ($(e.target).hasClass('pb-song-remove') &&
-                    pb.selected[i].isEqualNode(e.currentTarget)) {
-                console.log('pbms: setting inside to true');
-                inside = true;
-                break;
-            }
-        }
-
-        // if its not in pb.selected, update it.
-        if (!inside) {
-            //console.log('updating playlist.selected');
-            pb.selected = items;
-        }
-    }
-});
 
 // enables resizable playlist buffer
 $('#pb').resizable({
