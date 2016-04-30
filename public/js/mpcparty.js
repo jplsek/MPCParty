@@ -207,6 +207,7 @@ function updateStats() {
 
 // sometimes when komponist returns a length 0 or 1 item, it returns an object
 // instead of any array. This is used to fix that. (less need for jquery.each)
+// also used to avoid issues when converting an array which is already an array
 function toArray(obj) {
     if (!Array.isArray(obj))
         return [obj];
@@ -846,13 +847,18 @@ var playlist = {
     fromSender: function (ui, newIndex) {
         //console.log(ui.item);
         if (browser.selected.length) {
-            browser.selected = browser.selected.toArray().reverse();
+            browser.selected = toArray(browser.selected).reverse();
             browser.addMulti(newIndex);
             return;
-        } else if (library.selected.length) {
-            console.log(library.selected);
-            library.selected = library.selected.toArray().reverse();
-            library.addMulti(newIndex);
+        } else if ($(ui.item).hasClass('artist') &&
+                libraryArtist.selected.length) {
+            libraryArtist.selected = toArray(libraryArtist.selected).reverse();
+            library.addMulti(libraryArtist, index);
+            return;
+        } else if ($(ui.item).hasClass('album') &&
+                libraryAlbum.selected.length) {
+            libraryAlbum.selected = toArray(libraryAlbum.selected).reverse();
+            library.addMulti(libraryAlbum, index);
             return;
         }
 
@@ -1144,12 +1150,16 @@ var playlist = {
         this.goAfterUpdate = true;
 
         if (browser.selected.length) {
-            browser.selected = browser.selected.toArray().reverse();
+            browser.selected = toArray(browser.selected).reverse();
             browser.addMulti(newPos);
             return;
-        } else if (library.selected.length) {
-            library.selected = library.selected.toArray().reverse();
-            library.addMulti(newPos);
+        } else if (type == 'artist' && libraryArtist.selected.length) {
+            libraryArtist.selected = toArray(libraryArtist.selected).reverse();
+            library.addMulti(libraryArtist, newPos);
+            return;
+        } else if (type == 'album' && libraryAlbum.selected.length) {
+            libraryAlbum.selected = toArray(libraryAlbum.selected).reverse();
+            library.addMulti(libraryAlbum, newPos);
             return;
         }
 
@@ -1800,18 +1810,34 @@ var browser = {
                 // (like in all file managers).
                 var inside = false;
                 for (var i = 0; i < obj.selected.length; ++i) {
-                    //console.log(playlist.selected[i]);
-                    if (obj.selected[i].isEqualNode(ui.item.context)) {
-                        console.log('setting inside to true');
-                        inside = true;
-                        break;
+                    // compare titles because of generated tr's after drag
+                    if (ele == '#library-artists-list' ||
+                            ele == '#library-albums-list') {
+                        if ($(obj.selected[i]).attr('title') ==
+                                $(ui.item.context).attr('title')) {
+                            console.log('setting inside to true (dup)');
+                            inside = true;
+                            break;
+                        }
+                    } else {
+                        if (obj.selected[i].isEqualNode(ui.item.context)) {
+                            console.log('setting inside to true');
+                            inside = true;
+                            break;
+                        }
                     }
                 }
-                console.log('test');
 
                 // if its not in playlist.selected, update it.
                 if (!inside) {
-                    console.log('updating ' + ele + ' selected');
+                    if (libraryArtist.selected.length) {
+                        libraryArtist.saveSelected();
+                    }
+                    if (libraryAlbum.selected.length) {
+                        libraryAlbum.saveSelected();
+                    }
+
+                    console.log('clearing ' + ele + ' selected');
                     obj.clearSelected();
                 }
             },
@@ -1828,6 +1854,13 @@ var browser = {
                 // into browser (keeps cloned)
                 var tr = ui.item[0];
                 if (tr) $(tr).remove();
+
+                if (libraryArtist.saved.length) {
+                    libraryArtist.restoreSelected();
+                }
+                if (libraryAlbum.saved.length) {
+                    libraryAlbum.restoreSelected();
+                }
             },
             // above flothead and pb
             zIndex: 1003
@@ -1916,6 +1949,7 @@ var browser = {
     hide: function () {
         $('#browser').hide();
         browser.hidden = true;
+        browser.clearSelected();
     },
 
     addMulti: function (to) {
@@ -1948,13 +1982,13 @@ var browser = {
         browser.clearSelected();
     },
 
-    addExternal: function (file) {
+    addExternal: function (file, to) {
         if (browser.selected.length)
-            browser.addMulti();
+            browser.addMulti(to);
         else if (pb.current)
-            pb.addid(file);
+            pb.addid(file, to);
         else
-            playlist.addSong(file);
+            playlist.addSong(file, to);
     },
 
     initEvents: function () {
@@ -2080,11 +2114,59 @@ var browser = {
     }
 };
 
+// separate mutliselect for artist
+var libraryArtist = {
+    selected: [],
+    saved: [],
+
+    clearSelected: function () {
+        // for createDraggable.
+        libraryArtist.selected = [];
+    },
+
+    // save the list temporarily
+    saveSelected: function () {
+        //console.log('saving t...' + libraryArtist.selected.length);
+        libraryArtist.saved = libraryArtist.selected;
+    },
+
+    // restore the list
+    restoreSelected: function () {
+        //console.log('restore t...' + libraryArtist.saved.length);
+        libraryArtist.selected = libraryArtist.saved;
+    }
+};
+
+// separate mutliselect for album
+var libraryAlbum = {
+    selected: [],
+    saved: [],
+
+    clearSelected: function () {
+        // for createDraggable.
+        libraryAlbum.selected = [];
+    },
+
+    // save the list temporarily
+    saveSelected: function () {
+        //console.log('saving b...' + libraryAlbum.selected.length);
+        libraryAlbum.saved = libraryAlbum.selected;
+    },
+
+    // restore the list
+    restoreSelected: function () {
+        //console.log('restore b...' + libraryAlbum.saved.length);
+        libraryAlbum.selected = libraryAlbum.saved;
+    }
+};
+
 // the library (alternative to file browser)
 var library = {
     hidden: true,
     // used for artist and album selection
     selected: [],
+    // used for saving selected temporarily
+    saved: [],
     // save these when updating the library externally
     artist: null,
     album: null,
@@ -2121,11 +2203,11 @@ var library = {
                 if (artist == artistUse)
                     addClass = 'info';
 
-                html += '<tr class="context-menu gen artist ' + addClass + '" data-artist="' + artist + '"><td title="' + artist + '">' + tableStart + artist + tableEnd + '</td><td class="song-list-icons text-right"><span class="artist-add faded text-success glyphicon glyphicon-plus" title="Add artist to the bottom of the playlist"></span></td></tr>';
+                html += '<tr class="context-menu gen artist ' + addClass + '" data-artist="' + artist + '" title="' + artist + '"><td>' + tableStart + artist + tableEnd + '</td><td class="song-list-icons text-right"><span class="artist-add faded text-success glyphicon glyphicon-plus" title="Add artist to the bottom of the playlist"></span></td></tr>';
                 addClass = '';
             }
 
-            browser.createDraggable('#library-artists-list', library);
+            browser.createDraggable('#library-artists-list', libraryArtist);
             $('#library-artists-list .append').append(html);
         });
     },
@@ -2155,7 +2237,7 @@ var library = {
                 addClass = 'info';
 
             // All row
-            html += '<tr class="context-menu gen artist library-artist-all ' + addClass + '" data-artist="' + artist + '"><td title="All">' + tableStart + 'All' + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
+            html += '<tr class="context-menu gen album library-artist-all ' + addClass + '" data-artist="' + artist + '" title="All"><td>' + tableStart + 'All' + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
             addClass = '';
 
             if (!files.length || files[0].Album === '') {
@@ -2169,13 +2251,13 @@ var library = {
                 if (album == albumUse)
                     addClass = 'info';
 
-                html += '<tr class="context-menu gen album ' + addClass + '" data-artist="' + artist + '" data-album="' + album + '"><td title="' + album + '">' + tableStart + album + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
+                html += '<tr class="context-menu gen album ' + addClass + '" data-artist="' + artist + '" data-album="' + album + '" title="' + album + '"><td>' + tableStart + album + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
                 addClass = '';
             }
 
             $('#library-albums-list .append').append(html);
 
-            browser.createDraggable('#library-albums-list', library);
+            browser.createDraggable('#library-albums-list', libraryAlbum);
         });
     },
 
@@ -2235,16 +2317,23 @@ var library = {
         $('#library-artists-list.table').trigger('reflow');
         $('#library-albums-list.table').trigger('reflow');
         $('#library-songs-list.table').trigger('reflow');
+        //libraryArtist.restoreSelected();
+        //libraryAlbum.restoreSelected();
     },
 
     hide: function () {
         library.hidden = true;
         $('#library').hide();
+        libraryArtist.saveSelected();
+        libraryAlbum.saveSelected();
+        libraryArtist.clearSelected();
+        libraryAlbum.clearSelected();
     },
 
-    addMulti: function (to) {
+    // obj, libraryArtist or libraryAlbum
+    addMulti: function (obj, to, dontScroll) {
         if (pb.current) {
-            $(library.selected).each(function (item, tr) {
+            $(obj.selected).each(function (item, tr) {
                 var artist = $(tr).data().artist,
                     album  = $(tr).data().album;
 
@@ -2253,23 +2342,18 @@ var library = {
                 });
             });
         } else {
-            $(library.selected).each(function (item, tr) {
+            $(obj.selected).each(function (item, tr) {
                 var artist = $(tr).data().artist,
                     album  = $(tr).data().album;
 
                 library.getSongsFromAlbum(artist, album, function (files) {
                     for (var i = 0; i < files.length; ++i) {
-                        playlist.addSong(files[i].file, to++, true);
+                        playlist.addSong(files[i].file, to++, dontScroll);
                     }
                 });
             });
         }
     },
-
-    clearSelected: function () {
-        // for createDraggable.
-    },
-
 
     // return a file list from an album
     getSongsFromAlbum: function (artist, album, callback) {
@@ -2298,15 +2382,18 @@ var library = {
         }
     },
 
-    addExternal: function (artist, album) {
-        if (library.selected.length)
-            library.addMulti();
+    addExternal: function (obj, artist, album, to, dontScroll) {
+        if (obj.selected.length)
+            library.addMulti(obj, to, dontScroll);
         else if (pb.current)
             library.getSongsFromAlbum(artist, album, function (files) {
-                pb.addSong(files);
+                pb.addSong(files, to, dontScroll);
             });
         else
-            playlist.findAdd(artist, album);
+            library.getSongsFromAlbum(artist, album, function (files) {
+                for (var i = 0; i < files.length; ++i)
+                    playlist.addSong(files[i].file, to);
+            });
     },
 
     initEvents: function () {
@@ -2317,7 +2404,7 @@ var library = {
 
         $('#open-library').click(function () {
             settings.saveBrowser('library');
-            library.updateArtists();
+            library.updateArtists(library.artist);
         });
 
         $(document).on('click', '#library-artists-list .gen', function () {
@@ -2336,31 +2423,31 @@ var library = {
             library.updateSongs(artist, album);
         });
 
-        $(document).on('click', '.album-add', function () {
-            var artist = $(this).parent().parent().data().artist;
-            var album  = $(this).parent().parent().data().album;
-            library.addExternal(artist, album);
-        });
-
         $(document).on('click', '.artist-add', function () {
             var artist = $(this).parent().parent().data().artist;
-            library.addExternal(artist);
+            library.addExternal(libraryArtist, artist);
         });
 
-        $(document).on('dblclick', '.album', function () {
-            var artist = $(this).parent().parent().data().artist;
-            var album  = $(this).parent().parent().data().album;
-            library.addExternal(artist, album);
+        $(document).on('click', '.album-add', function () {
+            var artist = $(this).parent().parent().data().artist,
+                album  = $(this).parent().parent().data().album;
+            library.addExternal(libraryAlbum, artist, album);
         });
 
         $(document).on('dblclick', '.artist', function () {
             var artist = $(this).parent().parent().data().artist;
-            library.addExternal(artist);
+            library.addExternal(libraryArtist, artist);
         });
 
-        floatTable('#library-artists-list.table',  '#library-artists-wrap');
-        floatTable('#library-albums-list.table',   '#library-albums-wrap');
-        floatTable('#library-songs-list.table',    '#library-songs-wrap');
+        $(document).on('dblclick', '.album', function () {
+            var artist = $(this).parent().parent().data().artist,
+                album  = $(this).parent().parent().data().album;
+            library.addExternal(libraryAlbum, artist, album);
+        });
+
+        floatTable('#library-artists-list.table', '#library-artists-wrap');
+        floatTable('#library-albums-list.table',  '#library-albums-wrap');
+        floatTable('#library-songs-list.table',   '#library-songs-wrap');
 
         // songs
         // this cannot be part of .song-list because of a bug with sortColumn
@@ -2383,8 +2470,10 @@ var library = {
         tableSort('#library-albums-list', '#library-col-album', 1, 'string');
 
         multiSelect('#library-songs-list', browser, ['song-add']);
-        multiSelect('#library-artists-list', library, ['artist-add, album-add'], ['body']);
-        multiSelect('#library-albums-list', library, ['album-add, artist-add'], ['body']);
+        multiSelect('#library-artists-list',
+                libraryArtist, ['artist-add'], ['body'], false);
+        multiSelect('#library-albums-list',
+                libraryAlbum, ['album-add'], ['body'], false);
     }
 };
 
@@ -3053,8 +3142,13 @@ var pb = {
         if (browser.selected.length) {
             browser.addMulti(index);
             return;
-        } else if (library.selected.length) {
-            library.addMulti(index);
+        } else if ($(ui.item).hasClass('artist') &&
+                libraryArtist.selected.length) {
+            library.addMulti(libraryArtist, index);
+            return;
+        } else if ($(ui.item).hasClass('album') &&
+                libraryAlbum.selected.length) {
+            library.addMulti(libraryAlbum, index);
             return;
         }
 
@@ -3205,7 +3299,7 @@ var pb = {
     // move rows to top of pb
     moveToTop: function (tr) {
         if (this.selected.length) {
-            this.selected = this.selected.toArray().reverse();
+            this.selected = toArray(this.selected).reverse();
 
             $(this.selected).each(function (item, tr) {
                 $(tr).prependTo(pb.table);
@@ -4440,35 +4534,49 @@ function contextResponse(key, table, tr) {
 
         switch(key) {
             case 'attPlaylist':
-                if (browser.selected.length) {
-                    browser.addMulti(0);
-                } else {
-                    playlist.addSong(fileid, 0);
-                }
-                break;
             case 'attPb':
-                if (browser.selected.length) {
-                    browser.addMulti(0);
-                } else {
-                    pb.addid(fileid, 0);
-                }
+                browser.addExternal(fileid, 0);
                 break;
             case 'atbPlaylist':
-                if (browser.selected.length) {
-                    browser.addMulti();
-                } else {
-                    playlist.addSong(fileid);
-                }
-                break;
             case 'atbPb':
-                if (browser.selected.length) {
-                    browser.addMulti();
-                } else {
-                    pb.addid(fileid);
-                }
+                browser.addExternal(fileid);
                 break;
             case 'atc':
                 playlist.addToCurrent(fileid, 'file');
+                break;
+        }
+    }
+
+    // library
+    if ($(tr).hasClass('artist') || $(tr).hasClass('album')) {
+        var artist = $(tr).data().artist,
+            album  = $(tr).data().album;
+
+        switch(key) {
+            case 'attPlaylist':
+            case 'attPb':
+                if ($(tr).hasClass('artist'))
+                    library.addExternal(libraryArtist, artist, album, 0, false);
+                else if ($(tr).hasClass('album'))
+                    library.addExternal(libraryAlbum, artist, album, 0, false);
+                break;
+            case 'atbPlaylist':
+            case 'atbPb':
+                if ($(tr).hasClass('artist'))
+                    library.addExternal(libraryArtist, artist, album, undefined, false);
+                else if ($(tr).hasClass('album'))
+                    library.addExternal(libraryAlbum, artist, album, undefined, false);
+                break;
+            case 'atc':
+                library.getSongsFromAlbum(artist, album, function (files) {
+                    for (var i = 0; i < files.length; ++i) {
+                    console.log('test');
+                        if ($(tr).hasClass('artist'))
+                            playlist.addToCurrent(files[i].file, 'artist');
+                        else if ($(tr).hasClass('album'))
+                            playlist.addToCurrent(files[i].file, 'album');
+                    }
+                });
                 break;
         }
     }
@@ -4486,32 +4594,22 @@ $.contextMenu({
         var inside = false,
             i;
 
-        for (i = 0; i < playlist.selected.length; ++i) {
-            //console.log(playlist.selected[i]);
-            if (playlist.selected[i].isEqualNode(e.currentTarget)) {
-                console.log('setting inside to true');
-                inside = true;
-                break;
+        function checkInside(obj) {
+            for (i = 0; i < obj.selected.length; ++i) {
+                //console.log(playlist.selected[i]);
+                if (obj.selected[i].isEqualNode(e.currentTarget)) {
+                    console.log('setting inside to true');
+                    inside = true;
+                    break;
+                }
             }
         }
 
-        for (i = 0; i < browser.selected.length; ++i) {
-            //console.log(browser.selected[i]);
-            if (browser.selected[i].isEqualNode(e.currentTarget)) {
-                console.log('setting inside to true');
-                inside = true;
-                break;
-            }
-        }
-
-        for (i = 0; i < pb.selected.length; ++i) {
-            //console.log(playlist.selected[i]);
-            if (pb.selected[i].isEqualNode(e.currentTarget)) {
-                console.log('setting inside to true');
-                inside = true;
-                break;
-            }
-        }
+        checkInside(playlist);
+        checkInside(browser);
+        checkInside(pb);
+        checkInside(libraryArtist);
+        checkInside(libraryAlbum);
 
         // if its not in .selected, update it.
         if (!inside) {
@@ -4519,6 +4617,11 @@ $.contextMenu({
             playlist.clearSelected();
             pb.      clearSelected();
             browser. clearSelected();
+
+            libraryArtist.saveSelected();
+            libraryArtist.clearSelected();
+            libraryAlbum. saveSelected();
+            libraryAlbum. clearSelected();
         }
 
         var table = $trigger.parent().parent(),
@@ -4555,9 +4658,15 @@ $.contextMenu({
                     'remPb':       {name: 'Remove'},
                     'infoBrowser': {name: 'Song information'}
                 };
+             } else if (table.hasClass('library-list-context')) {
+                items = {
+                    'title': {name: title},
+                    'attPb': {name: 'Add to top of playlist buffer'},
+                    'atbPb': {name: 'Add to bottom of playlist buffer'}
+                };
             } else {
                 items = {
-                    'temp': {name: 'Context menu not implemented yet'}
+                    'temp': {name: 'Context menu not implemented yet for pb'}
                 };
             }
         }
@@ -4605,6 +4714,26 @@ $.contextMenu({
 
             if (!$($trigger).hasClass('directory'))
                 items.infoBrowser = {name: 'Song information'};
+            // only on browser
+        } else if (table.hasClass('library-list-context')) {
+                // song is playing
+                if (player.current)
+                    items = {
+                        'title':       {name: title},
+                        'attPlaylist': {name: 'Add to top of playlist'},
+                        'atc':         {name: 'Add after current playing song'},
+                        'atbPlaylist': {name: 'Add to bottom of playlist'}
+                    };
+                // song is not playing
+                else if (!player.current)
+                    items = {
+                        'title':       {name: title},
+                        'attPlaylist': {name: 'Add to top of playlist'},
+                        'atbPlaylist': {name: 'Add to bottom of playlist'}
+                    };
+
+                if (!$($trigger).hasClass('directory'))
+                    items.infoBrowser = {name: 'Song information'};
         } else {
             items = {
                 'temp': {name: 'Context menu not implemented yet'}
@@ -4620,6 +4749,16 @@ $.contextMenu({
             },
             items: items
         };
+    },
+    events: {
+        hide: function (options) {
+            if (libraryArtist.saved.length) {
+                libraryArtist.restoreSelected();
+            }
+            if (libraryAlbum.saved.length) {
+                libraryAlbum.restoreSelected();
+            }
+        }
     }
 });
 
@@ -4633,39 +4772,23 @@ $('form').submit(function (e) {
 // Events handled in callback and contextMenu.
 // table for multislection, obj used for multiselection (must contain selected
 // variable. Because it needs to pass by reference to selected.
-function multiSelect(ele, obj, cancel, exclude) {
+function multiSelect(ele, obj, cancel, exclude, deselect) {
     var disable = ['tbody'];
 
     if (exclude) disable = disable.concat(exclude);
+
+    if (deselect === undefined) deselect = true;
 
     // enable mutltiselect for the browser
     $(ele).multiSelect({
         actcls: 'info',
         selector: 'tr.gen',
         except: disable,
+        deselect: deselect,
+        cancel: cancel,
         callback: function (items, e) {
             if (!items.length) return;
-
-            // checks if cancel* is clicked to stop selection
-            // so it wont use the previous *.selected if it was
-            // clicked outside of *.selected
-            var cancel = false;
-            for (var i = 0; i < obj.selected.length; ++i) {
-                for (var j = 0; j < cancel; ++j) {
-                    if ($(e.target).hasClass(cancel[j]) &&
-                            obj.selected[i].isEqualNode(e.currentTarget)) {
-                        //console.log('slms: ' + ele + ', cancel selection');
-                        cancel = true;
-                        break;
-                    }
-                }
-            }
-
-            // if its not in *.selected, update it.
-            if (!cancel) {
-                //console.log('updating ' + ele + ' selected');
-                obj.selected = items;
-            }
+            obj.selected = items;
         }
     });
 }

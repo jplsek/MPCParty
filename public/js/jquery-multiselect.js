@@ -18,7 +18,9 @@
             selector: 'tbody tr', //Row selected elements
             except: ['tbody'], //Not after removing the effect of multiple-choice element selected queue
             statics: ['.static'], //Exculude rows
-            callback: false //Callback after clicks [fn(items, clickEvent)]
+            callback: false, //Callback after clicks [fn(items, clickEvent)]
+            deselect: true, //Deselect itself when clicked
+            cancel: [] //Do not activate a new selection, instead keep old selection
         },
         first: null, //When you press shift, to remember the first click of the item
         last: null, //Last click on an item
@@ -39,20 +41,35 @@
                 scope = self.scope,
                 options = self.options,
                 callback = options.callback,
-                actcls = options.actcls;
+                actcls = options.actcls,
+                deselect = options.deselect,
+                cancel = options.cancel;
 
             scope.on('click.mSelect', options.selector, function (e) {
                 if (!e.shiftKey && self.checkStatics($(this))) {
                     return;
                 }
 
-                if ($(this).hasClass(actcls)) {
+                // disable multiselect after removing its class
+                var setLastNull = false;
+                // disable new selection if cancel is clicked
+                var skip = false;
+
+                for (var i = 0; i < cancel.length; ++i) {
+                    if ($(e.target).hasClass(cancel[i]) && $(this).hasClass(actcls)) {
+                        skip = true;
+                        //console.log('set true');
+                    }
+                }
+
+                if (!skip && deselect && $(this).hasClass(actcls)) {
                     $(this).removeClass(actcls);
+                    setLastNull = true;
                 } else {
                     $(this).addClass(actcls);
                 }
 
-                if (e.shiftKey && self.last) {
+                if (!skip && e.shiftKey && self.last) {
                     if (!self.first) {
                         self.first = self.last;
                     }
@@ -69,10 +86,16 @@
                         }
                     });
                     window.getSelection ? window.getSelection().removeAllRanges() : document.selection.empty();
-                } else if (!e.ctrlKey && !e.metaKey) {
+                } else if (!skip && !e.ctrlKey && !e.metaKey) {
                     $(this).siblings().removeClass(actcls);
                 }
-                self.last = $(this);
+
+                if (setLastNull) {
+                    self.last = null;
+                } else {
+                    self.last = $(this);
+                }
+
                 $.isFunction(callback) && callback($(options.selector + '.' + actcls, scope), e);
             });
 
@@ -86,11 +109,13 @@
                         return;
                     }
                 }
-                scope.find(options.selector).each(function () {
-                    if (!self.checkStatics($(this))) {
-                        $(this).removeClass(actcls);
-                    }
-                });
+                if (deselect) {
+                    scope.find(options.selector).each(function () {
+                        if (!self.checkStatics($(this))) {
+                            $(this).removeClass(actcls);
+                        }
+                    });
+                }
                 $.isFunction(callback) && callback($(options.selector + '.' + actcls, scope), e);
             });
 

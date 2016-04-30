@@ -299,6 +299,22 @@ html
                         th
                     tbody.append.connected
 
+            mixin libraryAA(id, title, search)
+                div(id='library-'+id)
+                    div(id='library-'+id+'-header')
+                        form(autocomplete='off')
+                            .input-group
+                                input(id='search-'+id, class='form-control', type='text', placeholder='Search '+search+'...')
+                                span.input-group-btn
+                                    button(id='search-'+id+'-clear', class='btn btn-default', type='button')
+                                        span.glyphicon.glyphicon-remove
+                    div(id='library-'+id+'-wrap')
+                        table(id='library-'+id+'-list', class='table table-hover library-list-context')
+                            thead: tr
+                                th(id='library-col-'+id) #{title}
+                                th
+                            tbody.append.connected
+
             main
                 #browser-selection
                     button#update.btn.btn-default(title='Update the music database (after uploading new music to the folder)')
@@ -311,34 +327,8 @@ html
 
                 #library.col-sm-8
                     #library-top
-                        #library-artists
-                            #library-artists-header
-                                form(autocomplete='off')
-                                    .input-group
-                                        input#search-artists.form-control(type='text', placeholder='Search artists...')
-                                        span.input-group-btn
-                                            button#search-artists-clear.btn.btn-default(type='button')
-                                                span.glyphicon.glyphicon-remove
-                            #library-artists-wrap
-                                table#library-artists-list.table.table-hover
-                                    thead: tr
-                                        th#library-col-artist Artist
-                                        th
-                                    tbody.append.connected
-                        #library-albums
-                            #library-albums-header
-                                form(autocomplete='off')
-                                    .input-group
-                                        input#search-albums.form-control(type='text', placeholder='Search albums from artist...')
-                                        span.input-group-btn
-                                            button#search-albums-clear.btn.btn-default(type='button')
-                                                span.glyphicon.glyphicon-remove
-                            #library-albums-wrap
-                                table#library-albums-list.table.table-hover
-                                    thead: tr
-                                        th#library-col-album Album
-                                        th
-                                    tbody.append.connected
+                        +libraryAA('artists', 'Artist', 'artists')
+                        +libraryAA('albums', 'Album', 'albums from artist')
                     #library-songs
                         #library-songs-header
                             form(autocomplete='off')
