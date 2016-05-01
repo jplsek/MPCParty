@@ -160,38 +160,41 @@ function getAllInfo(dir, callback) {
 
         if (!files.length) callback(arr);
 
-        //console.log(files);
-        var i = 0;
+        var j = {i: 0};
 
-        $(files).each(function (item, value) {
-            if (value.directory && value.file) {
-                // ignore?
-                if (++i == files.length) {
+        function recurse(dir) {
+            getAllInfo(dir, function (newArr) {
+                arr = arr.concat(newArr);
+
+                if (++j.i == files.length) {
                     callback(arr);
                 }
-            } else if (value.directory) {
-                // recurse through directory
-                getAllInfo(value.directory, function (newArr) {
-                    arr = arr.concat(newArr);
+            });
+        }
 
-                    if (++i == files.length) {
-                        callback(arr);
-                    }
-                });
-            } else if (value.file) {
+        //console.log(files);
+        for (var i = 0; i < files.length; ++i) {
+            if (files[i].directory && files[i].file) {
+                // ignore?
+                if (++j.i == files.length) {
+                    callback(arr);
+                }
+            } else if (files[i].directory) {
+                recurse(files[i].directory);
+            } else if (files[i].file) {
                 // add file
-                arr.push(value);
+                arr.push(files[i]);
 
-                if (++i == files.length) {
+                if (++j.i == files.length) {
                     callback(arr);
                 }
             } else {
                 // fallback (such as empty directories)
-                if (++i == files.length) {
+                if (++j.i == files.length) {
                     callback(arr);
                 }
             }
-        });
+        }
     });
 }
 
@@ -241,7 +244,6 @@ function reflowAll() {
 // creates a search input setup (input, search callback [returns searchVal],
 // reset callback, input clear button, time it takes to search
 function createSearch(input, callSearch, callReset, inputClear, time) {
-
     if (!time) time = 3000;
 
     function getSearchVal() { return $(input).val().toLowerCase(); }
@@ -300,7 +302,6 @@ function createSearch(input, callSearch, callReset, inputClear, time) {
 // hides table rows as the user searches (input text box, table, data-*,
 // clear input button)
 function lazySearch(input, table, data, inputClear, time) {
-
     if (!time) time = 1000;
 
     createSearch(
@@ -847,18 +848,15 @@ var playlist = {
     fromSender: function (ui, newIndex) {
         //console.log(ui.item);
         if (browser.selected.length) {
-            browser.selected = toArray(browser.selected).reverse();
             browser.addMulti(newIndex);
             return;
         } else if ($(ui.item).hasClass('artist') &&
                 libraryArtist.selected.length) {
-            libraryArtist.selected = toArray(libraryArtist.selected).reverse();
-            library.addMulti(libraryArtist, index);
+            library.addMulti(libraryArtist, newIndex, true);
             return;
         } else if ($(ui.item).hasClass('album') &&
                 libraryAlbum.selected.length) {
-            libraryAlbum.selected = toArray(libraryAlbum.selected).reverse();
-            library.addMulti(libraryAlbum, index);
+            library.addMulti(libraryAlbum, newIndex, true);
             return;
         }
 
@@ -1000,6 +998,8 @@ var playlist = {
             if (to === undefined || isNaN(to)) {
                 pages.go('playlist', pages.totalPlaylist);
                 this.scrollDown = true;
+            } else if (to == player.current.Pos + 1) {
+                this.goToCurrent();
             } else {
                 this.goToPos(to);
             }
@@ -1027,7 +1027,6 @@ var playlist = {
 
     // wrapper for komponist.findadd
     findAdd: function (artist, album) {
-
         if (!album) {
             komponist.findadd('artist', artist, function (err, files) {
                 setSongs(err, files);
@@ -1150,16 +1149,7 @@ var playlist = {
         this.goAfterUpdate = true;
 
         if (browser.selected.length) {
-            browser.selected = toArray(browser.selected).reverse();
             browser.addMulti(newPos);
-            return;
-        } else if (type == 'artist' && libraryArtist.selected.length) {
-            libraryArtist.selected = toArray(libraryArtist.selected).reverse();
-            library.addMulti(libraryArtist, newPos);
-            return;
-        } else if (type == 'album' && libraryAlbum.selected.length) {
-            libraryAlbum.selected = toArray(libraryAlbum.selected).reverse();
-            library.addMulti(libraryAlbum, newPos);
             return;
         }
 
@@ -1954,21 +1944,25 @@ var browser = {
 
     addMulti: function (to) {
         if (pb.current) {
+            var arr = [];
+
             $(browser.selected).each(function (item, tr) {
                 if ($(tr).hasClass('file')) {
                     var file = $(tr).data().fileid;
-                    pb.addid(file, to++);
+                    arr.push(['id', file]);
                 } else if ($(tr).hasClass('directory')) {
                     var dir = $(tr).data().dirid;
-                    console.log(dir);
-                    pb.add(dir, to++);
+                    arr.push(['dir', dir]);
                 }
             });
-        } else {
-            $(browser.selected).each(function (item, tr) {
-                var dontScroll = false;
-                if (to) dontScroll = true;
 
+            pb.addArr(arr, to);
+        } else {
+            var dontScroll = false;
+            // dont scroll if drag and drop ("to" would not be null)
+            if (to && to != player.current.Pos + 1) dontScroll = true;
+
+            $(browser.selected).each(function (item, tr) {
                 if ($(tr).hasClass('file')) {
                     var file = $(tr).data().fileid;
                     playlist.addSong(file, to, dontScroll);
@@ -2126,14 +2120,15 @@ var libraryArtist = {
 
     // save the list temporarily
     saveSelected: function () {
-        //console.log('saving t...' + libraryArtist.selected.length);
+        console.log('saving t...' + libraryArtist.selected.length);
         libraryArtist.saved = libraryArtist.selected;
     },
 
     // restore the list
     restoreSelected: function () {
-        //console.log('restore t...' + libraryArtist.saved.length);
+        console.log('restore t...' + libraryArtist.saved.length);
         libraryArtist.selected = libraryArtist.saved;
+        libraryArtist.saved = [];
     }
 };
 
@@ -2157,6 +2152,7 @@ var libraryAlbum = {
     restoreSelected: function () {
         //console.log('restore b...' + libraryAlbum.saved.length);
         libraryAlbum.selected = libraryAlbum.saved;
+        libraryAlbum.saved = [];
     }
 };
 
@@ -2348,7 +2344,7 @@ var library = {
 
                 library.getSongsFromAlbum(artist, album, function (files) {
                     for (var i = 0; i < files.length; ++i) {
-                        playlist.addSong(files[i].file, to++, dontScroll);
+                        playlist.addSong(files[i].file, to, dontScroll);
                     }
                 });
             });
@@ -2357,7 +2353,6 @@ var library = {
 
     // return a file list from an album
     getSongsFromAlbum: function (artist, album, callback) {
-
         if (!album) {
             komponist.find('artist', artist, function (err, files) {
                 setSongs(err, files);
@@ -3144,11 +3139,11 @@ var pb = {
             return;
         } else if ($(ui.item).hasClass('artist') &&
                 libraryArtist.selected.length) {
-            library.addMulti(libraryArtist, index);
+            library.addMulti(libraryArtist, index, true);
             return;
         } else if ($(ui.item).hasClass('album') &&
                 libraryAlbum.selected.length) {
-            library.addMulti(libraryAlbum, index);
+            library.addMulti(libraryAlbum, index, true);
             return;
         }
 
@@ -3191,6 +3186,64 @@ var pb = {
                 pb.addSong(value, pos);
             }
         });
+    },
+
+    // add an array so the DOM is only updated once
+    // arr: [type][value]
+    addArr: function (arr, pos) {
+        // converts to a files array for addSong
+        var newArr = [],
+            j      = {i: 0};
+
+        function callback() {
+            pb.addSong(newArr, pos);
+        }
+
+        function setFile(fileid) {
+            komponist.find('file', content, function (err, value) {
+                if (err) return console.log(err);
+
+                value = value[0];
+
+                if (value.file && !value.directory) {
+                    //console.log(value);
+                    newArr.push(value);
+                    if (++j.i == arr.length) callback();
+                }
+            });
+        }
+
+        function setDir(dir) {
+            getAllInfo(dir, function (files) {
+                newArr = newArr.concat(files);
+                if (++j.i == arr.length) callback();
+            });
+        }
+
+        console.log(arr);
+        for (var i = 0; i < arr.length; i++) {
+            var val     = arr[i][0],
+                content = arr[i][1];
+
+            // fileid
+            if (val == 'id') {
+                setFile(content);
+            }
+            // dir
+            else if (val == 'dir') {
+                setDir(content);
+            }
+            // file
+            else if (val == 'file') {
+                newArr.push(content);
+                j.i += 1;
+            } else {
+                console.log(val + ' is not supported?');
+                j.i += 1;
+            }
+
+            if (j.i == arr.length) callback();
+        }
     },
 
     // wrapper (similar to komponist.add)
@@ -3299,8 +3352,6 @@ var pb = {
     // move rows to top of pb
     moveToTop: function (tr) {
         if (this.selected.length) {
-            this.selected = toArray(this.selected).reverse();
-
             $(this.selected).each(function (item, tr) {
                 $(tr).prependTo(pb.table);
             });
@@ -4542,7 +4593,7 @@ function contextResponse(key, table, tr) {
                 browser.addExternal(fileid);
                 break;
             case 'atc':
-                playlist.addToCurrent(fileid, 'file');
+                browser.addExternal(fileid, player.current.Pos + 1);
                 break;
         }
     }
@@ -4556,27 +4607,35 @@ function contextResponse(key, table, tr) {
             case 'attPlaylist':
             case 'attPb':
                 if ($(tr).hasClass('artist'))
-                    library.addExternal(libraryArtist, artist, album, 0, false);
+                    library.addExternal(
+                        libraryArtist, artist, album, 0, false);
                 else if ($(tr).hasClass('album'))
-                    library.addExternal(libraryAlbum, artist, album, 0, false);
+                    library.addExternal(
+                        libraryAlbum, artist, album, 0, false);
                 break;
             case 'atbPlaylist':
             case 'atbPb':
                 if ($(tr).hasClass('artist'))
-                    library.addExternal(libraryArtist, artist, album, undefined, false);
+                    library.addExternal(
+                        libraryArtist, artist, album, undefined, false);
                 else if ($(tr).hasClass('album'))
-                    library.addExternal(libraryAlbum, artist, album, undefined, false);
+                    library.addExternal(
+                        libraryAlbum, artist, album, undefined, false);
                 break;
             case 'atc':
-                library.getSongsFromAlbum(artist, album, function (files) {
-                    for (var i = 0; i < files.length; ++i) {
-                    console.log('test');
-                        if ($(tr).hasClass('artist'))
-                            playlist.addToCurrent(files[i].file, 'artist');
-                        else if ($(tr).hasClass('album'))
-                            playlist.addToCurrent(files[i].file, 'album');
-                    }
-                });
+                if ($(tr).hasClass('artist') && libraryArtist.selected.length) {
+                    library.addExternal(libraryArtist, artist, album,
+                        player.current.Pos + 1, false);
+                } else if ($(tr).hasClass('album') && libraryAlbum.selected.length) {
+                    library.addExternal(libraryAlbum, artist, album,
+                        player.current.Pos + 1, false);
+                } else {
+                    library.getSongsFromAlbum(artist, album, function (files) {
+                        for (var i = 0; i < files.length; ++i) {
+                            playlist.addToCurrent(files[i].file, 'file');
+                        }
+                    });
+                }
                 break;
         }
     }
