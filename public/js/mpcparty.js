@@ -323,6 +323,15 @@ function lazySearch(input, table, data, inputClear, time) {
     );
 }
 
+// a specialized function to convert the multiselect object to an array
+function toArraySelected(obj) {
+    var arr = [];
+    for(var i = 0; i < obj.selected.length; ++i) {
+        arr.push(obj.selected[i]);
+    }
+    obj.selected = arr;
+}
+
 // the header with music controls
 var player = {
     // current song to highlight the playlist
@@ -1943,18 +1952,22 @@ var browser = {
     },
 
     addMulti: function (to) {
+        toArraySelected(browser);
+        var i, tr, dir, file;
+
         if (pb.current) {
             var arr = [];
 
-            $(browser.selected).each(function (item, tr) {
+            for (i = 0; i < browser.selected.length; ++i) {
+                tr = browser.selected[i];
                 if ($(tr).hasClass('file')) {
-                    var file = $(tr).data().fileid;
+                    file = $(tr).data().fileid;
                     arr.push(['id', file]);
                 } else if ($(tr).hasClass('directory')) {
-                    var dir = $(tr).data().dirid;
+                    dir = $(tr).data().dirid;
                     arr.push(['dir', dir]);
                 }
-            });
+            }
 
             pb.addArr(arr, to);
         } else {
@@ -1962,15 +1975,19 @@ var browser = {
             // dont scroll if drag and drop ("to" would not be null)
             if (to && to != player.current.Pos + 1) dontScroll = true;
 
-            $(browser.selected).each(function (item, tr) {
+            // reverse because not incrementing to variable because
+            // scrolling to center will be overridden in addSong
+            browser.selected.reverse();
+            for (i = 0; i < browser.selected.length; ++i) {
+                tr = browser.selected[i];
                 if ($(tr).hasClass('file')) {
-                    var file = $(tr).data().fileid;
+                    file = $(tr).data().fileid;
                     playlist.addSong(file, to, dontScroll);
                 } else if ($(tr).hasClass('directory')) {
-                    var dir = $(tr).data().dirid;
+                    dir = $(tr).data().dirid;
                     playlist.addDir(dir, to, dontScroll);
                 }
-            });
+            }
         }
 
         browser.clearSelected();
@@ -2328,26 +2345,41 @@ var library = {
 
     // obj, libraryArtist or libraryAlbum
     addMulti: function (obj, to, dontScroll) {
+        toArraySelected(obj);
+        var i, tr, artist, album;
+
+        function sendToPb(art, alb) {
+            library.getSongsFromAlbum(art, alb, function (files) {
+                pb.addSong(files, to);
+            });
+        }
+
+        function sendToPl(art, alb) {
+            library.getSongsFromAlbum(artist, album, function (files) {
+                // reverse because not incrementing to variable because
+                // scrolling to center will be overridden in addSong
+                files = files.reverse();
+                for (var i = 0; i < files.length; ++i) {
+                    playlist.addSong(files[i].file, to, dontScroll);
+                }
+            });
+        }
+
         if (pb.current) {
-            $(obj.selected).each(function (item, tr) {
-                var artist = $(tr).data().artist,
-                    album  = $(tr).data().album;
-
-                library.getSongsFromAlbum(artist, album, function (files) {
-                    pb.addSong(files, to);
-                });
-            });
+            for (i = 0; i < obj.selected.length; ++i) {
+                tr     = obj.selected[i];
+                artist = $(tr).data().artist;
+                album  = $(tr).data().album;
+                sendToPb(artist, album);
+            }
         } else {
-            $(obj.selected).each(function (item, tr) {
-                var artist = $(tr).data().artist,
-                    album  = $(tr).data().album;
-
-                library.getSongsFromAlbum(artist, album, function (files) {
-                    for (var i = 0; i < files.length; ++i) {
-                        playlist.addSong(files[i].file, to, dontScroll);
-                    }
-                });
-            });
+            obj.selected.reverse();
+            for (i = 0; i < obj.selected.length; ++i) {
+                tr     = obj.selected[i];
+                artist = $(tr).data().artist;
+                album  = $(tr).data().album;
+                sendToPl(artist, album);
+            }
         }
     },
 
@@ -3220,7 +3252,7 @@ var pb = {
             });
         }
 
-        console.log(arr);
+        //console.log(arr);
         for (var i = 0; i < arr.length; i++) {
             var val     = arr[i][0],
                 content = arr[i][1];
