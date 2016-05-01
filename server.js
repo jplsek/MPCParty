@@ -302,6 +302,16 @@ app.get('/browser/*', function (req, res) {
     });
 });
 
+app.get('/library/*', function (req, res) {
+    res.render('index', {
+        pack: pack,
+        config: {
+            "showUsers": config.users.enabled,
+            "player": video.enabled
+        }
+    });
+});
+
 app.get('/search/*', function (req, res) {
     res.render('index', {
         pack: pack,

@@ -201,6 +201,8 @@ function getAllInfo(dir, callback) {
 // update database statistics to the client
 function updateStats() {
     komponist.stats(function (err, stats) {
+        if (err) return console.log(err);
+
         //console.log(stats);
         var html = '<small>' + stats.artists + ' artists, ' + stats.albums + ' albums, ' + stats.songs + ' songs (' + toFriendlyDDHHMM(stats.db_playtime) + '). Last database update: ' + new Date(stats.db_update * 1000).toLocaleString() + '</small>';
         //console.log(html);
@@ -1553,20 +1555,23 @@ var browser = {
         if ((!poppedState && browser.previous != browser.current) ||
                 (!poppedState && browser.searching)) {
             browser.searching = false;
-            if (browser.current == '/' || browser.current === '') {
-                console.log('adding / to history');
-                window.history.pushState('', 'MPCParty', '/');
-            } else {
-                console.log('adding /browser/' + browser.current + ' to history');
-                window.history.pushState('', browser.current + ' - MPCParty',
-                    '/browser/' + browser.current);
-            }
-
+            browser.addToHistory();
             $('#slwrap').scrollTop($('#file-browser-song-list'));
         }
         browser.updateBrowser(browser.current);
 
         if (dir) browser.previous = dir;
+    },
+
+    addToHistory: function () {
+        if (browser.current == '/' || browser.current === '') {
+            console.log('adding /browser/ to history');
+            window.history.pushState('', 'MPCParty', '/browser/');
+        } else {
+            console.log('adding /browser/' + browser.current + ' to history');
+            window.history.pushState('', browser.current + ' - MPCParty',
+                    '/browser/' + browser.current);
+        }
     },
 
     // shows directories. use '/' for root
@@ -1592,6 +1597,7 @@ var browser = {
 
         komponist.lsinfo(directory, function (err, files) {
             //console.log(files);
+            if (err) return console.log(err);
 
             $('#file-browser-song-list .gen').remove();
             browser.localFolders = [];
@@ -1635,6 +1641,11 @@ var browser = {
 
         komponist.search('any', name, function (err, files) {
             if (err) return console.log(err);
+
+            if (browser.searchTerm == name) {
+                // just don't add repeated search to history
+                poppedState = true;
+            }
 
             // do this after (in case of error)
             $('#file-browser-song-list .gen').remove();
@@ -1716,6 +1727,8 @@ var browser = {
         var tr = $('.song-list tbody').children();
 
         komponist.currentsong(function (err, song) {
+            if (err) return console.log(err);
+
             if ($.isEmptyObject(song))
                 player.setCurrent(null);
             else
@@ -1954,6 +1967,7 @@ var browser = {
     },
 
     show: function () {
+        if (!browser.hidden) return;
         browser.hidden = false;
         buttonSelect("#open-file-browser", "#browser-selection");
         $('#browser').show();
@@ -2118,6 +2132,7 @@ var browser = {
             settings.saveBrowser('browser');
             $('#file-browser-song-list.table').trigger('reflow');
             browser.update();
+            browser.addToHistory();
         });
 
         floatTable('#file-browser-song-list.table', '#slwrap');
@@ -2208,6 +2223,8 @@ var library = {
         console.log('update artists');
 
         komponist.list('artist', function (err, files) {
+            if (err) return console.log(err);
+
             //console.log(files);
 
             $('#library-artists-list .gen').remove();
@@ -2229,8 +2246,7 @@ var library = {
             for (var i = 0; i < files.length; ++i) {
                 var artist = files[i].Artist;
 
-                if (artist == artistUse)
-                    addClass = 'info';
+                if (artist == artistUse) addClass = 'info';
 
                 html += '<tr class="context-menu gen artist ' + addClass + '" data-artist="' + artist + '" title="' + artist + '"><td>' + tableStart + artist + tableEnd + '</td><td class="song-list-icons text-right"><span class="artist-add faded text-success glyphicon glyphicon-plus" title="Add artist to the bottom of the playlist"></span></td></tr>';
                 addClass = '';
@@ -2252,7 +2268,7 @@ var library = {
         library.artist = artist;
 
         komponist.list('album', artist, function (err, files) {
-            //console.log(files);
+            if (err) return console.log(err);
 
             $('#library-albums-list .gen').remove();
             files = toArray(files);
@@ -2269,7 +2285,12 @@ var library = {
             html += '<tr class="context-menu gen album library-artist-all ' + addClass + '" data-artist="' + artist + '" title="All"><td>' + tableStart + 'All' + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
             addClass = '';
 
-            if (!files.length || files[0].Album === '') {
+            //console.log(files);
+
+            if (!files.length || $.isEmptyObject(files[0]) ||
+                    files[0].Album === '') {
+                html = '<tr class="gen"><td colspan="6">' +
+                    '<em>No albums</em></td></tr>';
                 $('#library-albums-list .append').append(html);
                 return console.log('No albums found');
             }
@@ -2291,7 +2312,7 @@ var library = {
     },
 
     // put songs in table
-    updateSongs: function (artist, album) {
+    updateSongs: function (artist, album, poppedState) {
         // if still null, return (user updates library without clicking an
         // artist)
         if (!artist) return;
@@ -2309,7 +2330,11 @@ var library = {
             });
         }
 
+        if (!poppedState) library.addToHistory();
+
         function setSongs(err, files) {
+            if (err) return console.log(err);
+
             //console.log(files);
 
             $('#library-songs-list .gen').remove();
@@ -2339,7 +2364,27 @@ var library = {
         }
     },
 
+    addToHistory: function () {
+        if (!library.artist) {
+            console.log('adding /library/ to history');
+            window.history.pushState('','MPCParty', '/library/');
+            return;
+        }
+
+        var albumHistory = '',
+            artistHistory = encodeURIComponent(library.artist);
+
+        if (library.album)
+            albumHistory = '/' + encodeURIComponent(library.album);
+
+        var url = artistHistory + albumHistory;
+        console.log('adding /library/' + url + ' to history');
+        window.history.pushState('', url + ' - MPCParty', '/library/' + url);
+    },
+
     show: function () {
+        if (!library.hidden) return;
+
         library.hidden = false;
         $('#library').show();
         buttonSelect("#open-library", "#browser-selection");
@@ -2458,17 +2503,50 @@ var library = {
             //console.log('search artist and album');
             komponist.search('artist', library.artist, 'album', library.album,
                     'title', title, function (err, files) {
+                if (err) return console.log(err);
                 compare(files);
             });
         } else if (library.artist) {
             //console.log('search artist');
             komponist.search('artist', library.artist,
                     'title', title, function (err, files) {
+                if (err) return console.log(err);
                 compare(files);
             });
         } else {
             console.log('no artist or album selected?');
         }
+    },
+
+    decodeRequest: function (request) {
+        var artist = request,
+            album  = null;
+
+        if (!request) request = '';
+        //console.log(request);
+
+        if (request.indexOf('/') != -1) {
+            artist = request.slice(0, request.indexOf('/'));
+            album  = request.slice(request.indexOf('/') + 1, request.length);
+        }
+
+        artist = decodeURIComponent(artist);
+        if (album) album = decodeURIComponent(album);
+
+        //console.log(artist);
+        //console.log(album);
+
+        browser.hide();
+        library.show();
+
+        // we don't need to update everything if everything is the same
+        // (like coming from the browser)
+        if (library.album !== null && library.album == album) return;
+
+        if (library.artist != artist) library.updateArtists(artist);
+
+        library.updateAlbums(artist, album);
+        library.updateSongs(artist, album, true);
     },
 
     initEvents: function () {
@@ -2490,6 +2568,7 @@ var library = {
         $('#open-library').click(function () {
             settings.saveBrowser('library');
             library.updateArtists(library.artist);
+            library.addToHistory();
         });
 
         $(document).on('click', '#library-artists-list .gen', function () {
@@ -3753,6 +3832,8 @@ var settings = {
     unknown: 'unknown',
     // which browser to use (library or browser)
     browser: 'browser',
+    // used for unknown pop states
+    lastBrowser: 'browser',
 
     // initially load all the settings
     loadAll: function () {
@@ -3975,6 +4056,7 @@ var settings = {
                 browser.show();
             }
         } else {
+            settings.lastBrowser = settings.browser;
             library.hide();
             browser.hide();
         }
@@ -3982,6 +4064,7 @@ var settings = {
 
     saveBrowser: function (use) {
         console.log('changed browser');
+        this.lastBrowser = this.browser;
         localStorage.setItem('mpcp-browser', use);
         this.loadBrowser(true);
     },
@@ -4202,8 +4285,7 @@ function initAfterConnection() {
         browser.search(request);
         $('#search-browser').val(request);
     } else if (action == 'library') {
-        library.show();
-        library.updateArtists();
+        library.decodeRequest(request);
     } else if (action == 'browser') {
         browser.show();
         browser.current  = request;
@@ -4550,14 +4632,27 @@ window.onpopstate = function (event) {
     console.log('poppedState: ' + option);
     if (option == 'browser') {
         folder = url.replace('/browser/', '');
+        library.hide();
+        browser.show();
+        if (folder === '') folder = '/';
         browser.update(folder, true);
     } else if (option == 'search') {
         var search = url.replace('/search/', '');
         browser.search(search, true);
+    } else if (option == 'library') {
+        var request = document.location.pathname.replace('/library/', '');
+        library.decodeRequest(request);
     } else {
-        // fallback to browser (poppedState is empty)
-        folder = url.replace('/browser/', '');
-        browser.update(folder, true);
+        // unknown, use settings.browser
+        if (settings.lastBrowser == 'library') {
+            browser.hide();
+            library.show();
+            library.decodeRequest();
+        } else {
+            library.hide();
+            browser.show();
+            browser.update('/', true);
+        }
     }
 };
 

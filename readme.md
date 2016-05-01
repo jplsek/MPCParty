@@ -7,7 +7,7 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 
 ![Screenshot](https://github.com/jplsek/MPCParty/raw/master/screenshot.png)
 
-Show the Default theme, and file browser view
+Showing the Default theme, and file browser view
 
 ![Screenshot2](https://github.com/jplsek/MPCParty/raw/master/screenshot2.png)
 
@@ -40,6 +40,7 @@ Showing the Materialish theme, library view, and playlist buffer
     * Select songs from their respective artist and album, without worring about files and folders
     * Add all songs from an artist or album by pressing "+" or double clicking
     * Playlist position indication for songs
+    * Library url linking
     * Drag and drop, multiselection, context menus, column sorting, search filtering.
 * Playlist buffer
     * Create and edit playlists without interrupting the current playlist
