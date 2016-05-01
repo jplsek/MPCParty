@@ -23,11 +23,8 @@ TODO
     * Custom column picker
     * Add a 'file' search mode in case the file doesn't have tag
 * Library:
-    * Search bar (songs)
-    * Context menus (artists, albums)
     * URL's
     * Popstates
-    * Global search brings browser back, closing global search brings library back
 * Playlist:
     * Drag and drop through pages
     * Remove songs visually to the single user. (Do not update the playlist via mpd for the user editing it.) It will allow faster deletion for large playlists.

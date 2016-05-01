@@ -282,6 +282,13 @@ function createSearch(input, callSearch, callReset, inputClear, time) {
         $(input).focus();
         lastVal = '';
         callReset();
+
+        // not the best way of doing things...
+        if (library.bringBack) {
+            browser.hide();
+            library.show();
+            library.bringBack = false;
+        }
     });
 
     // detect enter key
@@ -315,7 +322,8 @@ function lazySearch(input, table, data, inputClear, time) {
                     $(this).hide();
                 }
             });
-        }, function () {
+        },
+        function () {
             $(table + ' .gen').show();
         },
         inputClear,
@@ -1619,6 +1627,12 @@ var browser = {
     search: function (name, poppedState) {
         console.log('browser.search: ' + name);
 
+        if (browser.hidden) {
+            browser.show();
+            library.hide();
+            library.bringBack = true;
+        }
+
         komponist.search('any', name, function (err, files) {
             if (err) return console.log(err);
 
@@ -2176,6 +2190,8 @@ var libraryAlbum = {
 // the library (alternative to file browser)
 var library = {
     hidden: true,
+    // used when searching globally and other things
+    bringBack: false,
     // used for artist and album selection
     selected: [],
     // used for saving selected temporarily
@@ -2423,11 +2439,53 @@ var library = {
             });
     },
 
+    // search library. assume library.artist and library.album is already set
+    search: function (title) {
+        function compare(files) {
+            //console.log(files);
+            $(files).each(function(item, file) {
+                $('#library-songs-list .gen').each(function (item, val) {
+                    if ($(val).data().fileid == file.file) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+        }
+
+        if (library.artist && library.album) {
+            //console.log('search artist and album');
+            komponist.search('artist', library.artist, 'album', library.album,
+                    'title', title, function (err, files) {
+                compare(files);
+            });
+        } else if (library.artist) {
+            //console.log('search artist');
+            komponist.search('artist', library.artist,
+                    'title', title, function (err, files) {
+                compare(files);
+            });
+        } else {
+            console.log('no artist or album selected?');
+        }
+    },
+
     initEvents: function () {
         lazySearch('#search-artists', '#library-artists-list', 'artist',
             '#search-artists-clear');
         lazySearch('#search-albums',  '#library-albums-list',  'album',
             '#search-albums-clear');
+        // we only really care about the title (hopefully, only exception is
+        // when in the 'all' album)
+        createSearch(
+            '#search-songs',
+            library.search,
+            function () {
+                $('#library-songs-list .gen').show();
+            },
+            '#search-songs-clear',
+            1000);
 
         $('#open-library').click(function () {
             settings.saveBrowser('library');

@@ -7,6 +7,12 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 
 ![Screenshot](https://github.com/jplsek/MPCParty/raw/master/screenshot.png)
 
+Show the Default theme, and file browser view
+
+![Screenshot2](https://github.com/jplsek/MPCParty/raw/master/screenshot2.png)
+
+Showing the Materialish theme, library view, and playlist buffer
+
 ## Features
 * No need to have a separate web server running!
 * Play, pause, repeat, random, skip, seek, previous buttons and volume controls
@@ -25,18 +31,16 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
     * Double click folders to browse them
     * Add songs to the playlist by pressing "+" or double clicking
     * Add folders to the playlist by pressing "+"
-    * Add songs and folders to the playlist or playlist buffer by dragging
-    * Sort by title, artist, album or time
     * Location bar
     * Add all songs based on current page to the playlist
-    * Library searching
-    * Playlist position indication
+    * Playlist position indication for songs
     * Folder url linking
-    * Search url linking
-    * Right click to add a song (or folder) to the top, bottom, or after the currently playing song of the playlist (or playlist buffer)
-    * Multiselection (ctrl, shift: add, weird drag and drop; right click: add to top, bottom, current)
-* Library browser (WIP)
+    * Drag and drop, multiselection, context menus, column sorting.
+* Library browser
     * Select songs from their respective artist and album, without worring about files and folders
+    * Add all songs from an artist or album by pressing "+" or double clicking
+    * Playlist position indication for songs
+    * Drag and drop, multiselection, context menus, column sorting, search filtering.
 * Playlist buffer
     * Create and edit playlists without interrupting the current playlist
     * Multiselection (ctrl, shift: remove, weird drag and drop; right click: add to top, bottom)
@@ -47,6 +51,10 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 * Update music database
 * Basic mobile support
 * Basic theming support
+* Library searching
+* Library search url linking
+
+Note: searching for songs, for the most part, requires proper tagging of your files! This may be changed in the future to also account for the file name itself.
 
 ### Multi-user features
 * Vote to skip songs (This can be easily bypassed. Might create a strict mode in the future)
@@ -55,17 +63,18 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 * User lists (optional)
 
 ## Configuration
-* Edit config.cfg
-    * Web port (default is 8081)
-    * MPD url (default is localhost)
-    * MPD port (default is 6600)
-    * Enable vote skipping (default is true)
-    * Vote skipping percentage (default is 75%, aka 75% of the users need to vote before taking effect)
-    * Show user lists (default is false)
-    * Enable the Download Player (default is true)
-    * Set Download Player download location (default is ./downloads, but I recommend setting it to your Music folder)
-    * Set the default volume of the Download Player (default is 50%)
-    * Set whether or not to keep the downloaded videos after conversion (default is true)
+Edit config.cfg
+
+* Web port (default is 8081)
+* MPD url (default is localhost)
+* MPD port (default is 6600)
+* Enable vote skipping (default is true)
+* Vote skipping percentage (default is 75%, aka 75% of the users need to vote before taking effect)
+* Show user lists (default is false)
+* Enable the Download Player (default is true)
+* Set Download Player download location (default is ./downloads, but I recommend setting it to your Music folder)
+* Set the default volume of the Download Player (default is 50%)
+* Set whether or not to keep the downloaded videos after conversion (default is true)
 
 ## Installation
 ### 1) Dependencies
@@ -111,4 +120,4 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 * I recommend using [jshint](http://jshint.com/install/) before sending something.
 
 ## License
-* GNU Lesser General Public License v3 (LGPL-3.0)
+GNU Lesser General Public License v3 (LGPL-3.0)
