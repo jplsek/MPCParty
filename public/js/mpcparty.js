@@ -1470,7 +1470,6 @@ var playlist = {
                 $('#playlist-search').hide();
                 playlist.isSearching = false;
                 $('#search-playlist').val('');
-                lastVal = '';
                 playlist.searchTerm = '';
                 playlist.updateAll();
             } else {
