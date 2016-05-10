@@ -270,9 +270,9 @@ app.disable('x-powered-by');
 app.use(less(__dirname + '/public'));
 // serve static files here
 app.use(express.static(__dirname + '/public'));
-// use jade with express
+// use pug with express
 app.set('views', __dirname + '/views');
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 // used mostly for debugging
 app.locals.pretty = true;
 

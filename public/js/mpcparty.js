@@ -25,8 +25,8 @@ function toFriendlyDDHHMM(str) {
     str = (!str ? '0' : str);
 
     var secNum  = parseInt(str, 10),
-        days    = Math.floor(secNum / (60 * 60 * 24)),
-        hours   = Math.floor(secNum / (60 * 60)) - (days * 24),
+        days    = Math.floor(secNum / 86400),
+        hours   = Math.floor(secNum / 3600) - (days * 24),
         minutes = Math.floor(secNum / 60) - (days * 24 + hours) * 60;
 
     var time = days + ' days, ' + hours + ' hours, ' + minutes + ' minutes';
@@ -160,13 +160,13 @@ function getAllInfo(dir, callback) {
 
         if (!files.length) callback(arr);
 
-        var j = {i: 0};
+        var j = 0;
 
         function recurse(dir) {
             getAllInfo(dir, function (newArr) {
                 arr = arr.concat(newArr);
 
-                if (++j.i == files.length) {
+                if (++j == files.length) {
                     callback(arr);
                 }
             });
@@ -176,7 +176,7 @@ function getAllInfo(dir, callback) {
         for (var i = 0; i < files.length; ++i) {
             if (files[i].directory && files[i].file) {
                 // ignore?
-                if (++j.i == files.length) {
+                if (++j == files.length) {
                     callback(arr);
                 }
             } else if (files[i].directory) {
@@ -185,12 +185,12 @@ function getAllInfo(dir, callback) {
                 // add file
                 arr.push(files[i]);
 
-                if (++j.i == files.length) {
+                if (++j == files.length) {
                     callback(arr);
                 }
             } else {
                 // fallback (such as empty directories)
-                if (++j.i == files.length) {
+                if (++j == files.length) {
                     callback(arr);
                 }
             }
@@ -1254,6 +1254,7 @@ var playlist = {
             this.goAfterUpdate = true;
             var fileid = $(file).data().fileid,
                 pos    = $(file).data().pos;
+
             playlist.toPulse.push(fileid);
 
             // currently playing song is above file to be moved
@@ -1299,6 +1300,7 @@ var playlist = {
         } else {
             //console.log(file);
             playlist.toPulse.push(file);
+
             komponist.moveid(file, (index - 1), function (err) {
                 if (err) console.log(err);
             });
@@ -1613,6 +1615,7 @@ var browser = {
 
             var html = '';
 
+            // initialize html for browser
             for (i = 0; i < files.length; ++i) {
                 html = browser.getHtmlFolders(files[i]);
 
@@ -3361,7 +3364,7 @@ var pb = {
     addArr: function (arr, pos) {
         // converts to a files array for addSong
         var newArr = [],
-            j      = {i: 0};
+            j      = 0;
 
         function callback() {
             pb.addSong(newArr, pos);
@@ -3376,7 +3379,7 @@ var pb = {
                 if (value.file && !value.directory) {
                     //console.log(value);
                     newArr.push(value);
-                    if (++j.i == arr.length) callback();
+                    if (++j == arr.length) callback();
                 }
             });
         }
@@ -3384,7 +3387,7 @@ var pb = {
         function setDir(dir) {
             getAllInfo(dir, function (files) {
                 newArr = newArr.concat(files);
-                if (++j.i == arr.length) callback();
+                if (++j == arr.length) callback();
             });
         }
 
@@ -3404,13 +3407,13 @@ var pb = {
             // file
             else if (val == 'file') {
                 newArr.push(content);
-                j.i += 1;
+                j += 1;
             } else {
                 console.log(val + ' is not supported?');
-                j.i += 1;
+                j += 1;
             }
 
-            if (j.i == arr.length) callback();
+            if (j == arr.length) callback();
         }
     },
 
