@@ -96,7 +96,7 @@ Edit config.cfg
 * Run `npm install` from the project's directory (to install all the libraries)
 * If there are errors, make sure your node version is greater than 0.12
 
-> If you are not using the Download Player, you can ignore compile errors when running `npm install`, and disable it via the config file.
+> If you are not using the Download Player, you can ignore compile errors for the speaker module when running `npm install`, and preferably disable it via the config file.
 
 ### 3) Running
 * Run with `./run.sh` from this directory (or `npm start`)
@@ -107,7 +107,7 @@ Edit config.cfg
 * Sever admins: copy the reference systemd service file in utils/ and set it up to your needs
 
 ## Custom Theme Development
-* Copy public/css/themes/default-thin.less and rename it to anything.
+* Copy public/css/themes/default-thin and rename it to anything.
 * Edit the variables as you see fit. You can look at the bootstrap/less folder to see what modules you want to overwrite.
 * Edit view/index.jade in the configuration section, add your theme file name as the value and a name. (This might be changed to auto-populate the select list, but for now, you have to add them manually.)
 

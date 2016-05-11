@@ -70,11 +70,12 @@ var video = {
     title: '',
 
     // TODO check if file already exists
-    download: function (url) {
+    download: function (url, address) {
         io.broadcast(JSON.stringify({'type': 'download-video'}));
         this.msg    = 'Downloading and converting video...';
         this.paused = false;
         var option  = ['-x', '--audio-format', 'mp3'];
+        console.log('Requesting video download: ' + url + ' from ' + address);
 
         if (this.keepVideo) option.push('-k');
 
@@ -403,30 +404,41 @@ fs.readFile(__dirname + '/config.cfg', function (err, data) {
 
     // create video.directory folder
     if (video.enabled) {
-        Player    = require('player');
-        youtubedl = require('youtube-dl');
-        // tilde is only here because the Player is the only thing using a
-        // custom dir.
-        var tilde = require('expand-tilde');
-        video.directory = tilde(video.directory);
-
-        fs.mkdir(video.directory, function (err) {
-            // ignore exists error
-            if (err) {
-                if (err.code == 'EEXIST') {
-                    console.log('Using directory for the ' +
-                        'Download Player: ' + video.directory);
-                } else {
-                    console.log('!!! Error creating a directory for the ' +
-                        'Download Player, disabling...');
-                    video.enabled = false;
-                    console.log(err);
-                }
-            } else {
-                console.log('Creating directory for the ' +
-                    'Download Player: ' + video.directory);
+        (function() {
+            try {
+                Player = require('player');
+            } catch(e) {
+                console.log('Error loading the player module. Disabling the ' +
+                    'Download Player.');
+                console.log(e);
+                video.enabled = false;
+                return;
             }
-        });
+
+            youtubedl = require('youtube-dl');
+            // tilde is only here because the Player is the only thing using a
+            // custom dir.
+            var tilde = require('expand-tilde');
+            video.directory = tilde(video.directory);
+
+            fs.mkdir(video.directory, function (err) {
+                // ignore exists error
+                if (err) {
+                    if (err.code == 'EEXIST') {
+                        console.log('Using directory for the ' +
+                            'Download Player: ' + video.directory);
+                    } else {
+                        console.log('!!! Error creating a directory for the ' +
+                            'Download Player, disabling...');
+                        video.enabled = false;
+                        console.log(err);
+                    }
+                } else {
+                    console.log('Creating directory for the ' +
+                        'Download Player: ' + video.directory);
+                }
+            });
+        })();
     }
 
     http.listen(config.server.port, function () {
@@ -770,7 +782,7 @@ io.on('connection', function (socket) {
                 break;
 
             case 'download-video':
-                video.download(msg.info);
+                video.download(msg.info, address);
                 break;
 
             case 'download-video-play':

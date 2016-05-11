@@ -434,11 +434,20 @@ html
                             span.glyphicon.glyphicon-repeat
                         button#pb-remove-duplicates.btn.btn-default(title='Remove duplicate songs from the playlist based on the title')
                             span.glyphicon.glyphicon-fire
+                        button#pb-search-toggle.btn.btn-default(type='button')
+                            span.glyphicon.glyphicon-search
                     .btn-group.pull-right
                         button#pb-minimize.btn.btn-default
                             span.glyphicon.glyphicon-minus
                         button#pb-close.btn.btn-default
                             span.glyphicon.glyphicon-remove
+                    #pb-search.none
+                        form(autocomplete='off')
+                            .input-group
+                                input#search-pb.form-control(type='text', placeholder='Search playlist buffer...')
+                                span.input-group-btn
+                                    button#search-pb-clear.btn.btn-default(type='button')
+                                        span.glyphicon.glyphicon-remove
                 #pb-main.panel-body
                     #pbwrap
                         table#pb-song-list.table.table-hover

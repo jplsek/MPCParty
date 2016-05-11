@@ -13,7 +13,6 @@ TODO
     * Save pb on refresh with storage api?
     * Sharing with other users? (utilize users object?)
     * Page support
-    * Searching
 * Browser:
     * Drag and drop from browser to playlist:
         * Making tr smaller while dragging >>> jquery sortable dragged item was not under cursor when changing the width (using .ui-sortable-helper to change the width)
@@ -42,6 +41,7 @@ TODO
 * Undo actions (like removing a song from the playlist)?
 * Add a max updates per second setting
 * Found out that the way I'm using floathead makes the app comparatively slower than not using it. So I might one day create a "lightweight" version from scratch.
+* hotkeys for erything (delete songs from playlists, delete playlist, pausing, etc)
 
 * Unit testing
 * One day restructure everything to reduce coupling and maybe follow some patterns...
@@ -51,7 +51,6 @@ TODO
 * Loading a theme will add another "theme load" every time.
 * Webkit: resizing pb makes the values "inverted". http://codepen.io/anon/pen/VeWwLa
 * Drag and drop inside multiselection is still buggy
-* Select album in library, click + on same artist as album, album is added instead of artist
 * Drag and drop inside artist and album tries to be sortable, unlike song-list
 * Webkit: library doesn't show up properly with a column (works fine in ff). Currently using a css prefix for ff only until I fix it for webkit.
 

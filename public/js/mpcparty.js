@@ -3188,7 +3188,7 @@ var pb = {
         var extra = '';
         if (settings.pulse) extra += 'pulse';
 
-        return '<tr class="gen context-menu ' + extra + '" title="' + title + '" data-fileid="' + file + '"><td class="playlist-song-list-icons"></td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><span class="pb-song-remove faded text-danger glyphicon glyphicon-remove" title="Remove song from playlist"></span></td></tr>';
+        return '<tr class="gen context-menu ' + extra + '" title="' + title + '" data-title="' + title + '" data-fileid="' + file + '"><td class="playlist-song-list-icons"></td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><span class="pb-song-remove faded text-danger glyphicon glyphicon-remove" title="Remove song from playlist"></span></td></tr>';
     },
 
     // file object, position to put song
@@ -3596,6 +3596,22 @@ var pb = {
         });
 
         multiSelect('#pb-song-list', pb, ['pb-song-remove']);
+
+        $('#pb-search-toggle').click(function () {
+            if ($('#pb-search-toggle').hasClass('active')) {
+                $('#pb-search-toggle').removeClass('active');
+                $('#pb-search').hide();
+                $('#search-pb').val('');
+                $('#pb-song-list tbody').children().show();
+            } else {
+                $('#pb-search-toggle').addClass('active');
+                $('#pb-search').show();
+                $('#search-pb').focus();
+            }
+        });
+
+        lazySearch('#search-pb',  '#pb-song-list',  'title',
+            '#search-pb-clear');
     }
 };
 
