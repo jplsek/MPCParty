@@ -25,7 +25,11 @@ html
         script(src='/js/jquery-ui.min.js')
         script(src='/jquery-contextmenu/jquery.contextMenu.min.js')
         script(src='/js/jquery-multiselect.js')
-        script(src='/js/mpcparty.js' async)
+        script(src='/js/mpcparty.js')
+        if (config.testing)
+            link(rel='stylesheet', href='https://code.jquery.com/qunit/qunit-1.23.1.css')
+            script(src='https://code.jquery.com/qunit/qunit-1.23.1.js')
+            script(src='/js/testing.js')
 
     body
         #info-modal.modal.fade(tabindex='-1')
@@ -453,4 +457,12 @@ html
                         table#pb-song-list.table.table-hover
                             tbody.append.connected
             #pb-tab.none Resume playlist buffer
+
+        if (config.testing)
+            #testing.panel.panel-default
+                #testing-header.panel-heading
+                    span Unit Tests
+                    button#start-testing.pull-right.btn.btn-default(type='button') Start tests
+                #testing-main.panel-body
+                    #qunit
 

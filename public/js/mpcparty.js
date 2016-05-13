@@ -148,6 +148,12 @@ function parseSongInfo(err, values) {
 function getAllInfo(dir, callback) {
     var arr = [];
 
+    // MESSAGE1: so there is a bug with lsinfo.
+    // sometimes the json is is oddly placed. http://i.imgur.com/Iankhha.png,
+    // notice the second json object, where part of the file is a key, and
+    // the key is undefined. So... A way to work around this bug is to check
+    // for an undefined value (because there should not be any), then run a
+    // find('file') because that works.
     komponist.lsinfo(dir, function (err, files) {
         if (err) {
             console.log(err);
@@ -172,6 +178,71 @@ function getAllInfo(dir, callback) {
             });
         }
 
+        // and this is the function to work around said bug...
+        function findFile(file, key) {
+            //console.log(files[i]);
+            // append a space
+            var file1 = file.file + ' ' + key;
+            // do not append a space
+            var file2 = file.file + key;
+            //console.log(file.file);
+            //console.log(file1);
+            //console.log(file2);
+
+            // 1. find file as it normally would
+            komponist.find('file', file.file, function (findErr, value) {
+                //console.log(value);
+
+                if (findErr || $.isEmptyObject(value[0])) {
+                    // 2. find file with file1
+                    komponist.find('file', file1, function (findErr, value) {
+                        //console.log(value);
+
+                        if (findErr || $.isEmptyObject(value[0])) {
+                            // 3. find file with file2
+                            komponist.find('file', file2,
+                                    function (findErr, value) {
+                                //console.log(value);
+
+                                if (findErr || $.isEmptyObject(value[0])) {
+                                    console.log(
+                                        'no matches found, falling back');
+                                    arr.push(file);
+
+                                    if (++j == files.length) {
+                                        callback(arr);
+                                    }
+                                } else {
+                                    console.log('found match 2!');
+                                    //console.log(value[0]);
+                                    arr.push(value[0]);
+
+                                    if (++j == files.length) {
+                                        callback(arr);
+                                    }
+                                }
+                            });
+                        } else {
+                            console.log('found match 1!');
+                            //console.log(value[0]);
+                            arr.push(value[0]);
+
+                            if (++j == files.length) {
+                                callback(arr);
+                            }
+                        }
+                    });
+                } else {
+                    console.log('found match 0!');
+                    arr.push(file);
+
+                    if (++j == files.length) {
+                        callback(arr);
+                    }
+                }
+            });
+        }
+
         //console.log(files);
         for (var i = 0; i < files.length; ++i) {
             if (files[i].directory && files[i].file) {
@@ -182,11 +253,26 @@ function getAllInfo(dir, callback) {
             } else if (files[i].directory) {
                 recurse(files[i].directory);
             } else if (files[i].file) {
-                // add file
-                arr.push(files[i]);
+                // check if the file contains an undefined value
+                var add = true;
+                for (var key in files[i]) {
+                    if (!files[i].hasOwnProperty(key)) {
+                        continue;
+                    }
 
-                if (++j == files.length) {
-                    callback(arr);
+                    if (files[i][key] === undefined) {
+                        add = false;
+                        findFile(files[i], key);
+                    }
+                }
+
+                // add file
+                if (add) {
+                    arr.push(files[i]);
+
+                    if (++j == files.length) {
+                        callback(arr);
+                    }
                 }
             } else {
                 // fallback (such as empty directories)
@@ -1589,7 +1675,7 @@ var browser = {
 
         if (browser.current != '/')
             for (i = 0; i < dirs.length; ++i) {
-                html += '<li class="loc-dir" data-fileid="' + dirId + '">' +
+                html += '<li class="loc-dir" data-dirid="' + dirId + '">' +
                     dirs[i] + '</li>';
                 dirId += '/' + dirs[i+1];
             }
@@ -1677,7 +1763,7 @@ var browser = {
             if (!poppedState) {
                 console.log('pushing history search');
                 window.history.pushState('', name + ' - MPCParty',
-                    '/search/' + name);
+                    '/search/' + encodeURIComponent(name));
             }
 
             browser.updateLocal();
@@ -1934,37 +2020,35 @@ var browser = {
                     });
             });
         } else {
-            komponist.lsinfo(browser.current, function (err, files) {
-                //console.log(files);
+            if (pb.current) {
+                getAllInfo(browser.current, function (files) {
+                    pb.addSong(files);
+                });
+            } else {
+                komponist.lsinfo(browser.current, function (err, files) {
+                    //console.log(files);
 
-                if (err) return console.log(err);
+                    if (err) return console.log(err);
 
-                files = toArray(files);
+                    files = toArray(files);
 
-                if (!files.length) {
-                    return console.log('Empty directory');
-                }
+                    if (!files.length) return console.log('Empty directory');
 
-                $(files).each(function (item, value) {
-                    if (value.directory) {
-                        if (pb.current !== null)
-                            pb.add(value.directory);
-                        else
+                    $(files).each(function (item, value) {
+                        if (value.directory) {
                             komponist.add(value.directory, function (err) {
                                 if (err) console.log(err);
                             });
-                    }
+                        }
 
-                    if (value.file) {
-                        if (pb.current !== null)
-                            pb.addid(value.file);
-                        else
+                        if (value.file) {
                             komponist.add(value.file, function (err) {
                                 if (err) console.log(err);
                             });
-                    }
+                        }
+                    });
                 });
-            });
+            }
         }
     },
 
@@ -2120,7 +2204,7 @@ var browser = {
         });
 
         $(document).on('click', '.loc-dir', function () {
-            var file = $(this).data().fileid;
+            var file = $(this).data().dirid;
             //console.log(file);
             browser.update(file);
         });
@@ -2781,7 +2865,6 @@ var stored = {
                 i   = 0,
                 def = $.Deferred();
 
-                //console.log(stored.fileArr);
                 $(stored.fileArr).each(function () {
                     // this if statement doesn't actually work, async makes
                     // this loop happen too quickly
@@ -2802,11 +2885,7 @@ var stored = {
                             } else if (err2.message == 'No such file or directory [52@0] {playlistadd}') {
                                 noFile = true;
                             } else if (err2.message ==  'Not found [50@0] {playlistadd}') {
-                                // if this error happens, it *might* be the
-                                // fault of js, as somehow the string is
-                                // getting stripped. Restarting the server
-                                // fixes this issue, but I'd like this to get
-                                // fixed...
+                                // read MESSAGE1
                                 err2 = song;
                                 notFound = true;
                             } else {
@@ -2849,6 +2928,7 @@ var stored = {
                             'extendedTimeOut': '-1'
                         });
                     } else if (notFound) {
+                        // read MESSAGE1
                         msg = 'File not found: ' + err2;
                         history.add(msg, 'danger');
                         toastr.error(msg, 'Playlist', {
@@ -4300,6 +4380,7 @@ function initAfterConnection() {
     // check action
     if (action == 'search') {
         browser.show();
+        request = decodeURIComponent(request);
         browser.search(request);
         $('#search-browser').val(request);
     } else if (action == 'library') {
@@ -4319,6 +4400,8 @@ function initAfterConnection() {
             browser.update();
         }
     }
+
+    browser.initEvents();
 
     // sometimes the socket doesn't send the vote updates,
     // this is used for that
@@ -5073,12 +5156,27 @@ $('#pb-tab').draggable({
     containment: 'body'
 });
 
+// enables resizable testing
+$('#testing').resizable({
+    handles: 'n, w, s, e, nw, ne, sw, se',
+    minHeight: 140,
+    minWidth: 140
+});
+
+// make testing draggable because why not
+$('#testing').draggable({
+    containment: 'body',
+    handle: '#testing-header'
+});
+
 settings.loadAll();
 
 progressbar.initEvents();
 player     .initEvents();
 playlist   .initEvents();
-browser    .initEvents();
+// gets called in initAfterConnection(). For some reason it was setting the
+// current page to /browser/ when sharing a link
+//browser    .initEvents();
 settings   .initEvents();
 pages      .initEvents();
 pb         .initEvents();

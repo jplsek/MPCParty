@@ -288,7 +288,8 @@ app.get('/', function (req, res) {
         pack: pack,
         config: {
             "showUsers": config.users.enabled,
-            "player": video.enabled
+            "player": video.enabled,
+            "testing": config.testing.enabled
         }
     });
 });
@@ -298,7 +299,8 @@ app.get('/browser/*', function (req, res) {
         pack: pack,
         config: {
             "showUsers": config.users.enabled,
-            "player": video.enabled
+            "player": video.enabled,
+            "testing": config.testing.enabled
         }
     });
 });
@@ -308,7 +310,8 @@ app.get('/library/*', function (req, res) {
         pack: pack,
         config: {
             "showUsers": config.users.enabled,
-            "player": video.enabled
+            "player": video.enabled,
+            "testing": config.testing.enabled
         }
     });
 });
@@ -318,7 +321,8 @@ app.get('/search/*', function (req, res) {
         pack: pack,
         config: {
             "showUsers": config.users.enabled,
-            "player": video.enabled
+            "player": video.enabled,
+            "testing": config.testing.enabled
         }
     });
 });
@@ -368,6 +372,9 @@ var config = {
     },
     users: {
         enabled: false
+    },
+    testing: {
+        enabled: false
     }
 };
 
@@ -388,6 +395,8 @@ fs.readFile(__dirname + '/config.cfg', function (err, data) {
             data.mpd.port : config.mpd.port);
         config.users.enabled = (data.users.enabled !== undefined ?
             data.users.enabled : config.users.enabled);
+        config.testing.enabled = (data.testing.enabled !== undefined ?
+            data.testing.enabled : config.testing.enabled);
         skip.voting = (data.vote.enabled !== undefined ?
             data.vote.enabled : skip.voting);
         skip.votePercent = (data.vote.percent !== undefined ?

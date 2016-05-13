@@ -168,21 +168,6 @@ main {
         padding: 0;
         overflow: auto;
         flex-grow: 2;
-
-        // Row numbers without js. Issues: row numbers changes while the
-        // user is dragging, row number in cloned tr is also different (no
-        // number would also be fine)
-        //#pb-song-list {
-        //    counter-reset: rowNumber;
-        //    .gen {
-        //        counter-increment: rowNumber;
-        //        .pos::before {
-        //            content: counter(rowNumber) ".";
-        //            min-width: 1em;
-        //            margin-right: 0.5em;
-        //        }
-        //    }
-        //}
     }
 
     table {
@@ -210,6 +195,22 @@ main {
 }
 #browser-selection {
     flex: 0;
+}
+#testing { // unit testing ouput
+    width: 400px;
+    height: 300px;
+    position: fixed;
+    margin-bottom: 0;
+    bottom: 0;
+    z-index: 1002; // above floathead
+    display: flex;
+    flex-direction: column;
+
+    #testing-main {
+        padding: 0;
+        overflow: auto;
+        flex-grow: 2;
+    }
 }
 .pages {
     margin-bottom: 0;
