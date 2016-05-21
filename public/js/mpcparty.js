@@ -1542,13 +1542,11 @@ var playlist = {
         $('#clear-playlist').click(function () {
             console.log('clear playlist');
 
+            // this is done server-side to fix a bug:
+            // refresh -> add -> play -> clear does not work
             socket.send(JSON.stringify(
-                    {'type': 'playlist-title', 'info': ''}), function (err) {
-                if (err) console.log(err);
-            });
-
-            komponist.clear(function (err) {
-                if (err) console.log(err);
+                {'type': 'clear-playlist'}), function (err) {
+                    if (err) console.log(err);
             });
         });
 
@@ -4500,6 +4498,7 @@ socket.onmessage = function (event) {
         // this is used to force the update
         case 'clear-playlist':
             console.log('user clear-playlist called');
+            playlist.updateTitle('');
             //player.updateAll(); // inside playlist.updateAll
             playlist.updateAll();
             break;

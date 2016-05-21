@@ -248,21 +248,27 @@ var skip = {
     },
 
     nextSuccess: function () {
-        mpd.next();
-        io.broadcast(JSON.stringify(
-            {'type': 'skipped', 'info': this.addressNext}));
-        console.log('Song vote skip successful from ' + this.addressNext);
-        this.next = 0;
-        this.addressNext = [];
+        mpd.next(function (err) {
+            if (err) return console.log(err);
+
+            io.broadcast(JSON.stringify(
+                        {'type': 'skipped', 'info': this.addressNext}));
+            console.log('Song vote skip successful from ' + this.addressNext);
+            this.next = 0;
+            this.addressNext = [];
+        });
     },
 
     previousSuccess: function () {
-        mpd.previous();
-        io.broadcast(JSON.stringify(
-            {'type': 'skipped', 'info': this.addressPrevious}));
-        console.log('Song vote skip successful from ' + this.addressPrevious);
-        this.previous = 0;
-        this.addressPrevious = [];
+        mpd.previous(function (err) {
+            if (err) return console.log(err);
+
+            io.broadcast(JSON.stringify(
+                {'type': 'skipped', 'info': this.addressPrevious}));
+            console.log('Song vote skip successful from ' + this.addressPrevious);
+            this.previous = 0;
+            this.addressPrevious = [];
+        });
     }
 };
 
@@ -664,7 +670,12 @@ io.on('connection', function (socket) {
 
             case 'clear-playlist':
                 console.log('Clearing the playlist for all clients.');
-                io.broadcast(JSON.stringify({'type': 'clear-playlist'}));
+
+                mpd.clear(function (err) {
+                    if (err) return console.log(err);
+                    playlisttitle = '';
+                    io.broadcast(JSON.stringify({'type': 'clear-playlist'}));
+                });
                 break;
 
             case 'update-playlist':
@@ -784,10 +795,16 @@ io.on('connection', function (socket) {
 
             case 'playlist-reload':
                 console.log('Reloading the playlist for all clients.');
-                mpd.clear();
-                mpd.load(msg.info);
-                io.broadcast(JSON.stringify(
-                    {'type': 'playlist-title', 'info': msg.info}));
+                mpd.clear(function (err) {
+                    if (err) return console.log(err);
+
+                    mpd.load(msg.info, function (err) {
+                        if (err) return console.log(err);
+
+                        io.broadcast(JSON.stringify(
+                            {'type': 'playlist-title', 'info': msg.info}));
+                    });
+                });
                 break;
 
             case 'download-video':
