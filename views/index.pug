@@ -137,6 +137,10 @@ html
                                     input#use-skip-to-remove(type='checkbox')
                                     | Use skip to remove feature (only works when voting is disabled)
                             .checkbox
+                                label(title='Stops showing the warning icon when consume mode is enabled')
+                                    input#use-consume-warning(type='checkbox')
+                                    | Show MPD's consume warning
+                            .checkbox
                                 label(title='Note: some errors you may see are false-positives.')
                                     input#show-all-errors(type='checkbox')
                                     | Debug: Show all errors
@@ -328,6 +332,7 @@ html
                         span.glyphicon.glyphicon-folder-open
                     button#open-library.btn.btn-default(title='Show the library')
                         span.glyphicon.glyphicon-align-justify
+                    span#warning-consume.text-warning.glyphicon.glyphicon-warning-sign.none(title='MPD\'s consume mode is enabled!')
 
                 #library.col-sm-8
                     #library-top

@@ -549,8 +549,11 @@ var player = {
             // consume
             if (parseInt(status.consume) === 0) {
                 $('#consume').prop('checked', false);
+                $('#warning-consume').css('display', 'none');
             } else if (parseInt(status.consume) == 1) {
                 $('#consume').prop('checked', true);
+                if (settings.consumeWarning)
+                    $('#warning-consume').css('display', 'block');
             }
 
             $('#crossfade').val(status.xfade);
@@ -3923,6 +3926,7 @@ var pages = {
 var settings = {
     // default theme to use
     theme: 'default-thin',
+    // show pulsing effect
     pulse: true,
     // 'unknown' text
     unknown: 'unknown',
@@ -3930,6 +3934,8 @@ var settings = {
     browser: 'browser',
     // used for unknown pop states
     lastBrowser: 'browser',
+    // show consume warning
+    consumeWarning: true,
 
     // initially load all the settings
     loadAll: function () {
@@ -3942,6 +3948,7 @@ var settings = {
         this.loadUnknown();
         this.loadSkipToRemove();
         this.loadBrowser();
+        this.loadConsumeWarning();
     },
 
     loadTheme: function () {
@@ -4165,6 +4172,26 @@ var settings = {
         this.loadBrowser(true);
     },
 
+    loadConsumeWarning: function () {
+        var use = localStorage.getItem('mpcp-use-consume-warning');
+
+        if (use && use === 'false') settings.consumeWarning = false;
+
+        $('#use-consume-warning').prop('checked', settings.consumeWarning);
+    },
+
+    saveConsumeWarning: function (use) {
+        console.log('changed consume warning');
+        settings.consumeWarning = use;
+
+        if (use && $('#consume').is(':checked'))
+            $('#warning-consume').css('display', 'block');
+        else
+            $('#warning-consume').css('display', 'none');
+
+        localStorage.setItem('mpcp-use-consume-warning', use);
+    },
+
     initEvents: function () {
         // settings event handling
         // client config
@@ -4228,6 +4255,11 @@ var settings = {
             komponist.consume(use, function (err) {
                 if (err) console.log(err);
             });
+        });
+
+        $('#use-consume-warning').change(function () {
+            var use = $(this).prop('checked');
+            settings.saveConsumeWarning(use);
         });
     }
 };
