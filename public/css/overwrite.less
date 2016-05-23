@@ -139,9 +139,18 @@ main {
         #pslwrap {
             border-left: 1px solid #DDD;
             overflow: auto;
+            display: flex;
             flex-grow: 2;
 
             #playlist-song-list {
+                display: flex;
+                flex: 1;
+
+                > tbody {
+                    display: flex;
+                    flex: 1;
+                    flex-direction: column;
+                }
                 td {
                     position: relative;
                 }
@@ -165,14 +174,44 @@ main {
     // display: flex; // hidden by css by default, flex added by js
     flex-direction: column;
 
+    .panel-heading {
+        .panel-default-shown {
+            display: flex;
+            align-items: center;
+        }
+
+        .panel-title {
+            flex: 1;
+            text-align: center;
+        }
+    }
+
     #pb-main {
         padding: 0;
         overflow: auto;
-        flex-grow: 2;
+        display: flex;
+        flex: 1;
     }
 
-    table {
-        cursor: pointer;
+    #pbwrap {
+        display: flex;
+        flex: 1;
+
+        > table {
+            cursor: pointer;
+        }
+    }
+
+    #pb-song-list {
+        margin-bottom: 0;
+        display: flex;
+        flex: 1;
+
+        > tbody {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+        }
     }
 }
 #pb-tab {
@@ -329,6 +368,9 @@ table.floatThead-table {
 .main-link {
     flex: 1;
     text-align: center;
+}
+.gen {
+    flex: 1;
 }
 @keyframes pulse {
     0%, 100% {

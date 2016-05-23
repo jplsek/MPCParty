@@ -4,6 +4,8 @@
 // 1st folder contains more that 1 item
 // 1st artist in library contains atleast 1 album
 // 1st artist in library contains more than 1 song
+// The browser must be focused the whole time, cannot be clicked around.
+// I recommend a webkit browser for testing, (like chrom*) because the js engine is faster than gecko based browsers (like ff)
 
 var asyncTimeout = 500;
 var fb           = '#file-browser-song-list tbody';
@@ -34,6 +36,10 @@ $(function () {
 
         if (!$('#use-unknown').is(':checked')) {
             $('#use-unknown').click();
+        }
+
+        if ($('#random').hasClass('active')) {
+            $('#random').click();
         }
 
         setTimeout(function () {
@@ -227,7 +233,6 @@ function clearPlaylist(assert, callback) {
         var children = $(pl).children('.gen');
         assert.equal(children.length, 1, 'check if nothing except 1 item');
         console.log($(children[0]).text());
-        assert.equal($(children[0]).text(), "Empty playlist", 'check if it says "Empty playlist"');
         assert.ok(!$('#stop').is(':visible'), 'check if stop is not visible');
         assert.equal($('#playlist-title').text(), "", 'check if title is nothing');
         callback();
@@ -237,12 +242,16 @@ function clearPlaylist(assert, callback) {
 function play(assert, callback) {
     assert.equal($('#title-text').text(), 'No song selected', 'check if title is No song selected');
     assert.ok(!$('#stop').is(':visible'), 'check if stop is not visible');
-    $('#play').click();
 
+    // add play after timeout because of an async issue
     setTimeout(function () {
-        assert.ok($('#title-text').text() != 'No song selected', 'check if title is not No song selected');
-        assert.ok($('#stop').is(':visible'), 'check if stop is visible');
-        callback();
+        $('#play').click();
+
+        setTimeout(function () {
+            assert.ok($('#title-text').text() != 'No song selected', 'check if title is not No song selected');
+            assert.ok($('#stop').is(':visible'), 'check if stop is visible');
+            callback();
+        }, asyncTimeout);
     }, asyncTimeout);
 }
 
@@ -321,7 +330,29 @@ QUnit.test('search from browser', function (assert) {
         assert.ok(children.length != childrenSearch.length, 'check if different than root');
         assert.equal(document.location.pathname, '/search/' + encodeURIComponent(keyword), 'check if url is encoded the same as the search name');
         $('#search-clear').click();
-        assert.ok($('#search-browser').val() != 'love', 'check if clear works');
+        assert.ok($('#search-browser').val() != keyword, 'check if clear works');
+
+        setTimeout(function () {
+            var childrenNow = $(fb).children('.gen');
+            offWorkaround(assert, children, childrenNow);
+            done();
+        }, asyncTimeout);
+    }, 4500);
+});
+
+QUnit.test('search from browser nothing', function (assert) {
+    var done = assert.async();
+    var children = $(fb).children('.gen');
+    $('#search-browser').focus();
+    var keyword = 'thisshouldnotbeasongnamelikesrsly';
+    $('#search-browser').val(keyword);
+    // can't get enter to work, so waiting several seconds for auto search to kick in
+    setTimeout(function () {
+        var childrenSearch = $(fb).children('.gen');
+        assert.equal(childrenSearch.length, 1, 'check if one item is in the file browser');
+        assert.ok(!~document.location.pathname.indexOf(encodeURIComponent(keyword)), 'check if url is not the search name');
+        $('#search-clear').click();
+        assert.ok($('#search-browser').val() != keyword, 'check if clear works');
 
         setTimeout(function () {
             var childrenNow = $(fb).children('.gen');

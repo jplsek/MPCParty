@@ -252,10 +252,10 @@ var skip = {
             if (err) return console.log(err);
 
             io.broadcast(JSON.stringify(
-                        {'type': 'skipped', 'info': this.addressNext}));
-            console.log('Song vote skip successful from ' + this.addressNext);
-            this.next = 0;
-            this.addressNext = [];
+                        {'type': 'skipped', 'info': skip.addressNext}));
+            console.log('Song vote skip successful from ' + skip.addressNext);
+            skip.next = 0;
+            skip.addressNext = [];
         });
     },
 
@@ -264,10 +264,10 @@ var skip = {
             if (err) return console.log(err);
 
             io.broadcast(JSON.stringify(
-                {'type': 'skipped', 'info': this.addressPrevious}));
-            console.log('Song vote skip successful from ' + this.addressPrevious);
-            this.previous = 0;
-            this.addressPrevious = [];
+                {'type': 'skipped', 'info': skip.addressPrevious}));
+            console.log('Song vote skip successful from ' + skip.addressPrevious);
+            skip.previous = 0;
+            skip.addressPrevious = [];
         });
     }
 };

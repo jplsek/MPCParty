@@ -326,7 +326,7 @@ html
             main
                 #browser-selection
                     button#update.btn.btn-default(title='Update the music database (after uploading new music to the folder)')
-                        span.glyphicon.glyphicon-repeat
+                        span.glyphicon.glyphicon-refresh
                     hr
                     button#open-file-browser.btn.btn-default(title='Show the file browser')
                         span.glyphicon.glyphicon-folder-open
@@ -392,13 +392,13 @@ html
                                 button#new-playlist.btn.btn-default(title='Create a new playlist')
                                     span.glyphicon.glyphicon-plus
                                 button#clear-playlist.btn.btn-default(title='Clear the playlist')
-                                    span.glyphicon.glyphicon-file
+                                    span.glyphicon.glyphicon-remove
                                 button#open-playlist.btn.btn-default(title='Open a playlist' data-toggle='modal', data-target='#playlist-open-modal')
                                     span.glyphicon.glyphicon-folder-open
                                 button#save-playlist.btn.btn-default(title='Save the playlist' data-toggle='modal', data-target='#playlist-save-modal')
-                                    span.glyphicon.glyphicon-save
+                                    span.glyphicon.glyphicon-floppy-save
                                 button#scramble.btn.btn-default(title='Scramble the playlist')
-                                    span.glyphicon.glyphicon-repeat
+                                    span.glyphicon.glyphicon-random
                                 button#remove-duplicates.btn.btn-default(title='Remove duplicate songs from the playlist based on the title')
                                     span.glyphicon.glyphicon-fire
                                 button#playlist-search-toggle.btn.btn-default(type='button')
@@ -432,24 +432,26 @@ html
         footer
             #pb.panel.panel-default.none
                 #pb-header.panel-heading
-                    .btn-group
-                        button#pb-clear.btn.btn-default(title='Clear the playlist')
-                            span.glyphicon.glyphicon-file
-                        button#pb-open.btn.btn-default(title='Open a playlist' data-toggle='modal', data-target='#playlist-open-modal')
-                            span.glyphicon.glyphicon-folder-open
-                        button#pb-save.btn.btn-default(title='Save the playlist', data-toggle='modal', data-target='#playlist-save-modal')
-                            span.glyphicon.glyphicon-save
-                        button#pb-scramble.btn.btn-default(title='Scramble the playlist')
-                            span.glyphicon.glyphicon-repeat
-                        button#pb-remove-duplicates.btn.btn-default(title='Remove duplicate songs from the playlist based on the title')
-                            span.glyphicon.glyphicon-fire
-                        button#pb-search-toggle.btn.btn-default(type='button')
-                            span.glyphicon.glyphicon-search
-                    .btn-group.pull-right
-                        button#pb-minimize.btn.btn-default
-                            span.glyphicon.glyphicon-minus
-                        button#pb-close.btn.btn-default
-                            span.glyphicon.glyphicon-remove
+                    .panel-default-shown
+                        .btn-group
+                            button#pb-clear.btn.btn-default(title='Clear the playlist')
+                                span.glyphicon.glyphicon-remove
+                            button#pb-open.btn.btn-default(title='Open a playlist' data-toggle='modal', data-target='#playlist-open-modal')
+                                span.glyphicon.glyphicon-folder-open
+                            button#pb-save.btn.btn-default(title='Save the playlist', data-toggle='modal', data-target='#playlist-save-modal')
+                                span.glyphicon.glyphicon-floppy-save
+                            button#pb-scramble.btn.btn-default(title='Scramble the playlist')
+                                span.glyphicon.glyphicon-random
+                            button#pb-remove-duplicates.btn.btn-default(title='Remove duplicate songs from the playlist based on the title')
+                                span.glyphicon.glyphicon-fire
+                            button#pb-search-toggle.btn.btn-default(type='button')
+                                span.glyphicon.glyphicon-search
+                        span.panel-title Playlist Buffer
+                        .btn-group.pull-right
+                            button#pb-minimize.btn.btn-default
+                                span.glyphicon.glyphicon-minus
+                            button#pb-close.btn.btn-default
+                                span.glyphicon.glyphicon-remove
                     #pb-search.none
                         form(autocomplete='off')
                             .input-group
@@ -466,7 +468,7 @@ html
         if (config.testing)
             #testing.panel.panel-default
                 #testing-header.panel-heading
-                    span Unit Tests
+                    span.panel-title Unit Tests
                     button#start-testing.pull-right.btn.btn-default(type='button') Start tests
                 #testing-main.panel-body
                     #qunit

@@ -55,8 +55,6 @@ Showing the Materialish theme, library view, and playlist buffer
 * Library searching
 * Library search url linking
 
-Note: searching for songs, for the most part, requires proper tagging of your files! This may be changed in the future to also account for the file name itself.
-
 ### Multi-user features
 * Vote to skip songs (This can be easily bypassed. Might create a strict mode in the future)
 * Synchronization between all users (such as playlist modification and player updates)
@@ -82,7 +80,7 @@ Edit config.cfg
 * Install [MPD](http://www.musicpd.org/download.html) (`sudo apt-get update && sudo apt-get install mpd`), and get a running instance working (a sample mpd conf file is stored in utils/ to be ran as a local user (run it with `mpd ~/.config/mpd/mpd.conf`))
 * Install [nodejs](https://nodejs.org/download/) (`sudo apt-get install nodejs`) (Minimum node version is 0.12 for the Player)
 
-> MPCParty has only been tested on GNU/Linux. Thus I only have binaries for GNU/Linux. OSX and BSD should work via the development version. I have yet to get Windows to compile with the Download Player enabled (so Windows works, just without the Player).
+> I only have binaries for GNU/Linux. OSX and BSD should work via the development version. I have yet to get Windows to compile with the Download Player enabled (Windows works, just without the Player, so if you try starting the server, and nothing happens, disable the Player from the config file).
 
 #### Optional dependencies for the Download Player (Youtube player)
 * Install [ffmpeg](http://ffmpeg.org/download.html) or [libav](https://libav.org/download/) (`sudo apt-get install libav-tools`), it is used for video conversion with youtube-dl

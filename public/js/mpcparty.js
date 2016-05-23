@@ -298,12 +298,22 @@ function updateStats() {
 
 // sometimes when komponist returns a length 0 or 1 item, it returns an object
 // instead of any array. This is used to fix that. (less need for jquery.each)
-// also used to avoid issues when converting an array which is already an array
+// also used to avoid issues when converting an array which is already an
+// array)
 function toArray(obj) {
-    if (!Array.isArray(obj))
-        return [obj];
-    else
+    if (!Array.isArray(obj)) {
+        obj = [obj];
+
+        if (obj.length == 1 && $.isEmptyObject(obj[0]))
+            return [];
+
         return obj;
+    } else {
+        if (obj.length == 1 && $.isEmptyObject(obj[0]))
+            return [];
+
+        return obj;
+    }
 }
 
 // select a bootstrap table row.
@@ -449,10 +459,10 @@ var player = {
 
             if ($.isEmptyObject(song)) {
                 $('#title-text').html
-                    ('<em title="No song selected">No song selected</em>');
+                    ('<em class="text-muted" title="No song selected">No song selected</em>');
                 document.title = 'MPCParty';
                 $('#title-pos').html('');
-                $('#time-total').html('-- / --');
+                $('#time-total').html('<span class="text-muted">-- / --</span>');
                 player.setCurrent(null);
                 if (callback) callback();
                 return console.log('No song selected');
@@ -733,6 +743,7 @@ var player = {
 
 // the playlist
 var playlist = {
+    table: '#playlist-song-list .append',
     // scroll down to bottom of playlist
     scrollDown: false,
     // current playlist title
@@ -787,13 +798,14 @@ var playlist = {
                     playlist.local = playlistLoad;
 
                     if ($.isEmptyObject(playlistLoad[0])) {
-                        var html = '<tr class="gen"><td><em>Empty playlist</em></td></tr>';
+                        var html = '<tr class="rem gen"><td><em class="text-muted">The playlist is empty! Songs can be added from the browser or by opening a playlist.</em></td></tr>';
                         $('#playlist-song-list').append(html);
                         // fix for removing the last song that's
                         // playling from the playlist
                         playlist.doUpdate = true;
                         player.updateAll();
                         pages.update('playlist');
+                        playlist.initDrag();
                         browser.updatePosition();
                         return console.log('Empty playlist');
                     }
@@ -887,10 +899,25 @@ var playlist = {
 
         playlist.toPulse = [];
 
-        $('#playlist-song-list .append').append(html);
+        $(playlist.table).append(html);
 
+        playlist.initDrag();
+        browser.updatePosition();
+        pages.update('playlist');
+
+        // scroll down after adding a song
+        if (playlist.scrollDown) {
+            console.log('scroll');
+            playlist.scrollDown = false;
+            $('#pslwrap').scrollTop($('#playlist-song-list')[0].scrollHeight);
+        }
+
+        if (typeof callback == 'function') callback();
+    },
+
+    initDrag: function () {
         // draggable playlist event
-        $('#playlist-song-list .append').sortable({
+        $(playlist.table).sortable({
             items: 'tr.gen',
             appendTo: 'parent',
             helper: 'clone',
@@ -917,15 +944,26 @@ var playlist = {
                 }
             },
             update: function (e, ui) {
+                var index = ui.item.index();
                 //console.log(pages.currentPlaylist);
-                //console.log(ui.item.index());
+                // check if nothing is in playlist
+                if (index == 1 &&
+                        $($(playlist.table).children()[0]).hasClass('rem')) {
+                    playlist.fromSender(ui, 0);
+                    return;
+                } else if (index + 1 == $(playlist.table).children().length) {
+                    // last item in playlist
+                    playlist.fromSender(ui, index);
+                    return;
+                }
+
                 // grabs the item that used to be in that position.
                 // grabs the pos as newIndex
                 var newPos = $('#playlist-song-list .gen').
-                        eq(ui.item.index() + 1).data().pos;
+                    eq(index + 1).data().pos;
 
                 var oldPos = $('#playlist-song-list .gen').
-                        eq(ui.item.index()).data().pos;
+                    eq(index).data().pos;
 
                 if (oldPos < newPos)
                     newPos--;
@@ -939,17 +977,6 @@ var playlist = {
             },
         }).disableSelection();
 
-        browser.updatePosition();
-        pages.update('playlist');
-
-        // scroll down after adding a song
-        if (playlist.scrollDown) {
-            console.log('scroll');
-            playlist.scrollDown = false;
-            $('#pslwrap').scrollTop($('#playlist-song-list')[0].scrollHeight);
-        }
-
-        if (typeof callback == 'function') callback();
     },
 
     // drag and drop came from a different table
@@ -1426,8 +1453,7 @@ var playlist = {
 
         console.log('scroll to ' + to);
 
-        var toOffset = $('#playlist-song-list .append .gen:nth-child(' +
-            to + ')');
+        var toOffset = $(playlist.table + ' .gen:nth-child(' + to + ')');
 
         if (toOffset.length) {
             var offset = toOffset.offset().top;
@@ -1719,6 +1745,7 @@ var browser = {
     },
 
     // replaces the browser with search results
+    // searches for all files based on file name and tag
     search: function (name, poppedState) {
         console.log('browser.search: ' + name);
 
@@ -1728,9 +1755,50 @@ var browser = {
             library.bringBack = true;
         }
 
-        komponist.search('any', name, function (err, files) {
-            if (err) return console.log(err);
+        // search for tag
+        komponist.search('any', name, function (err, anyFiles) {
+            if (err) {
+                return console.log(err);
+            }
 
+            // search for file name
+            komponist.search('file', name, function (err, files) {
+                if (err) {
+                    return console.log(err);
+                }
+
+                anyFiles = toArray(anyFiles);
+                files = toArray(files);
+
+                //console.log(anyFiles);
+                //console.log(files);
+
+                var all = anyFiles.concat(files);
+
+                // remove duplicate objects, if there is a "more official" way
+                // of doing this, or a quicker way of doing this, do tell or
+                // fix.
+                var unique = [];
+
+                for (var i = 0; i < all.length; ++i) {
+                    var duplicates = 0;
+
+                    for (var j = 0; j < unique.length; ++j) {
+                        if (all[i].file == unique[j].file)
+                            ++duplicates;
+                    }
+
+                    if (!duplicates) {
+                        unique.push(all[i]);
+                    }
+                }
+
+                //console.log(unique);
+                callback(unique);
+            });
+        });
+
+        function callback(files) {
             if (browser.searchTerm == name) {
                 // just don't add repeated search to history
                 poppedState = true;
@@ -1744,7 +1812,9 @@ var browser = {
             browser.localFiles = [];
             var html;
 
-            if ($.isEmptyObject(files[0])) {
+            if (!files.length) {
+                // note: when the search is nothing, it does not save to
+                // history
                 html = '<tr class="directory gen"><td colspan="6">' +
                     '<em>No songs found</em></td></tr>';
                 $('#file-browser-song-list').append(html);
@@ -1768,7 +1838,7 @@ var browser = {
             }
 
             browser.updateLocal();
-        });
+        }
     },
 
     getHtmlFolders: function (value) {
@@ -2374,8 +2444,7 @@ var library = {
 
             //console.log(files);
 
-            if (!files.length || $.isEmptyObject(files[0]) ||
-                    files[0].Album === '') {
+            if (!files.length || files[0].Album === '') {
                 html = '<tr class="gen"><td colspan="6">' +
                     '<em>No albums</em></td></tr>';
                 $('#library-albums-list .append').append(html);
@@ -2816,7 +2885,7 @@ var stored = {
                         songs = [songs];
 
                     value.playlist = value.playlist.replace(/ /g, '\u00a0');
-                    html += '<tr class="gen" data-fileid="' + value.playlist + '"><td>' + value.playlist + '</td><td>' + songs.length + '</td><td class="text-right"><span class="faded playlist-remove text-danger glyphicon glyphicon-remove" data-fileid="' + value.playlist + '"></span></td>';
+                    html += '<tr class="gen" data-fileid="' + value.playlist + '"><td>' + value.playlist + '</td><td>' + songs.length + '</td><td class="text-right"><span class="faded playlist-remove text-danger glyphicon glyphicon-remove" data-fileid="' + value.playlist + '" title="Remove the playlist"></span></td>';
                     if (++i == playlists.length) {
                         $('#' + id +' .playlists tbody').append(html);
                     }
@@ -2980,7 +3049,7 @@ var stored = {
                 });
             });
         } else {
-            var trs = $('#playlist-song-list .append').children('.gen');
+            var trs = $(playlist.table).children('.gen');
 
             // horrible check, whats the better way to check for
             // 'Empty playlist'?
@@ -3257,10 +3326,9 @@ var pb = {
         if (this.minimized) {
             this.minimized = false;
             this.resume();
-        } else {
+        } else if (!pb.current) {
             pb.current = 'local';
             $('#pb').css('display', 'flex');
-            this.count = 0;
             this.clear();
         }
     },
@@ -3277,6 +3345,7 @@ var pb = {
     addSong: function (file, pos) {
         //console.log('adding song to pb: ' + pb.current);
         //console.log(file);
+        pb.removeNothingMessage();
 
         if (pb.current != 'local') {
             conole.log('not implemented');
@@ -3311,7 +3380,11 @@ var pb = {
             $('#pb-main').scrollTop($('#pb-song-list')[0].scrollHeight);
         }
 
-        // draggable playlist
+        pb.initDrag();
+        pb.move();
+    },
+
+    initDrag: function () {
         $('#pb-song-list .append').sortable({
             items: '.gen',
             appendTo: 'parent',
@@ -3378,13 +3451,15 @@ var pb = {
                 pb.move();
             },
         }).disableSelection();
-
-        pb.move();
     },
 
     // dragging from another drag table
     // mutliselect is handled in addDir and addfile
     fromSender: function (ui, index) {
+        // check if "playlist buffer is empty" is showing
+        if (index == 1 && $($(pb.table).children()[0]).hasClass('rem'))
+            index = 0;
+
         // file
         if (browser.selected.length) {
             browser.addMulti(index);
@@ -3520,14 +3595,12 @@ var pb = {
             $(pb.selected).each(function (item, tr) {
                 //console.log(tr);
                 $(tr).remove();
-                --this.count;
             });
 
             // clear playlist.selected just in case.
             pb.clearSelected();
         } else {
             $(element).remove();
-            --this.count;
         }
 
         this.move();
@@ -3539,6 +3612,8 @@ var pb = {
         $(pb.table + ' .gen').each(function () {
             $(this).children().first().html(++pos + '.');
         });
+
+        if (!pos) pb.showNothingMessage();
     },
 
     // open the playlist to the pb
@@ -3553,8 +3628,8 @@ var pb = {
 
     // clear the pb
     clear: function () {
-        this.count = 0;
         $(this.table + ' .gen').remove();
+        pb.showNothingMessage();
     },
 
     // close the pb (and clear)
@@ -3640,6 +3715,16 @@ var pb = {
         });
 
         this.selected = [];
+    },
+
+    showNothingMessage: function () {
+        var html = '<tr class="rem gen"><td><em class="text-muted">The playlist buffer is empty! Songs can be added from the browser or by opening a playlist.</em></td></tr>';
+        $(pb.table).append(html);
+        pb.initDrag();
+    },
+
+    removeNothingMessage: function () {
+        $(pb.table + ' .rem').remove();
     },
 
     initEvents: function () {
@@ -5173,7 +5258,7 @@ function multiSelect(ele, obj, cancel, exclude, deselect) {
 $('#pb').resizable({
     handles: 'n, w, s, e, nw, ne, sw, se',
     minHeight: 140,
-    minWidth: 140
+    minWidth: 160
 });
 
 // make pb draggable because why not

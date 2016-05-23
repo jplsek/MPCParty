@@ -17,10 +17,8 @@ TODO
     * Drag and drop from browser to playlist:
         * Making tr smaller while dragging >>> jquery sortable dragged item was not under cursor when changing the width (using .ui-sortable-helper to change the width)
         * Fix jquery sortable bug when starting to drag from the right most part of the tr and not registering in the sortable playlist?
-        * Drag into empty tables properly (only works in playlist if dragging over "empty playlist", but in pb, it will detect the playlist table instead of the pb table)
     * Loading icon between changing locations?
     * Custom column picker
-    * Add a 'file' search mode in case the file doesn't have tag
 * Library:
 * Playlist:
     * Drag and drop through pages
@@ -50,7 +48,6 @@ TODO
 * It seems crashing is due to refreshing too many times?
 * Loading a theme will add another "theme load" every time.
 * Webkit: resizing pb makes the values "inverted". http://codepen.io/anon/pen/VeWwLa
-* Drag and drop inside multiselection is still buggy
 * Drag and drop inside artist and album tries to be sortable, unlike song-list
 * Webkit: library doesn't show up properly with a column (works fine in ff). Currently using a css prefix for ff only until I fix it for webkit.
 
