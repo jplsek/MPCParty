@@ -1720,7 +1720,7 @@ var browser = {
 
             if (!files.length) {
                 html = '<tr class="directory gen"><td colspan="6">' +
-                    '<em>Empty directory</em></td></tr>';
+                    '<em class="text-muted">Empty directory</em></td></tr>';
                 $('#file-browser-song-list').append(html);
                 pages.update('browser');
                 return console.log('Empty directory');
@@ -2391,7 +2391,7 @@ var library = {
 
             if (!files.length || files[0].Artist === '') {
                 html = '<tr class="gen"><td colspan="2">' +
-                    '<em>No artists</em></td></tr>';
+                    '<em class="text-muted">No artists</em></td></tr>';
                 $('#library-artists-list .append').append(html);
                 return console.log('No artists found');
             }
