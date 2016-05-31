@@ -359,18 +359,25 @@ table.floatThead-table {
     display: flex;
     justify-content: space-between;
 }
-.pulse {
-    animation: pulse ease 1s;
-}
-.pulse2 {
-    animation: pulse ease 1s 2;
-}
 .main-link {
     flex: 1;
     text-align: center;
 }
 .gen {
     flex: 1;
+}
+.glyphicon.spinning {
+    animation: spin 1s infinite linear;
+}
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg) }
+    to { transform: scale(1) rotate(360deg) }
+}
+.pulse {
+    animation: pulse ease 1s;
+}
+.pulse2 {
+    animation: pulse ease 1s 2;
 }
 @keyframes pulse {
     0%, 100% {

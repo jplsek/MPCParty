@@ -16,9 +16,9 @@ var libSon       = '#library-songs-list tbody';
 var plSaveModal  = '#playlist-save-modal';
 var plOpenModal  = '#playlist-open-modal';
 var plSave       = 'unitTest';
-// not sure how to test with non breaking spaces... (&nbsp; doesn't seem to work nor spaces)
-var plSaveOdd    = '  \t unitTest~!@#$%^&*()_+<>?,.    \n    ';
-var plSaveOddFix = 'unitTest~!@#$%^&*()_+<>?,.';
+// do not put ?<>|:* etc for windows... I don't check for that because I don't expect server owners to be using windows for actually running mpcparty... I hope. May implement later.
+var plSaveOdd    = '  \t unitTest~!@#$%^&()_+,.    \n    ';
+var plSaveOddFix = 'unitTest~!@#$%^&()_+,.';
 var pl           = '#playlist-song-list tbody';
 
 QUnit.config.autostart = false;
@@ -78,13 +78,22 @@ function offWorkaround(assert, children, childrenNow) {
         //    }
         //}
 
-        if (children.length == childrenNow.length + 1)
-            assert.equal(childrenNow.length + 1, children.length, 'check if same as original');
-        else
-            assert.equal(childrenNow.length, children.length + 1, 'check if same as original');
+        closeEnough(assert, children.length, childrenNow.length, 'check if same as original')
     } else {
         assert.equal(childrenNow.length, children.length, 'check if same as original');
     }
+}
+
+// used for issues out of my scope
+function closeEnough(assert, val1, val2, msg) {
+    if (val1 == val2)
+        assert.ok(true, msg);
+    else if (val1 + 1 == val2)
+        assert.ok(true, msg + ', not equal');
+    else if (val1 == val2 + 1)
+        assert.ok(true, msg + ', not equal');
+    else
+        assert.ok(false, msg);
 }
 
 // browser functions
@@ -125,25 +134,25 @@ function openFolder(assert, execute, callback) {
 
 // pb functions
 function openPb(assert) {
-    assert.ok(!$('#pb').is(':visible'), 'check if pb is not visible');
+    assert.notOk($('#pb').is(':visible'), 'check if pb is not visible');
     $('#new-playlist').click();
     assert.ok($('#pb').is(':visible'), 'check if pb is visible');
 }
 
 function closePb(assert) {
     $('#pb-close').click();
-    assert.ok(!$('#pb').is(':visible'), 'check if pb is not visible');
+    assert.notOk($('#pb').is(':visible'), 'check if pb is not visible');
 }
 
 function minimizePb(assert) {
     $('#pb-minimize').click();
-    assert.ok(!$('#pb').is(':visible'), 'check if pb is not visible');
+    assert.notOk($('#pb').is(':visible'), 'check if pb is not visible');
     assert.ok($('#pb-tab').is(':visible'), 'check if pb tab is visible');
 }
 
 function resumePb(assert) {
     $('#pb-tab').click();
-    assert.ok(!$('#pb-tab').is(':visible'), 'check if pb tab is not visible');
+    assert.notOk($('#pb-tab').is(':visible'), 'check if pb tab is not visible');
     assert.ok($('#pb').is(':visible'), 'check if pb is visible');
 }
 
@@ -179,7 +188,7 @@ function addSongToPb(assert, callback) {
     addSong(2, true);
 
     setTimeout(function () {
-        var children = $(pb).children('.gen');
+        var children = $(pb).children('.gen').not('.rem');
         assert.ok(children.length > 1, 'check if anything is in the pb');
         callback(children);
     }, asyncTimeout);
@@ -187,13 +196,13 @@ function addSongToPb(assert, callback) {
 
 function clearPb(assert) {
     $('#pb-clear').click();
-    childrenClear = $(pb).children('.gen');
+    childrenClear = $(pb).children('.gen').not('.rem');
     assert.equal(childrenClear.length, 0, 'check if cleared pb');
 }
 
 // library functions
 function openLibrary(assert, callback) {
-    assert.ok(!$('#library').is(':visible'), 'check if library is not visible');
+    assert.notOk($('#library').is(':visible'), 'check if library is not visible');
     $('#open-library').click();
     setTimeout(function () {
         assert.ok($('#library').is(':visible'), 'check if library is visible');
@@ -208,7 +217,7 @@ function openLibrary(assert, callback) {
 function closeLibrary(assert, callback) {
     $('#open-file-browser').click();
     setTimeout(function () {
-        assert.ok(!$('#library').is(':visible'), 'check if library is not visible');
+        assert.notOk($('#library').is(':visible'), 'check if library is not visible');
         assert.ok($('#browser').is(':visible'), 'check if browser is visible');
         callback();
     }, asyncTimeout);
@@ -232,8 +241,7 @@ function clearPlaylist(assert, callback) {
     setTimeout(function () {
         var children = $(pl).children('.gen');
         assert.equal(children.length, 1, 'check if nothing except 1 item');
-        console.log($(children[0]).text());
-        assert.ok(!$('#stop').is(':visible'), 'check if stop is not visible');
+        assert.notOk($('#stop').is(':visible'), 'check if stop is not visible');
         assert.equal($('#playlist-title').text(), "", 'check if title is nothing');
         callback();
     }, asyncTimeout);
@@ -241,7 +249,7 @@ function clearPlaylist(assert, callback) {
 
 function play(assert, callback) {
     assert.equal($('#title-text').text(), 'No song selected', 'check if title is No song selected');
-    assert.ok(!$('#stop').is(':visible'), 'check if stop is not visible');
+    assert.notOk($('#stop').is(':visible'), 'check if stop is not visible');
 
     // add play after timeout because of an async issue
     setTimeout(function () {
@@ -266,7 +274,7 @@ function pause(assert, callback) {
         var newTime = parseInt(time.slice(-1)) + 1;
         var timeEdit = time.substr(0, 4) + newTime;
         if (active) {
-            assert.ok(!$('#pause').hasClass('active'), 'check if not toggled (after previous toggle)');
+            assert.notOk($('#pause').hasClass('active'), 'check if not toggled (after previous toggle)');
             assert.ok(timeEdit < timeNow, 'check if time is different');
         } else {
             assert.ok($('#pause').hasClass('active'), 'check if toggled (after previous toggle)');
@@ -350,7 +358,7 @@ QUnit.test('search from browser nothing', function (assert) {
     setTimeout(function () {
         var childrenSearch = $(fb).children('.gen');
         assert.equal(childrenSearch.length, 1, 'check if one item is in the file browser');
-        assert.ok(!~document.location.pathname.indexOf(encodeURIComponent(keyword)), 'check if url is not the search name');
+        assert.notOk(~document.location.pathname.indexOf(encodeURIComponent(keyword)), 'check if url is not the search name');
         $('#search-clear').click();
         assert.ok($('#search-browser').val() != keyword, 'check if clear works');
 
@@ -407,7 +415,7 @@ QUnit.test('browser to pb: folder + close', function (assert) {
     addDirToPb(assert, function () {
         closePb(assert);
         openPb(assert);
-        var children = $(pb).children('.gen');
+        var children = $(pb).children('.gen').not('.rem');
         assert.equal(children.length, 0, 'check if pb is empty');
         closePb(assert);
         done();
@@ -499,7 +507,7 @@ QUnit.test('browser to pb: folder + save + open + delete', function (assert) {
 
     addDirToPb(assert, function (childrenBefore) {
         // save the playlist
-        assert.ok(!$(plSaveModal).is(':visible'), 'check if pl save is not visible');
+        assert.notOk($(plSaveModal).is(':visible'), 'check if pl save is not visible');
         $('#pb-save').click();
 
         setTimeout(function () {
@@ -508,29 +516,29 @@ QUnit.test('browser to pb: folder + save + open + delete', function (assert) {
             $('#playlist-save-confirm').click();
 
             setTimeout(function () {
-                assert.ok(!$(plSaveModal).is(':visible'), 'check if pl save is not visible');
+                assert.notOk($(plSaveModal).is(':visible'), 'check if pl save is not visible');
                 clearPb(assert);
 
                 // open the playlist
-                assert.ok(!$(plOpenModal).is(':visible'), 'check if pl open is not visible');
+                assert.notOk($(plOpenModal).is(':visible'), 'check if pl open is not visible');
                 $('#pb-open').click();
 
                 setTimeout(function () {
                     assert.ok($(plOpenModal).is(':visible'), 'check if pl open is visible');
                     var ele = plOpenModal + ' tr:contains("' + plSave + '")';
                     var num = parseInt($(ele + ' td:nth-child(2)').html());
-                    assert.equal(num, childrenBefore.length, 'check saved playlist has same number of songs');
+                    closeEnough(assert, num, childrenBefore.length, 'check saved playlist has same number of songs');
                     $(ele).click();
                     $('#playlist-open-confirm').click();
 
                     setTimeout(function () {
-                        assert.ok(!$(plOpenModal).is(':visible'), 'check if pl open is not visible');
+                        assert.notOk($(plOpenModal).is(':visible'), 'check if pl open is not visible');
                         children = $(pb).children('.gen');
                         assert.equal(children.length, childrenBefore.length, 'check if same playlist');
                         closePb(assert);
 
                         // delete the playlist
-                        assert.ok(!$(plOpenModal).is(':visible'), 'check if pl open is not visible');
+                        assert.notOk($(plOpenModal).is(':visible'), 'check if pl open is not visible');
                         $('#open-playlist').click();
 
                         setTimeout(function () {
@@ -540,11 +548,11 @@ QUnit.test('browser to pb: folder + save + open + delete', function (assert) {
                             $(ele + ' .playlist-remove').click();
 
                             setTimeout(function () {
-                                assert.ok(!$(ele).is(':visible'), 'check if pl is not visible');
+                                assert.notOk($(ele).is(':visible'), 'check if pl is not visible');
                                 $(plOpenModal + ' .close').click();
 
                                 setTimeout(function () {
-                                    assert.ok(!$('#playlist-open-modal').is(':visible'), 'check if pl open is not visible');
+                                    assert.notOk($('#playlist-open-modal').is(':visible'), 'check if pl open is not visible');
                                     done();
                                 }, asyncTimeout);
                             }, asyncTimeout);
@@ -562,7 +570,7 @@ QUnit.test('browser to pb: folder + save odd title + open + delete', function (a
 
     addDirToPb(assert, function (childrenBefore) {
         // save the playlist
-        assert.ok(!$(plSaveModal).is(':visible'), 'check if pl save is not visible');
+        assert.notOk($(plSaveModal).is(':visible'), 'check if pl save is not visible');
         $('#pb-save').click();
 
         setTimeout(function () {
@@ -571,29 +579,29 @@ QUnit.test('browser to pb: folder + save odd title + open + delete', function (a
             $('#playlist-save-confirm').click();
 
             setTimeout(function () {
-                assert.ok(!$(plSaveModal).is(':visible'), 'check if pl save is not visible');
+                assert.notOk($(plSaveModal).is(':visible'), 'check if pl save is not visible');
                 clearPb(assert);
 
                 // open the playlist
-                assert.ok(!$(plOpenModal).is(':visible'), 'check if pl open is not visible');
+                assert.notOk($(plOpenModal).is(':visible'), 'check if pl open is not visible');
                 $('#pb-open').click();
 
                 setTimeout(function () {
                     assert.ok($(plOpenModal).is(':visible'), 'check if pl open is visible');
                     var ele = plOpenModal + ' tr:contains("' + plSaveOddFix + '")';
                     var num = parseInt($(ele + ' td:nth-child(2)').html());
-                    assert.equal(num, childrenBefore.length, 'check saved playlist has same number of songs');
+                    closeEnough(assert, num, childrenBefore.length, 'check saved playlist has same number of songs');
                     $(ele).click();
                     $('#playlist-open-confirm').click();
 
                     setTimeout(function () {
-                        assert.ok(!$(plOpenModal).is(':visible'), 'check if pl open is not visible');
+                        assert.notOk($(plOpenModal).is(':visible'), 'check if pl open is not visible');
                         children = $(pb).children('.gen');
                         assert.equal(children.length, childrenBefore.length, 'check if same playlist');
                         closePb(assert);
 
                         // delete the playlist
-                        assert.ok(!$(plOpenModal).is(':visible'), 'check if pl open is not visible');
+                        assert.notOk($(plOpenModal).is(':visible'), 'check if pl open is not visible');
                         $('#open-playlist').click();
 
                         setTimeout(function () {
@@ -603,11 +611,11 @@ QUnit.test('browser to pb: folder + save odd title + open + delete', function (a
                             $(ele + ' .playlist-remove').click();
 
                             setTimeout(function () {
-                                assert.ok(!$(ele).is(':visible'), 'check if pl is not visible');
+                                assert.notOk($(ele).is(':visible'), 'check if pl is not visible');
                                 $(plOpenModal + ' .close').click();
 
                                 setTimeout(function () {
-                                    assert.ok(!$('#playlist-open-modal').is(':visible'), 'check if pl open is not visible');
+                                    assert.notOk($('#playlist-open-modal').is(':visible'), 'check if pl open is not visible');
                                     done();
                                 }, asyncTimeout);
                             }, asyncTimeout);
@@ -851,7 +859,7 @@ QUnit.test('browser to playlist: folder + save + clear + open + delete + clear',
 
     addDirToPl(assert, function (childrenBefore) {
         // save the playlist
-        assert.ok(!$(plSaveModal).is(':visible'), 'check if pl save is not visible');
+        assert.notOk($(plSaveModal).is(':visible'), 'check if pl save is not visible');
         $('#save-playlist').click();
 
         setTimeout(function () {
@@ -860,13 +868,13 @@ QUnit.test('browser to playlist: folder + save + clear + open + delete + clear',
             $('#playlist-save-confirm').click();
 
             setTimeout(function () {
-                assert.ok(!$(plSaveModal).is(':visible'), 'check if pl save is not visible');
+                assert.notOk($(plSaveModal).is(':visible'), 'check if pl save is not visible');
                 assert.equal($('#playlist-title').text(), plSave, 'check if title is plSave');
 
                 // clear the playlist
                 clearPlaylist(assert, function () {
                     // open the playlist
-                    assert.ok(!$(plOpenModal).is(':visible'), 'check if pl open is not visible');
+                    assert.notOk($(plOpenModal).is(':visible'), 'check if pl open is not visible');
                     $('#open-playlist').click();
 
                     setTimeout(function () {
@@ -876,12 +884,12 @@ QUnit.test('browser to playlist: folder + save + clear + open + delete + clear',
                         $('#playlist-open-confirm').click();
 
                         setTimeout(function () {
-                            assert.ok(!$(plOpenModal).is(':visible'), 'check if pl open is not visible');
+                            assert.notOk($(plOpenModal).is(':visible'), 'check if pl open is not visible');
                             children = $(pl).children('.gen');
                             assert.equal(children.length, childrenBefore.length, 'check if same playlist');
 
                             // delete the playlist
-                            assert.ok(!$(plOpenModal).is(':visible'), 'check if pl open is not visible');
+                            assert.notOk($(plOpenModal).is(':visible'), 'check if pl open is not visible');
                             $('#open-playlist').click();
 
                             setTimeout(function () {
@@ -891,11 +899,11 @@ QUnit.test('browser to playlist: folder + save + clear + open + delete + clear',
                                 $(ele + ' .playlist-remove').click();
 
                                 setTimeout(function () {
-                                    assert.ok(!$(ele).is(':visible'), 'check if pl is not visible');
+                                    assert.notOk($(ele).is(':visible'), 'check if pl is not visible');
                                     $(plOpenModal + ' .close').click();
 
                                     setTimeout(function () {
-                                        assert.ok(!$('#playlist-open-modal').is(':visible'), 'check if pl open is not visible');
+                                        assert.notOk($('#playlist-open-modal').is(':visible'), 'check if pl open is not visible');
 
                                         // clear the playlist
                                         clearPlaylist(assert, function () {
@@ -911,6 +919,55 @@ QUnit.test('browser to playlist: folder + save + clear + open + delete + clear',
             }, asyncTimeout * 2);
         }, asyncTimeout);
     });
+});
+
+// stored
+QUnit.test('stored: no songs test', function (assert) {
+    var done = assert.async();
+
+    // save the playlist
+    assert.notOk($(plSaveModal).is(':visible'), 'check if pl save is not visible');
+    $('#save-playlist').click();
+
+    setTimeout(function () {
+        assert.ok($(plSaveModal).is(':visible'), 'check if pl save is visible');
+        $('#playlist-save-input').val(plSave);
+        $('#playlist-save-confirm').click();
+
+        setTimeout(function () {
+            assert.notOk($(plSaveModal).is(':visible'), 'check if pl save is not visible');
+            assert.ok(~$('.toast-message').text().indexOf('empty'), 'check if empty toast');
+            toastr.clear();
+            done();
+        }, asyncTimeout);
+    }, asyncTimeout);
+});
+
+QUnit.test('stored: no title test', function (assert) {
+    var done = assert.async();
+    addSong(2);
+
+    setTimeout(function () {
+        var children = $(pl).children('.gen');
+        assert.equal($(children).length, 2, 'check if 2 songs added');
+
+        // save the playlist
+        assert.notOk($(plSaveModal).is(':visible'), 'check if pl save is not visible');
+        $('#save-playlist').click();
+
+        setTimeout(function () {
+            assert.ok($(plSaveModal).is(':visible'), 'check if pl save is visible');
+            $('#playlist-save-input').val('');
+            $('#playlist-save-confirm').click();
+
+            setTimeout(function () {
+                assert.notOk($(plSaveModal).is(':visible'), 'check if pl save is not visible');
+                assert.ok(~$('.toast-message').text().indexOf('title'), 'check if no title toast');
+                toastr.clear();
+                done();
+            }, asyncTimeout);
+        }, asyncTimeout);
+    }, asyncTimeout);
 });
 
 // TODO test settings

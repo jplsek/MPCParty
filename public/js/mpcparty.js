@@ -115,12 +115,7 @@ function ignoreCase(a, b) {
 // create the popup window for song information
 function parseSongInfo(err, values) {
     if (err || !values || Object.keys(values).length < 1) {
-        toastr.warning('This is most likely a bug with MPCParty or the song is not in the live database.', 'Error getting song information.', {
-            'closeButton': true,
-            'positionClass': 'toast-bottom-left',
-            'preventDuplicates': false,
-            'timeOut': '10000'
-        });
+        lazyToast.warning('This is most likely a bug with MPCParty or the song is not in the live database.', 'Error getting song information.', 10000);
         return console.log(err);
     }
 
@@ -579,14 +574,7 @@ var player = {
             $('#volume').val(status.volume);
 
             if (status.error) {
-                history.add(status.error, 'danger');
-                toastr.error(status.error, 'Error', {
-                    'closeButton': true,
-                    'positionClass': 'toast-bottom-left',
-                    'preventDuplicates': true,
-                    'timeOut': '-1',
-                    'extendedTimeOut': '-1'
-                });
+                lazyToast.error(status.error);
             }
         });
     },
@@ -1487,7 +1475,7 @@ var playlist = {
             playlist.local = response;
 
             if ($.isEmptyObject(response[0])) {
-                var html = '<tr class="gen"><td><em>No songs found</em></td></tr>';
+                var html = '<tr class="gen"><td><em class="text-muted">No songs found</em></td></tr>';
                 $('#playlist-song-list').append(html);
                 // fix for removing the last song that's
                 // playling from the playlist
@@ -1520,11 +1508,7 @@ var playlist = {
             var file = $('#playlist-open-modal .selected').data().fileid;
             stored.open(file);
         } else {
-            toastr.warning('No playlist was selected', 'Playlist', {
-                'closeButton': true,
-                'positionClass': 'toast-bottom-left',
-                'preventDuplicates': true,
-            });
+            lazyToast.warning('No playlist was selected', 'Playlist');
         }
     },
 
@@ -1552,12 +1536,12 @@ var playlist = {
 
         $('#open-playlist').click(function () {
             console.log('open playlists');
-            stored.updatePlaylists('playlist-open-modal');
+            stored.updatePlaylists('#playlist-open-modal');
         });
 
         $('#save-playlist').click(function () {
             console.log('save playlist');
-            stored.updatePlaylists('playlist-save-modal');
+            stored.updatePlaylists('#playlist-save-modal');
         });
 
         $('#playlist-save-confirm').click(function () {
@@ -1816,7 +1800,7 @@ var browser = {
                 // note: when the search is nothing, it does not save to
                 // history
                 html = '<tr class="directory gen"><td colspan="6">' +
-                    '<em>No songs found</em></td></tr>';
+                    '<em class="text-muted">No songs found</em></td></tr>';
                 $('#file-browser-song-list').append(html);
                 pages.update('browser');
                 return console.log('No songs found');
@@ -2194,13 +2178,7 @@ var browser = {
             // for now, the other clients will still receive multiple updates
             browser.doUpdate = false;
 
-            var msg = 'Updating music library...';
-            toastr.warning(msg, 'Library', {
-                'closeButton': true,
-                'positionClass': 'toast-bottom-left',
-                'preventDuplicates': true,
-                'timeOut': '-1'
-            });
+            $('#update .glyphicon').addClass('spinning');
 
             komponist.update(function (err) {
                 // check if this is satus.updating_db is undefined
@@ -2212,7 +2190,10 @@ var browser = {
 
                     komponist.status(function (err, status) {
                         if (err) {
+                            $('#update .glyphicon').removeClass('spinning');
                             clearInterval(updateInterval);
+                            lazyToast.error('Error getting the status from MPD!');
+
                             return console.log(err);
                         }
 
@@ -2221,17 +2202,8 @@ var browser = {
                             // stop interval and send update-browser
                             // to everyone
                             clearInterval(updateInterval);
-
-                            toastr.remove();
-
-                            msg = 'Music library updated!';
-                            history.add(msg, 'info');
-                            toastr.info(msg, 'Library', {
-                                'closeButton': true,
-                                'positionClass': 'toast-bottom-left',
-                                'preventDuplicates': true,
-                                'timeOut': '5000'
-                            });
+                            $('#update .glyphicon').removeClass('spinning');
+                            lazyToast.info('Music library updated!', 'Library');
 
                             socket.send(JSON.stringify(
                                     {'type': 'update-browser'}),
@@ -2446,7 +2418,7 @@ var library = {
 
             if (!files.length || files[0].Album === '') {
                 html = '<tr class="gen"><td colspan="6">' +
-                    '<em>No albums</em></td></tr>';
+                    '<em class="text-muted">No albums</em></td></tr>';
                 $('#library-albums-list .append').append(html);
                 return console.log('No albums found');
             }
@@ -2501,7 +2473,7 @@ var library = {
             if (!files.length || (files.length == 1 && !files[0].Album &&
                     !files[0].Artist)) {
                 html = '<tr class="gen"><td colspan="6">' +
-                    '<em>No songs</em></td></tr>';
+                    '<em class="text-muted">No songs found</em></td></tr>';
                 $('#library-songs-list .append').append(html);
                 return console.log('No songs found');
             }
@@ -2765,9 +2737,9 @@ var library = {
             library.addExternal(libraryAlbum, artist, album);
         });
 
-        floatTable('#library-artists-list.table', '#library-artists-wrap');
-        floatTable('#library-albums-list.table',  '#library-albums-wrap');
-        floatTable('#library-songs-list.table',   '#library-songs-wrap');
+        floatTable('#library-artists-list', '#library-artists-wrap');
+        floatTable('#library-albums-list',  '#library-albums-wrap');
+        floatTable('#library-songs-list',   '#library-songs-wrap');
 
         // songs
         // this cannot be part of .song-list because of a bug with sortColumn
@@ -2784,10 +2756,10 @@ var library = {
                 5, '00:00');
 
         // artist
-        tableSort('#library-artists-list', '#library-col-artist', 1, 'string');
+        tableSort('#library-artists-list', '#library-col-artists', 1, 'string');
 
         // album
-        tableSort('#library-albums-list', '#library-col-album', 1, 'string');
+        tableSort('#library-albums-list', '#library-col-albums', 1, 'string');
 
         multiSelect('#library-songs-list', browser, ['song-add']);
         multiSelect('#library-artists-list',
@@ -2829,9 +2801,15 @@ var stored = {
             if (++this.currentId >= this.totalIds) {
                 this.doUpdate = true;
                 this.currentId = 0;
+
+                if ($('.playlists .append').children('.gen') < 1) {
+                    var html = '<tr class="gen"><td colspan="2"><em class="text-muted">No playlists found</em></td></tr>';
+                    $(id +' .playlists tbody').append(html);
+                    console.log('no playlists found');
+                }
             }
 
-            return;
+            return console.log('no update');
         } else {
             this.current = 'native';
         }
@@ -2843,27 +2821,20 @@ var stored = {
             //console.log(playlists);
             if (err) {
                 if (err.message == 'No such file or directory [52@0] {listplaylists}') {
-                    var msg = 'Is there a playlist directory and correct write permissions?';
-                    history.add(msg, 'danger');
-                    toastr.error(msg, 'Cannot read playlist directory!', {
-                        'closeButton': true,
-                        'positionClass': 'toast-bottom-left',
-                        'preventDuplicates': true,
-                        'timeOut': '-1',
-                        'extendedTimeOut': '-1'
-                    });
+                    lazyToast.error('Is there a playlist directory and correct write permissions?', 'Cannot read playlist directory!');
                 }
-                html = '<em class="gen">No saved playlists</em>';
-                $('#' + id +' .modal-body').append(html);
+
+                html = '<em class="gen text-muted">No saved playlists</em>';
+                $(id +' .modal-body').append(html);
                 return console.log(err);
             }
 
-            if (id == 'playlist-open-modal')
+            if (id == '#playlist-open-modal')
                 stored.active = 'open';
-            else if (id == 'playlist-save-modal')
+            else if (id == '#playlist-save-modal')
                 stored.active = 'save';
 
-            $('#' + id +' .modal-body .gen').remove();
+            $(id +' .modal-body .gen').remove();
 
             var html = '';
 
@@ -2871,15 +2842,22 @@ var stored = {
                 playlists = [playlists];
 
             if (!playlists.length) {
-                html = '<em class="gen">No saved playlists</em>';
-                $('#' + id +' .modal-body').append(html);
+                html = '<em class="gen text-muted">No saved playlists</em>';
+                $(id +' .modal-body').append(html);
                 return console.log('No playlists');
             }
 
             var i = 0;
+
             $(playlists).each(function (item, value) {
                 komponist.listplaylist(value.playlist, function (err, songs) {
-                    if (err) console.log(err);
+                    if (err && err.message == 'No such playlist [50@0] {listplaylist}') {
+                        html = '<tr class="gen"><td colspan="2"><em class="text-muted">No playlists found</em></td></tr>';
+                        $(id +' .playlists tbody').append(html);
+                        return console.log('no playlists found');
+                    } else if (err) {
+                        return console.log(err);
+                    }
 
                     if (!Array.isArray(songs))
                         songs = [songs];
@@ -2887,7 +2865,7 @@ var stored = {
                     value.playlist = value.playlist.replace(/ /g, '\u00a0');
                     html += '<tr class="gen" data-fileid="' + value.playlist + '"><td>' + value.playlist + '</td><td>' + songs.length + '</td><td class="text-right"><span class="faded playlist-remove text-danger glyphicon glyphicon-remove" data-fileid="' + value.playlist + '" title="Remove the playlist"></span></td>';
                     if (++i == playlists.length) {
-                        $('#' + id +' .playlists tbody').append(html);
+                        $(id +' .playlists tbody').append(html);
                     }
                 });
             });
@@ -2897,19 +2875,21 @@ var stored = {
     // save the playlist. Wrapper for komponist.save()
     save: function (file) {
         file = file.toString().trim().replace(/\u00a0/g, " ");
-        var msg = '';
+        console.log(file);
+
+        // When titles are "", it updates the current playlist, kind of.
+        // It works via playlist buffer, but not the playlist.
+        // So I'd rather disable the feature in case people get confused.
+        if (file === "") {
+            lazyToast.warning('You must provide a title!', 'Playlist');
+            $('#playlist-save-modal').modal('hide');
+
+            return console.log('invalid title');
+        }
 
         if (this.current == 'fileids') {
             if (!this.fileArr.length) {
-                msg = 'Playlist empty!';
-                history.add(msg, 'warning');
-
-                toastr.warning(msg, 'Playlist', {
-                    'closeButton': true,
-                    'positionClass': 'toast-bottom-left',
-                    'preventDuplicates': false
-                });
-
+                lazyToast.warning('Playlist empty!', 'Playlist');
                 $('#playlist-save-modal').modal('hide');
 
                 return console.log('empty playlist');
@@ -2935,14 +2915,13 @@ var stored = {
                 i   = 0,
                 def = $.Deferred();
 
-                $(stored.fileArr).each(function () {
+                for (var j = 0; j < stored.fileArr.length; ++j) {
                     // this if statement doesn't actually work, async makes
                     // this loop happen too quickly
                     if (!saved) return false;
-                    var song = this;
+                    var song = stored.fileArr[j];
 
-                    komponist.playlistadd(file, this, function (errPlAdd, val) {
-                        err2 = errPlAdd;
+                    komponist.playlistadd(file, song, function (err2, val) {
                         // I would like to break from the each loop when an error
                         // occurs, but getting that set up is hackish. For now,
                         // it will run the each loop every time an error is
@@ -2969,70 +2948,33 @@ var stored = {
                             return console.log(err2);
                         }
 
-                        if (playlist.current == file)
-                            updatedCurrentPlaylist = true;
-
-                        if (i == stored.fileArr.length) def.resolve();
+                        if (i == stored.fileArr.length) {
+                            if (playlist.current == file)
+                                updatedCurrentPlaylist = true;
+                            def.resolve();
+                        }
                     });
-                });
+                }
 
                 def.done(function () {
                     // in deferred because the loop can execute the playlistadd multiple times
                     if (invalid) {
-                        msg = 'Playlist may not contain slashes, newlines, or carriage returns.';
-                        history.add(msg, 'warning');
-                        toastr.warning(msg, 'Invalid Characters', {
-                            'closeButton': true,
-                            'positionClass': 'toast-bottom-left',
-                            'preventDuplicates': false,
-                            'timeOut': '10000'
-                        });
+                        lazyToast.warning('Playlist may not contain slashes, newlines, or carriage returns.', 'Invalid Characters', 10000);
                     } else if (noFile) {
-                        msg = 'Is there a playlist directory and correct write permissions?';
-                        history.add(msg, 'danger');
-                        toastr.error(msg, 'Cannot read playlist directory!', {
-                            'closeButton': true,
-                            'positionClass': 'toast-bottom-left',
-                            'preventDuplicates': true,
-                            'timeOut': '-1',
-                            'extendedTimeOut': '-1'
-                        });
+                        lazyToast.error('Is there a playlist directory and correct write permissions?', 'Cannot read playlist directory!');
                     } else if (notFound) {
                         // read MESSAGE1
-                        msg = 'File not found: ' + err2;
-                        history.add(msg, 'danger');
-                        toastr.error(msg, 'Playlist', {
-                            'closeButton': true,
-                            'positionClass': 'toast-bottom-left',
-                            'preventDuplicates': true,
-                            'timeOut': '-1',
-                            'extendedTimeOut': '-1'
-                        });
+                        lazyToast.error('File not found: ' + err2, 'Playlist');
                     } else if (unknown) {
-                        msg = err2;
-                        history.add(msg, 'danger');
-                        toastr.error(msg, 'Unhandled Error', {
-                            'closeButton': true,
-                            'positionClass': 'toast-bottom-left',
-                            'preventDuplicates': true,
-                            'timeOut': '-1',
-                            'extendedTimeOut': '-1'
-                        });
+                        lazyToast.error(err2, 'Unhandled Error');
                     }
 
                     if (saved) {
                         file = file.replace(/ /g, '\u00a0');
-                        msg = file + ' playlist saved!';
-                        history.add(msg, 'info');
-
-                        toastr.info(msg, 'Playlist update', {
-                            'closeButton': true,
-                            'positionClass': 'toast-bottom-left',
-                            'preventDuplicates': false
-                        });
+                        lazyToast.info(file + ' playlist saved!', 'Playlist update');
 
                         if (updatedCurrentPlaylist) {
-                            msg = 'You must open the updated playlist for it to update the current playlist.';
+                            var msg = 'You must open the updated playlist for it to update the current playlist.';
                             history.add(msg, 'info');
                             toastr.info(msg + '<button title="Reloads the playlist" class="playlist-reload btn btn-default pull-right"><span class="glyphicon glyphicon-repeat"></span></button>', 'Playlist update', {
                                 'closeButton': true,
@@ -3049,7 +2991,7 @@ var stored = {
                 });
             });
         } else {
-            var trs = $(playlist.table).children('.gen');
+            var trs = $(playlist.table).children('.gen').not('.rem');
 
             // horrible check, whats the better way to check for
             // 'Empty playlist'?
@@ -3057,16 +2999,9 @@ var stored = {
                     trs[0].childNodes[0].childNodes[0].childNodes[0] &&
                     $(trs[0].childNodes[0].childNodes[0].childNodes[0].data).
                     selector == 'Empty playlist')) {
-                msg = 'Playlist empty!';
-                history.add(msg, 'warning');
-
-                toastr.warning(msg, 'Playlist', {
-                    'closeButton': true,
-                    'positionClass': 'toast-bottom-left',
-                    'preventDuplicates': false
-                });
-
+                lazyToast.warning('Playlist empty!', 'Playlist');
                 $('#playlist-save-modal').modal('hide');
+
                 return console.log('playlist empty');
             }
 
@@ -3082,35 +3017,14 @@ var stored = {
                         console.log(err.message);
 
                         if (err.message == 'No such file or directory [52@0] {save}') {
-                            msg = 'Is there a playlist directory and correct write permissions?';
-                            history.add(msg, 'danger');
-                            toastr.error(msg, 'Cannot read playlist directory!', {
-                                'closeButton': true,
-                                'positionClass': 'toast-bottom-left',
-                                'preventDuplicates': true,
-                                'timeOut': '-1',
-                                'extendedTimeOut': '-1'
-                            });
+                            lazyToast.error('Is there a playlist directory and correct write permissions?', 'Cannot read playlist directory!');
                         } else if (err.message == 'playlist name is invalid: playlist names may not contain slashes, newlines or carriage returns [2@0] {save}') {
-                            msg = 'Playlist may not contain slashes, newlines, or carriage returns.';
-                            history.add(msg, 'warning');
-                            toastr.warning(msg, 'Invalid Characters', {
-                                'closeButton': true,
-                                'positionClass': 'toast-bottom-left',
-                                'preventDuplicates': false,
-                                'timeOut': '10000'
-                            });
+                            lazyToast.warning('Playlist may not contain slashes, newlines, or carriage returns.', 'Invalid Characters', 10000);
                         }
                         return console.log(err);
                     }
 
-                    msg = file + ' playlist saved!';
-                    history.add(msg, 'info');
-                    toastr.info(msg, 'Playlist update', {
-                        'closeButton': true,
-                        'positionClass': 'toast-bottom-left',
-                        'preventDuplicates': false
-                    });
+                    lazyToast.info(file + ' playlist saved!', 'Playlist update');
 
                     socket.send(JSON.stringify({
                             'type': 'playlist-title', 'info': file
@@ -3217,19 +3131,13 @@ var stored = {
 
             komponist.rm(file, function (err) {
                 if (err) {
-                    toastr.error(err, 'Error removing playlist!', {
-                        'closeButton': true,
-                        'positionClass': 'toast-bottom-left',
-                        'preventDuplicates': true,
-                        'timeOut': '-1',
-                        'extendedTimeOut': '-1'
-                    });
-                    history.add(err, 'danger');
+                    lazyToast.error(err, 'Error removing playlist!');
                     console.log(err);
                 } else {
                     $(that).parent().parent().remove();
                 }
             });
+
             console.log('delete playlist ' + file);
         });
 
@@ -3738,13 +3646,13 @@ var pb = {
         $(document).on('click', '#pb-close', function () { pb.close(); });
 
         $(document).on('click', '#pb-save', function () {
-            var trs = $(pb.table).children('.gen'),
+            var trs = $(pb.table).children('.gen').not('.rem'),
                 fileIds = [];
 
             for (var i = 0; i < trs.length; ++i)
                 fileIds[i] = $(trs[i]).data().fileid;
 
-            stored.updatePlaylists('playlist-save-modal', fileIds);
+            stored.updatePlaylists('#playlist-save-modal', fileIds);
         });
 
         $(document).on('click', '#pb-minimize', function () { pb.minimize(); });
@@ -3752,7 +3660,7 @@ var pb = {
         $(document).on('click', '#pb-tab', function () { pb.resume(); });
 
         $(document).on('click', '#pb-open', function () {
-            stored.updatePlaylists('playlist-open-modal', pb.open);
+            stored.updatePlaylists('#playlist-open-modal', pb.open);
         });
 
         $(document).on('click', '#pb-scramble', function () { pb.scramble(); });
@@ -3790,12 +3698,7 @@ var vote = {
 
     // send a message to the client (using setTitle as the message)
     message: function (current, id) {
-        var msg = vote.setTitles(current, id);
-        toastr.info(msg, 'Song Skip', {
-            'closeButton': true,
-            'positionClass': 'toast-bottom-left',
-            'preventDuplicates': true
-        });
+        toastr.info(vote.setTitles(current, id), 'Song Skip');
     },
 
     // create a title for the next and previous buttons
@@ -4557,8 +4460,8 @@ komponist.on('changed', function (system) {
             break;
 
         case 'stored_playlist':
-            stored.updatePlaylists('playlist-open-modal');
-            stored.updatePlaylists('playlist-save-modal');
+            stored.updatePlaylists('#playlist-open-modal');
+            stored.updatePlaylists('#playlist-save-modal');
             break;
     }
 });
@@ -4644,12 +4547,7 @@ socket.onmessage = function (event) {
             // don't show notification if only 1 person is using the client
             if (users.total <= 1) return;
 
-            toastr.info(msg.info, 'Song Skipped', {
-                'closeButton': true,
-                'positionClass': 'toast-bottom-left',
-                'preventDuplicates': true,
-                'timeOut': '10000'
-            });
+            lazyToast.info(msg.info, 'Song Skipped', 10000);
             break;
 
         case 'song-previous':
@@ -4659,12 +4557,7 @@ socket.onmessage = function (event) {
             // don't show notification if only 1 person is using the client
             if (users.total <= 1) return;
 
-            toastr.info(msg.info, 'Song Skipped', {
-                'closeButton': true,
-                'positionClass': 'toast-bottom-left',
-                'preventDuplicates': true,
-                'timeOut': '10000',
-            });
+            lazyToast.info(msg.info, 'Song Skipped', 10000);
             break;
 
         // stored
@@ -4701,11 +4594,7 @@ socket.onmessage = function (event) {
 
             if (users.total > 1) {
                 str += 'skipped: ' + player.title + '.';
-                toastr.info(str, 'Song Skip', {
-                    'closeButton': true,
-                    'positionClass': 'toast-bottom-left',
-                    'preventDuplicates': true
-                });
+                lazyToast.info(str, 'Song Skip')
                 history.add(str, 'info');
             } else
                 history.add('Skipped: ' + player.title, 'info');
@@ -4788,13 +4677,7 @@ var disconnect = {
         // timeout to not show if refreshing the page
         setTimeout(function () {
             var msg = 'The page will refresh when it comes back online.';
-            history.add(msg, 'danger');
-            toastr.error(msg + '<br>Retrying in <span id="count">1</span> second(s)... <button title="Force a retry" class="retry-server btn btn-warning pull-right"><span class="glyphicon glyphicon-repeat"></span></button>', 'Server Disconnected!', {
-                'closeButton': true,
-                'positionClass': 'toast-bottom-left',
-                'timeOut': '-1',
-                'extendedTimeOut': '-1'
-            });
+            lazyToast.error(msg + '<br>Retrying in <span id="count">1</span> second(s)... <button title="Force a retry" class="retry-server btn btn-warning pull-right"><span class="glyphicon glyphicon-repeat"></span></button>', 'Server Disconnected!', 5000, false);
         }, 200);
         this.retryWebSocket(1);
     },
@@ -4834,6 +4717,50 @@ var disconnect = {
         });
     }
 };
+
+var lazyToast = {
+    info: function (msg, title, timeout, addHistory) {
+        if (!title) title = 'Info';
+        if (!timeout) timeout = 5000;
+
+        if (addHistory) history.add(msg, 'info');
+
+        toastr.info(msg, title, {
+            'closeButton': true,
+            'positionClass': 'toast-bottom-left',
+            'preventDuplicates': true,
+            'timeOut': timeout
+        });
+    },
+
+    error: function (msg, title, timeout, addHistory) {
+        if (!title) title = 'Error';
+
+        if (addHistory) history.add(msg, 'danger');
+
+        toastr.error(msg, title, {
+            'closeButton': true,
+            'positionClass': 'toast-bottom-left',
+            'preventDuplicates': true,
+            'timeOut': '-1',
+            'extendedTimeOut': '-1'
+        });
+    },
+
+    warning: function (msg, title, timeout, addHistory) {
+        if (!title) title = 'Warning';
+        if (!timeout) timeout = 5000;
+
+        if (addHistory) history.add(msg, 'warning');
+
+        toastr.warning(msg, 'Playlist', {
+            'closeButton': true,
+            'positionClass': 'toast-bottom-left',
+            'preventDuplicates': false,
+            'timeOut': timeout
+        });
+    }
+}
 
 // gracefully close the socket
 $(window).on('beforeunload', function () {
