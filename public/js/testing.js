@@ -7,7 +7,7 @@
 // The browser must be focused the whole time, cannot be clicked around.
 // I recommend a webkit browser for testing, (like chrom*) because the js engine is faster than gecko based browsers (like ff)
 
-var asyncTimeout = 500;
+var asyncTimeout = 1000;
 var fb           = '#file-browser-song-list tbody';
 var pb           = '#pb-song-list tbody';
 var libArt       = '#library-artists-list tbody';
@@ -36,6 +36,10 @@ $(function () {
 
         if (!$('#use-unknown').is(':checked')) {
             $('#use-unknown').click();
+        }
+
+        if ($('#use-pages-browser').is(':checked')) {
+            $('#use-pages-browser').click();
         }
 
         if ($('#random').hasClass('active')) {
@@ -78,7 +82,7 @@ function offWorkaround(assert, children, childrenNow) {
         //    }
         //}
 
-        closeEnough(assert, children.length, childrenNow.length, 'check if same as original')
+        closeEnough(assert, children.length, childrenNow.length, 'check if same as original');
     } else {
         assert.equal(childrenNow.length, children.length, 'check if same as original');
     }

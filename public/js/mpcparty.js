@@ -2805,7 +2805,7 @@ var stored = {
                 if ($('.playlists .append').children('.gen') < 1) {
                     var html = '<tr class="gen"><td colspan="2"><em class="text-muted">No playlists found</em></td></tr>';
                     $(id +' .playlists tbody').append(html);
-                    console.log('no playlists found');
+                    console.log('no playlists found (dont update)');
                 }
             }
 
@@ -2852,11 +2852,9 @@ var stored = {
             $(playlists).each(function (item, value) {
                 komponist.listplaylist(value.playlist, function (err, songs) {
                     if (err && err.message == 'No such playlist [50@0] {listplaylist}') {
-                        html = '<tr class="gen"><td colspan="2"><em class="text-muted">No playlists found</em></td></tr>';
-                        $(id +' .playlists tbody').append(html);
-                        return console.log('no playlists found');
+                        console.log('no playlist found: ' + value.playlist);
                     } else if (err) {
-                        return console.log(err);
+                        console.log(err);
                     }
 
                     if (!Array.isArray(songs))
@@ -2915,12 +2913,7 @@ var stored = {
                 i   = 0,
                 def = $.Deferred();
 
-                for (var j = 0; j < stored.fileArr.length; ++j) {
-                    // this if statement doesn't actually work, async makes
-                    // this loop happen too quickly
-                    if (!saved) return false;
-                    var song = stored.fileArr[j];
-
+                function addSongToPlaylist(file, song) {
                     komponist.playlistadd(file, song, function (err2, val) {
                         // I would like to break from the each loop when an error
                         // occurs, but getting that set up is hackish. For now,
@@ -2954,6 +2947,13 @@ var stored = {
                             def.resolve();
                         }
                     });
+                }
+
+                for (var j = 0; j < stored.fileArr.length; ++j) {
+                    // this if statement doesn't actually work, async makes
+                    // this loop happen too quickly
+                    if (!saved) return false;
+                    addSongToPlaylist(file, stored.fileArr[j]);
                 }
 
                 def.done(function () {
@@ -4594,7 +4594,7 @@ socket.onmessage = function (event) {
 
             if (users.total > 1) {
                 str += 'skipped: ' + player.title + '.';
-                lazyToast.info(str, 'Song Skip')
+                lazyToast.info(str, 'Song Skip');
                 history.add(str, 'info');
             } else
                 history.add('Skipped: ' + player.title, 'info');
@@ -4760,7 +4760,7 @@ var lazyToast = {
             'timeOut': timeout
         });
     }
-}
+};
 
 // gracefully close the socket
 $(window).on('beforeunload', function () {
