@@ -89,7 +89,8 @@ Edit config.cfg
 * Download the latest release from the GitHub [releases](https://github.com/jplsek/MPCParty/releases) page.
 
 ### 2) Development version (should be stable)
-* Install `npm`, `bower`, `build-essential`, `libav-tools`, `libasound2`, and `libasound2-dev` depending on your distribution.
+* `sudo apt-get install npm build-essential libav-tools libasound2 libasound2-dev`
+* `sudo npm install -g bower`
 * Clone this repository (`git clone https://github.com/jplsek/MPCParty`)
 * Run `npm install` from the project's directory (to install all the libraries)
 * If there are errors, make sure your node version is greater than 0.12
