@@ -27,7 +27,10 @@ var express         = require('express'),
 io.broadcast = function(data) {
     io.clients.forEach(function each(client) {
         client.send(data, function (err) {
-            if (err) console.log(err);
+            if (err) {
+                console.log('Error sending message to client via broadcast:');
+                console.log(err);
+            }
         });
     });
 };
@@ -490,7 +493,10 @@ fs.readFile(__dirname + '/config.cfg', function (err, data) {
 
 function setSong(client) {
     client.currentsong(function (err, song) {
-        if (err) return console.log(err);
+        if (err) {
+            console.log('Error setting current song');
+            return console.log(err);
+        }
 
         //console.log('set song: ' + song);
 
@@ -519,7 +525,8 @@ var sendUpdate = function (address, connect, customSocket) {
 
     for (i = 0; i < io.clients.length; ++i) {
         var remAdd = io.clients[i]._socket.remoteAddress;
-        if (!~addresses.indexOf(remAdd))
+        // check if remAdd is undefined
+        if (!~addresses.indexOf(remAdd) && remAdd)
             addresses.push(remAdd);
     }
 
@@ -528,8 +535,8 @@ var sendUpdate = function (address, connect, customSocket) {
 
     i = 0;
 
-    function hostHandler(item) {
-        return getHostname(addresses[item], function (hostname, usedip) {
+    function hostHandler(addr) {
+        return getHostname(addr, function (hostname, usedip) {
             hostnames[usedip] = hostname;
 
             if (i == addresses.length - 1 && config.users.enabled) {
@@ -540,8 +547,25 @@ var sendUpdate = function (address, connect, customSocket) {
         });
     }
 
-    for (var item = 0; item < addresses.length; ++item) {
-        hostHandler(item);
+    // only get dns if the user is connecting
+    if (connect) {
+        for (var item = 0; item < addresses.length; ++item) {
+            hostHandler(addresses[item]);
+        }
+    }
+
+    // if the address is undefined, compare addresses with oldAddresses
+    if (!address && oldSize != newSize) {
+        var diff = oldAddresses.filter(function(i) {
+            return addresses.indexOf(i) < 0;
+        });
+
+        address = diff[0];
+
+        if (diff.length > 1) {
+            console.log('Address differences is > 1, I cant handle this GG.');
+            console.log(diff);
+        }
     }
 
     // if there is an update to the ip address list
@@ -605,7 +629,10 @@ var sendUpdate = function (address, connect, customSocket) {
 
         if (customSocket)
             customSocket.send(send, function (err) {
-                if (err) console.log(err);
+                if (err) {
+                    console.log('Error sending message to client:');
+                    console.log(err);
+                }
             });
         else
             io.broadcast(send);
@@ -618,17 +645,33 @@ var sendUpdate = function (address, connect, customSocket) {
 io.on('connection', function (socket) {
     var address = socket._socket.remoteAddress;
 
+    // a bug occurs where when the client closes the browser,
+    // it sends a connection request, but the address is undefined.
+    // This causes issues when trying to send() something to the socket,
+    // causing an error
+    if (!address) {
+        console.log('Address is undefined (did a user disconnect?)');
+        sendUpdate(address, false);
+        return;
+    }
+
     // if the user skipped in the past, add the skip back onto their client.
     if (~skip.addressNext.indexOf(address))
         socket.send(JSON.stringify({'type': 'user-skip-next'}),
                 function (err) {
-            if (err) console.log(err);
+            if (err) {
+                console.log('Error sending user-skip-next');
+                console.log(err);
+            }
         });
 
     if (~skip.addressPrevious.indexOf(address))
         socket.send(JSON.stringify({'type': 'user-skip-previous'}),
                 function (err) {
-            if (err) console.log(err);
+            if (err) {
+                console.log('Error sending user-skip-previous');
+                console.log(err);
+            }
         });
 
     // on client connect, send update to everyone
@@ -636,12 +679,15 @@ io.on('connection', function (socket) {
 
     // on client connect, send init values to single client
     socket.send(JSON.stringify({
-        'type': 'init', 'playlist-title': playlisttitle,
-        'song-vote': skip.voting, 'player-volume': video.volume,
-        'player-status': video.msg, 'player-title': video.title
-        }),
-        function (err) {
-            if (err) console.log(err);
+            'type': 'init', 'playlist-title': playlisttitle,
+            'song-vote': skip.voting, 'player-volume': video.volume,
+            'player-status': video.msg, 'player-title': video.title
+            }),
+            function (err) {
+        if (err) {
+            console.log('Error sending client current info');
+            console.log(err);
+        }
     });
 
     socket.on('message', function incoming(event) {
@@ -849,13 +895,13 @@ http.on('error', function (err) {
 
 // catch other errors that I can't seem to catch properly...
 // comment out this process.on() to see full stack log
-process.on('uncaughtException', function(err) {
-    if (err.code == 'ECONNREFUSED') {
-        console.log('Connection refused! Is MPD running?');
-        process.exit(-6);
-    } else {
-        console.log('Uncaught Exception!');
-        console.log(err);
-        process.exit(-2);
-    }
-});
+// process.on('uncaughtException', function(err) {
+//     if (err.code == 'ECONNREFUSED') {
+//         console.log('Connection refused! Is MPD running?');
+//         process.exit(-6);
+//     } else {
+//         console.log('Uncaught Exception!');
+//         console.log(err);
+//         process.exit(-2);
+//     }
+// });
