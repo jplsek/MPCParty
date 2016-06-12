@@ -895,13 +895,13 @@ http.on('error', function (err) {
 
 // catch other errors that I can't seem to catch properly...
 // comment out this process.on() to see full stack log
-// process.on('uncaughtException', function(err) {
-//     if (err.code == 'ECONNREFUSED') {
-//         console.log('Connection refused! Is MPD running?');
-//         process.exit(-6);
-//     } else {
-//         console.log('Uncaught Exception!');
-//         console.log(err);
-//         process.exit(-2);
-//     }
-// });
+process.on('uncaughtException', function(err) {
+    if (err.code == 'ECONNREFUSED') {
+        console.log('Connection refused! Is MPD running?');
+        process.exit(-6);
+    } else {
+        console.log('Uncaught Exception!');
+        console.log(err);
+        process.exit(-2);
+    }
+});
