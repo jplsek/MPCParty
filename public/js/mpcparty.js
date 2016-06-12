@@ -114,6 +114,11 @@ function ignoreCase(a, b) {
     return a.toLowerCase().localeCompare(b.toLowerCase());
 }
 
+// http://stackoverflow.com/a/9716488
+function isNumber(n) {
+    return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
 // create the popup window for song information
 function parseSongInfo(err, values) {
     if (err || !values || Object.keys(values).length < 1) {
@@ -314,7 +319,8 @@ function toArray(obj) {
 }
 
 // select a bootstrap table row.
-// ele: element to add 'selected' class, par: the table, style: the background color
+// ele: element to add 'selected' class, par: the table,
+// style: the background color
 function rowSelect(ele, par, style) {
     // bg to td instead of tr because of override
     $(par + ' td').removeClass(style);
@@ -443,37 +449,44 @@ mpcp.player = {
     title: '',
     // current state of the player
     state: '',
+    // callback after dom updates
+    callbackUpdates: [],
 
     updateAll: function (callback) {
         // set song title
         komponist.currentsong(function (err, song) {
             if (err) {
-                if (callback) callback();
-                return console.log(err);
+                console.log(err);
+                mpcp.player.updateControls(callback);
+                return;
             }
 
             //console.log(song);
 
             if ($.isEmptyObject(song)) {
-                $('#title-text').html
-                    ('<em class="text-muted" title="No song selected">No song selected</em>');
+                $('#title-text').html('<em class="text-muted" title="No song selected">No song selected</em>');
                 document.title = 'MPCParty';
                 $('#title-pos').html('');
-                $('#time-total').html('<span class="text-muted">-- / --</span>');
+                $('#time-total').html(
+                    '<span class="text-muted">-- / --</span>');
                 mpcp.player.setCurrent(null);
-                if (callback) callback();
-                return console.log('No song selected');
+                console.log('No song selected');
+                mpcp.player.updateControls(callback);
+                return;
             }
 
-            mpcp.player.title = getSimpleTitle(song.Title, song.Artist, song.file);
+            mpcp.player.title = getSimpleTitle(
+                song.Title, song.Artist, song.file);
 
-            if (mpcp.player.current && mpcp.player.current.file != song.file) {
+            if (mpcp.player.current &&
+                    mpcp.player.current.file != song.file) {
                 mpcp.history.add('Playing: ' + mpcp.player.title);
             }
 
             mpcp.player.setCurrent(song);
 
-            $('#title-text').html(mpcp.player.title).attr('title', mpcp.player.title);
+            $('#title-text').html(mpcp.player.title).attr(
+                'title', mpcp.player.title);
             document.title =  mpcp.player.title + ' - MPCParty';
             $('#title-pos').html((parseInt(song.Pos) + 1) + '. ');
             $('#music-time').attr('max', song.Time);
@@ -490,17 +503,20 @@ mpcp.player = {
                 }
             });
 
-            if (callback) callback();
+            mpcp.player.updateControls(callback);
         });
-
-        this.updateControls();
     },
 
     // set player properties
-    updateControls: function () {
+    updateControls: function (callback) {
         komponist.status(function (err, status) {
             //console.log(status);
-            if (err) return console.log(err);
+            if (err) {
+                console.log(err);
+                mpcp.player.callbackUpdate();
+                if (callback) callback();
+                return;
+            }
 
             $('#music-time').val(status.elapsed);
             if (mpcp.player.current !== null && status.state == 'stop') {
@@ -564,6 +580,9 @@ mpcp.player = {
             }
 
             $('#crossfade').val(status.xfade);
+
+            mpcp.player.callbackUpdate();
+            if (callback) callback();
         });
     },
 
@@ -591,104 +610,158 @@ mpcp.player = {
         mpcp.player.current = song;
     },
 
-    initEvents: function () {
-        $('#pause').click(function () {
-            console.log('toggle');
-            komponist.toggle(function (err) {
+    // create a queue because the server responds once for a dom update
+    addCallbackUpdate: function (callback) {
+        if (callback) mpcp.player.callbackUpdates.push(callback);
+    },
+
+    callbackUpdate: function () {
+        // remove callback from array instead of just resetting the array
+        // afterward to fix an issue where callbackUpdates was not reset
+        // because a callback was executing a NEW callback stack.
+        while (mpcp.player.callbackUpdates.length) {
+            var callback = mpcp.player.callbackUpdates[0];
+            mpcp.player.callbackUpdates.splice(0, 1);
+
+            if (!mpcp.player.callbackUpdates.length)
+                return callback();
+            else
+                callback();
+        }
+    },
+
+    // wrapper for komponist.play
+    play: function (callback) {
+        console.log('play');
+        komponist.play(function (err) {
+            if (err) console.log(err);
+            mpcp.player.addCallbackUpdate(callback);
+        });
+    },
+
+    // wrapper for komponist.toggle
+    toggle: function (callback) {
+        console.log('toggle');
+        komponist.toggle(function (err) {
+            if (err) console.log(err);
+            mpcp.player.addCallbackUpdate(callback);
+        });
+    },
+
+    // wrapper for komponist.stop
+    stop: function () {
+        console.log('stop');
+        komponist.stop(function (err) {
+            if (err) console.log(err);
+        });
+    },
+
+    // wrapper for komponist.next
+    next: function (callback) {
+        if (vote.enabled) {
+            mpcp.player.addCallbackUpdate(callback);
+
+            if (!$(this).hasClass('active')) {
+                socket.send(JSON.stringify({
+                        'type': 'song-vote-next', 'info': 'yes'
+                        }), function (err) {
+                    if (err) console.log(err);
+                });
+                $(this).addClass('active');
+            } else {
+                $(this).removeClass('active');
+                socket.send(JSON.stringify({
+                        'type': 'song-vote-next', 'info': 'no'
+                        }), function (err) {
+                    if (err) console.log(err);
+                });
+            }
+        } else {
+            console.log('next');
+            socket.send(JSON.stringify({
+                    'type': 'song-next'
+                    }), function (err) {
                 if (err) console.log(err);
             });
+
+            // if skipping too fast, race conditions happen
+            var current = mpcp.player.current;
+            komponist.next(function (err) {
+                if (err) console.log(err);
+
+                if (mpcp.playlist.skipToRemove) {
+                    mpcp.playlist.removeSong(current.Id);
+                }
+
+                mpcp.player.addCallbackUpdate(callback);
+            });
+        }
+    },
+
+    // wrapper for komponist.previous
+    previous: function (callback) {
+        if (vote.enabled) {
+            mpcp.player.addCallbackUpdate(callback);
+
+            if (!$(this).hasClass('active')) {
+                socket.send(JSON.stringify({
+                        'type': 'song-vote-previous', 'info': 'yes'
+                        }), function (err) {
+                    if (err) console.log(err);
+                });
+                $(this).addClass('active');
+            } else {
+                $(this).removeClass('active');
+                socket.send(JSON.stringify({
+                        'type': 'song-vote-previous', 'info': 'no'
+                        }), function (err) {
+                    if (err) console.log(err);
+                });
+            }
+        } else {
+            console.log('previous');
+            socket.send(JSON.stringify({
+                    'type': 'song-previous'
+                    }), function (err) {
+                if (err) console.log(err);
+            });
+
+            // if skipping too fast, race conditions happen
+            var current = mpcp.player.current;
+            komponist.previous(function (err) {
+                if (err) console.log(err);
+
+                if (mpcp.playlist.skipToRemove) {
+                    mpcp.playlist.removeSong(current.Id);
+                }
+
+                mpcp.player.addCallbackUpdate(callback);
+            });
+        }
+    },
+
+    initEvents: function () {
+        $('#pause').click(function () {
+            mpcp.player.toggle();
         });
 
         $('#play').click(function () {
-            console.log('play');
-            komponist.play(function (err) {
-                if (err) console.log(err);
-            });
+            mpcp.player.play();
         });
 
         $('#stop').click(function () {
-            console.log('stop');
-            komponist.stop(function (err) {
-                if (err) console.log(err);
-            });
+            mpcp.player.stop();
         });
 
         $('#next').click(function () {
-            if (vote.enabled) {
-                if (!$(this).hasClass('active')) {
-                    socket.send(JSON.stringify({
-                            'type': 'song-vote-next', 'info': 'yes'
-                            }), function (err) {
-                        if (err) console.log(err);
-                    });
-                    $(this).addClass('active');
-                } else {
-                    $(this).removeClass('active');
-                    socket.send(JSON.stringify({
-                            'type': 'song-vote-next', 'info': 'no'
-                            }), function (err) {
-                        if (err) console.log(err);
-                    });
-                }
-            } else {
-                console.log('next');
-                socket.send(JSON.stringify({
-                        'type': 'song-next'
-                        }), function (err) {
-                    if (err) console.log(err);
-                });
-
-                // if skipping too fast, race conditions happen
-                var current = mpcp.player.current;
-                komponist.next(function (err) {
-                    if (err) console.log(err);
-
-                    if (mpcp.playlist.skipToRemove) {
-                        mpcp.playlist.removeSong(current.Id);
-                    }
-                });
-            }
+            mpcp.player.next();
         });
 
         $('#previous').click(function () {
-            if (vote.enabled) {
-                if (!$(this).hasClass('active')) {
-                    socket.send(JSON.stringify({
-                            'type': 'song-vote-previous', 'info': 'yes'
-                            }), function (err) {
-                        if (err) console.log(err);
-                    });
-                    $(this).addClass('active');
-                } else {
-                    $(this).removeClass('active');
-                    socket.send(JSON.stringify({
-                            'type': 'song-vote-previous', 'info': 'no'
-                            }), function (err) {
-                        if (err) console.log(err);
-                    });
-                }
-            } else {
-                console.log('previous');
-                socket.send(JSON.stringify({
-                        'type': 'song-previous'
-                        }), function (err) {
-                    if (err) console.log(err);
-                });
-
-                // if skipping too fast, race conditions happen
-                var current = mpcp.player.current;
-                komponist.previous(function (err) {
-                    if (err) console.log(err);
-
-                    if (mpcp.playlist.skipToRemove) {
-                        mpcp.playlist.removeSong(current.Id);
-                    }
-                });
-            }
+            mpcp.player.previous();
         });
 
         $('#go-current').click(function () {
-            console.log('go to current');
             mpcp.playlist.goToCurrent();
         });
 
@@ -726,8 +799,9 @@ mpcp.player = {
                 });
         });
 
-        createSearch('#search-browser', mpcp.browser.search, mpcp.browser.update,
-            '#search-clear');
+        createSearch(
+            '#search-browser', mpcp.browser.search,
+            mpcp.browser.update, '#search-clear');
     }
 };
 
@@ -756,6 +830,8 @@ mpcp.playlist = {
     goAfterUpdate: false,
     // remove after skipping songs
     skipToRemove: false,
+    // callback after dom updates
+    callbackUpdates: [],
 
     // used to update the current playlist
     updateAll: function () {
@@ -782,7 +858,11 @@ mpcp.playlist = {
                     $('#playlist-title strong').attr('title',
                         mpcp.playlist.current);
 
-                    if (err) return console.log(err);
+                    if (err) {
+                        console.log(err);
+                        mpcp.playlist.callbackUpdate();
+                        return;
+                    }
 
                     $('#playlist-song-list .gen').remove();
                     mpcp.playlist.local = playlistLoad;
@@ -797,15 +877,19 @@ mpcp.playlist = {
                         mpcp.pages.update('playlist');
                         mpcp.playlist.initDrag();
                         mpcp.browser.updatePosition();
-                        return console.log('Empty playlist');
+                        console.log('Empty playlist');
+                        mpcp.playlist.callbackUpdate();
+                        return;
                     }
 
-                    // TODO figure out a way to use mpcp.playlist.local efficiently
-                    // with mpcp.browser.updatePlaylist instead of utilizing
-                    // mpcp.playlist.list
+                    // TODO figure out a way to use mpcp.playlist.local
+                    // efficiently with mpcp.browser.updatePlaylist instead of
+                    // utilizing mpcp.playlist.list
                     for (var i = 0; i < mpcp.playlist.local.length; ++i) {
-                        mpcp.playlist.list.files.push(mpcp.playlist.local[i].file);
-                        mpcp.playlist.list.positions.push(mpcp.playlist.local[i].Pos);
+                        mpcp.playlist.list.files.push(
+                            mpcp.playlist.local[i].file);
+                        mpcp.playlist.list.positions.push(
+                            mpcp.playlist.local[i].Pos);
                     }
 
                     // since goToCurrent runs updateLocal, skip the regular
@@ -813,6 +897,7 @@ mpcp.playlist = {
                     if (mpcp.playlist.goAfterUpdate) {
                         mpcp.playlist.goAfterUpdate = false;
                         mpcp.playlist.goToCurrent();
+                        mpcp.playlist.callbackUpdate();
                     } else {
                         mpcp.playlist.updateLocal();
                     }
@@ -829,13 +914,15 @@ mpcp.playlist = {
 
         console.log('update playlist locally');
 
-        // length is always 1 for mpcp.playlist.local, this fixes the empty object
+        // length is always 1 for mpcp.playlist.local, this fixes the empty
+        // object
         if (mpcp.playlist.local.length <= 1) {
-            if (mpcp.playlist.local[0] &&
-                    Object.getOwnPropertyNames(mpcp.playlist.local[0]).length <= 0)
+            if ((mpcp.playlist.local[0] && Object.getOwnPropertyNames(
+                    mpcp.playlist.local[0]).length <= 0) ||
+                    mpcp.playlist.local.length <= 0) {
+                mpcp.playlist.callbackUpdate();
                 return;
-            else if (mpcp.playlist.local.length <= 0)
-                return;
+            }
         }
 
         $('#playlist-song-list .gen').remove();
@@ -843,9 +930,10 @@ mpcp.playlist = {
         var html = '',
             i,
             // item start and end from current page
-            start =  (mpcp.pages.currentPlaylist - 1) * mpcp.pages.maxPlaylist,
-            end   = ((mpcp.pages.currentPlaylist - 1) * mpcp.pages.maxPlaylist) +
-                mpcp.pages.maxPlaylist;
+            start =  (mpcp.pages.currentPlaylist - 1) *
+                mpcp.pages.maxPlaylist,
+            end   = ((mpcp.pages.currentPlaylist - 1) *
+                mpcp.pages.maxPlaylist) + mpcp.pages.maxPlaylist;
 
         //console.log(end);
         // make all toPulse to ints
@@ -876,7 +964,8 @@ mpcp.playlist = {
             if (mpcp.player.current && value.Id == mpcp.player.current.Id)
                 current += ' bg-success';
 
-            if (mpcp.settings.pulse && ~mpcp.playlist.toPulse.indexOf(value.Id)) {
+            if (mpcp.settings.pulse &&
+                    ~mpcp.playlist.toPulse.indexOf(value.Id)) {
                 // pulses twice because of lag
                 current += ' pulse2';
             }
@@ -902,7 +991,8 @@ mpcp.playlist = {
             $('#pslwrap').scrollTop($('#playlist-song-list')[0].scrollHeight);
         }
 
-        if (typeof callback == 'function') callback();
+        mpcp.playlist.callbackUpdate();
+        if (callback) callback();
     },
 
     initDrag: function () {
@@ -920,7 +1010,8 @@ mpcp.playlist = {
                 var inside = false;
                 for (var i = 0; i < mpcp.playlist.selected.length; ++i) {
                     //console.log(mpcp.playlist.selected[i]);
-                    if (mpcp.playlist.selected[i].isEqualNode(ui.item.context)) {
+                    if (mpcp.playlist.selected[i].isEqualNode(
+                                ui.item.context)) {
                         console.log('setting inside to true');
                         inside = true;
                         break;
@@ -938,10 +1029,12 @@ mpcp.playlist = {
                 //console.log(mpcp.pages.currentPlaylist);
                 // check if nothing is in playlist
                 if (index == 1 &&
-                        $($(mpcp.playlist.table).children()[0]).hasClass('rem')) {
+                        $($(mpcp.playlist.table).children()[0]).hasClass(
+                            'rem')) {
                     mpcp.playlist.fromSender(ui, 0);
                     return;
-                } else if (index + 1 == $(mpcp.playlist.table).children().length) {
+                } else if (index + 1 ==
+                        $(mpcp.playlist.table).children().length) {
                     // last item in playlist
                     mpcp.playlist.fromSender(ui, index);
                     return;
@@ -1019,7 +1112,8 @@ mpcp.playlist = {
         } else if ($(ui.item).hasClass('artist')) {
             artist = $(ui.item).data().artist;
 
-            mpcp.library.getSongsFromAlbum(artist, undefined, function (files) {
+            mpcp.library.getSongsFromAlbum(
+                    artist, undefined, function (files) {
                 for (i = 0; i < files.length; ++i) {
                     mpcp.playlist.addSong(files[i].file, newIndex, true);
                 }
@@ -1045,7 +1139,8 @@ mpcp.playlist = {
                 // location
                 if (pos > newIndex) {
                     index = newIndex + item;
-                    //console.log('dragged playlist: ' + file + ' to ' + index);
+                    //console.log('dragged playlist: ' + file + ' to ' +
+                    //index);
                     komponist.moveid(file, index, function (err) {
                         if (err) console.log(err);
                     });
@@ -1053,7 +1148,8 @@ mpcp.playlist = {
                     // else if original location is about the
                     // "move to" location
                     index = newIndex;
-                    //console.log('dragged playlist: ' + file + ' to ' + index);
+                    //console.log('dragged playlist: ' + file + ' to ' +
+                    //index);
                     komponist.moveid(file, index, function (err) {
                         if (err) console.log(err);
                     });
@@ -1072,50 +1168,70 @@ mpcp.playlist = {
     },
 
     // wrapper for komponist.addid
-    addid: function (file, to) {
-        if (to === undefined || isNaN(to))
-            komponist.addid(file, function (err, val) {
-                if (err)
-                    console.log(err);
-                else
-                    mpcp.playlist.toPulse.push(val.Id);
-            });
-        else
+    addid: function (file, to, callback) {
+
+        if (isNumber(to))
             komponist.addid(file, to, function (err, val) {
                 if (err)
                     console.log(err);
                 else
                     mpcp.playlist.toPulse.push(val.Id);
+
+                mpcp.playlist.addCallbackUpdate(callback);
+            });
+        else
+            komponist.addid(file, function (err, val) {
+                if (err)
+                    console.log(err);
+                else
+                    mpcp.playlist.toPulse.push(val.Id);
+
+                mpcp.playlist.addCallbackUpdate(callback);
             });
     },
 
     // wrapper for komponist.add
-    add: function (dir, to) {
-        if (to === undefined || isNaN(to))
+    add: function (dir, to, callback) {
+        if (isNumber(to)) {
+            getAllInfo(dir, function (files) {
+                if (!files.length) {
+                    console.log('Nothing in db');
+                    if (callback) callback();
+                    return;
+                }
+
+                //console.log(files);
+                var j = 0;
+
+                $(files).each(function (item, value) {
+                    //console.log(value);
+                    if (value.file) {
+                        mpcp.playlist.addid(value.file, to++, function () {
+                            if (++j == Object.keys(files).length)
+                                mpcp.playlist.addCallbackUpdate(callback);
+                        });
+                    } else {
+                        if (++j == Object.keys(files).length)
+                            mpcp.playlist.addCallbackUpdate(callback);
+                    }
+                });
+            });
+        } else {
             komponist.add(dir, function (err, val) {
                 //val returns an empty object (I was hoping for an Id list)
                 //console.log(val);
                 if (err)
                     console.log(err);
                 //else
-                    //mpcp.playlist.toPulse.push(val.Id);
-            });
-        else
-            getAllInfo(dir, function (files) {
-                //console.log(files);
-                if (!files.length)
-                    return console.log('Nothing in db');
+                //mpcp.playlist.toPulse.push(val.Id);
 
-                $(files).each(function (item, value) {
-                    //console.log(value);
-                    if (value.file)
-                        mpcp.playlist.addid(value.file, to++);
-                });
+                mpcp.playlist.addCallbackUpdate(callback);
             });
+        }
     },
 
     // addSong
-    addSong: function (file, to, dontScroll) {
+    addSong: function (file, to, dontScroll, callback) {
         console.log('adding song to playlist');
 
         if (!dontScroll) {
@@ -1123,18 +1239,19 @@ mpcp.playlist = {
             if (to === undefined || isNaN(to)) {
                 mpcp.pages.go('playlist', mpcp.pages.totalPlaylist);
                 this.scrollDown = true;
-            } else if (to == mpcp.player.current.Pos + 1) {
+            } else if (mpcp.player.current &&
+                    to == mpcp.player.current.Pos + 1) {
                 this.goToCurrent();
             } else {
                 this.goToPos(to);
             }
         }
 
-        this.addid(file, to);
+        this.addid(file, to, callback);
     },
 
     // addDir
-    addDir: function (dir, to, dontScroll) {
+    addDir: function (dir, to, dontScroll, callback) {
         console.log('adding dir to playlist');
 
         if (!dontScroll) {
@@ -1147,7 +1264,7 @@ mpcp.playlist = {
             }
         }
 
-        this.add(dir, to);
+        this.add(dir, to, callback);
     },
 
     // wrapper for komponist.findadd
@@ -1157,7 +1274,8 @@ mpcp.playlist = {
                 setSongs(err, files);
             });
         } else {
-            komponist.findadd('artist', artist, 'album', album, function (err, files) {
+            komponist.findadd(
+                    'artist', artist, 'album', album, function (err, files) {
                 setSongs(err, files);
             });
         }
@@ -1196,41 +1314,46 @@ mpcp.playlist = {
         console.log('got pl title from another user: ' + title);
 
         mpcp.history.add('Loaded playlist: ' + title);
-        this.current = title.replace(/ /g, '\u00a0');
+        mpcp.playlist.current = title.replace(/ /g, '\u00a0');
 
-        // fixes a bug where it doesn't get updated while a song is playing
-        mpcp.player.updateAll();
         // fixes a bug where the playlist doesn't get updated
         // after a new one is loadded
-        this.updateAll();
+        mpcp.playlist.updateAll();
     },
 
     // remove duplicate files from the playlist
-    removeDuplicates: function () {
+    removeDuplicates: function (callback) {
         console.log('remove duplicates');
-        var duplicate = {};
+        var duplicate = {},
+            j = 0;
 
-        $(this.local).each(function (item, file) {
+        $(mpcp.playlist.local).each(function (item, file) {
             if (duplicate[file.file] && (mpcp.player.current === null ||
                         file.Pos != mpcp.player.current.Pos)) {
                 komponist.deleteid(file.Id, function (err, val) {
                     if (err) {
-                        console.log('Error: ' +
-                            'Cannot remove duplicate file, this might be a bug');
+                        console.log('Error: Cannot remove duplicate file, this might be a bug');
                         console.log(err);
                     }
+
+                    if (++j == Object.keys(mpcp.playlist.local).length &&
+                            callback)
+                        mpcp.playlist.addCallbackUpdate(callback);
                 });
             } else {
                 duplicate[file.file] = true;
+
+                if (++j == Object.keys(mpcp.playlist.local).length && callback)
+                    mpcp.playlist.addCallbackUpdate(callback);
             }
         });
     },
 
     // TODO Goal: remove song from playlist without mpd updating the playlist
-    // locally. Have to update mpcp.playlist.local .Pos to work, or somehow use
-    // numbered table rows instead of using Pos.
-    // remove song from the mpcp.playlist. The element must be removed manually
-    // before or after calling!
+    // locally. Have to update mpcp.playlist.local .Pos to work, or somehow
+    // use numbered table rows instead of using Pos.
+    // remove song from the mpcp.playlist. The element must be removed
+    // manually before or after calling!
     removeSong: function (fileid) {
         komponist.deleteid(fileid, function (err, val) {
             if (err) console.log('No song with id ' + fileid + ' to delete!');
@@ -1326,7 +1449,8 @@ mpcp.playlist = {
         // multiselect check
         if (mpcp.playlist.selected.length) {
             // only do this if the the moved songs are above the current song
-            var lastPos = $(mpcp.playlist.selected[mpcp.playlist.selected.length-1]).
+            var lastPos = $(mpcp.playlist.selected[
+                    mpcp.playlist.selected.length-1]).
                 data().pos;
 
             this.goAfterUpdate = true;
@@ -1341,8 +1465,9 @@ mpcp.playlist = {
                 if (mpcp.player.current && mpcp.player.current.Pos < pos)
                     newPos = mpcp.player.current.Pos + 1 + item;
                 // currently playing song is below file to be moved
-                else if ((mpcp.player.current && mpcp.player.current.Pos > pos) ||
-                        mpcp.player.current)
+                else if ((mpcp.player.current &&
+                        mpcp.player.current.Pos > pos) ||
+                            mpcp.player.current)
                     newPos = mpcp.player.current.Pos;
                 // currently playing song is the same file to be moved
                 else
@@ -1428,8 +1553,14 @@ mpcp.playlist = {
     },
 
     // goes to the current song in the mpcp.playlist.
-    goToCurrent: function () {
-        if (!mpcp.player.current) return console.log('no song selected');
+    goToCurrent: function (callback) {
+        console.log('go to current');
+
+        if (!mpcp.player.current) {
+            console.log('no song selected');
+            if (callback) callback();
+            return;
+        }
 
         // scroll to top to avoid scrolling bugs
         $('#pslwrap').scrollTop($('#playlist-song-list'));
@@ -1449,6 +1580,8 @@ mpcp.playlist = {
             var offset = toOffset.offset().top;
             $('#pslwrap').scrollTop(offset);
         }
+
+        if (callback) callback();
     },
 
     // show song information to the user
@@ -1488,8 +1621,9 @@ mpcp.playlist = {
                 return console.log('No songs found in playlist search');
             }
 
-            // TODO figure out a way to use mpcp.playlist.local efficiently with
-            // mpcp.browser.updatePlaylist instead of utilizing mpcp.playlist.list
+            // TODO figure out a way to use mpcp.playlist.local
+            // efficiently with mpcp.browser.updatePlaylist instead of
+            // utilizing mpcp.playlist.list
             $(mpcp.playlist.local).each(function (item, value) {
                 mpcp.playlist.list.files.push(value.file);
                 mpcp.playlist.list.positions.push(value.Pos);
@@ -1503,33 +1637,74 @@ mpcp.playlist = {
     },
 
     // open playlist from stored element
-    openFromStored: function () {
+    openFromStored: function (callback) {
         // disable events
         $(document).off('keydown');
         if ($('#playlist-open-modal .selected').length) {
             var file = $('#playlist-open-modal .selected').data().fileid;
-            mpcp.stored.open(file);
+            mpcp.stored.open(file, callback);
         } else {
             lazyToast.warning('No playlist was selected', 'Playlist');
+            if (callback) callback();
         }
     },
 
     // save playlist from stored element
-    saveFromStored: function () {
+    saveFromStored: function (callback) {
         // disable events
         $(document).off('keydown');
         console.log('confirm save playlist');
         var file = $('#playlist-save-input').val();
-        mpcp.stored.save(file);
+        mpcp.stored.save(file, callback);
+    },
+
+    // create a queue because the server responds once for a dom update
+    addCallbackUpdate: function (callback) {
+        if (callback) {
+            mpcp.playlist.callbackUpdates.push(callback);
+        }
+    },
+
+    callbackUpdate: function () {
+        // remove callback from array instead of just resetting the array
+        // afterward to fix an issue where callbackUpdates was not reset
+        // because a callback was executing a NEW callback stack.
+        while (mpcp.playlist.callbackUpdates.length) {
+            var callback = mpcp.playlist.callbackUpdates[0];
+            mpcp.playlist.callbackUpdates.splice(0, 1);
+
+            if (!mpcp.playlist.callbackUpdates.length)
+                return callback();
+            else
+                callback();
+        }
+    },
+
+    clear: function (callback) {
+        console.log('clear playlist');
+        mpcp.playlist.addCallbackUpdate(callback);
+
+        // this is done server-side to fix a bug:
+        // refresh -> add -> play -> clear does not work
+        socket.send(JSON.stringify({'type': 'clear-playlist'}),
+                function (err) {
+            if (err) console.log(err);
+        });
+    },
+
+    scramble: function (callback) {
+        console.log('scramble playlist');
+        komponist.shuffle(function (err) {
+            if (err) console.log(err);
+            mpcp.playlist.addCallbackUpdate(callback);
+        });
     },
 
     initEvents: function () {
         $('#new-playlist').click(function () { mpcp.pb.newLocal(); });
 
         $('#scramble').click(function () {
-            komponist.shuffle(function (err) {
-                if (err) console.log(err);
-            });
+            mpcp.playlist.scramble();
         });
 
         $('#remove-duplicates').click(function () {
@@ -1555,14 +1730,7 @@ mpcp.playlist = {
         });
 
         $('#clear-playlist').click(function () {
-            console.log('clear playlist');
-
-            // this is done server-side to fix a bug:
-            // refresh -> add -> play -> clear does not work
-            socket.send(JSON.stringify(
-                {'type': 'clear-playlist'}), function (err) {
-                    if (err) console.log(err);
-            });
+            mpcp.playlist.clear();
         });
 
         $('#playlist-search-toggle').click(function () {
@@ -1627,7 +1795,7 @@ mpcp.browser = {
 
     // check which dir the user is in.
     // only update that dir
-    update: function (dir, poppedState) {
+    update: function (dir, poppedState, callback) {
         // NOTE: do not use 'this' keyword, as this can be in a callback
         // function
         if (mpcp.browser.hidden && !mpcp.library.hidden) {
@@ -1635,7 +1803,7 @@ mpcp.browser = {
             // library/browser update. May change later to reduce coupling.
             mpcp.library.updateArtists(mpcp.library.artist);
             mpcp.library.updateAlbums(mpcp.library.artist, mpcp.library.album);
-            mpcp.library.updateSongs(mpcp.library.artist, mpcp.library.album);
+            if (callback) callback();
             return;
         }
 
@@ -1644,6 +1812,7 @@ mpcp.browser = {
             console.log('do not update mpcp.browser...');
             // doUpdate gets set to true in the onMessage update-browser
             //mpcp.browser.doUpdate = true;
+            if (callback) callback();
             return;
         }
 
@@ -1658,7 +1827,8 @@ mpcp.browser = {
             mpcp.browser.addToHistory();
             $('#slwrap').scrollTop($('#file-browser-song-list'));
         }
-        mpcp.browser.updateBrowser(mpcp.browser.current);
+
+        mpcp.browser.updateBrowser(mpcp.browser.current, callback);
 
         if (dir) mpcp.browser.previous = dir;
     },
@@ -1668,14 +1838,15 @@ mpcp.browser = {
             console.log('adding /browser/ to history');
             window.history.pushState('', 'MPCParty', '/browser/');
         } else {
-            console.log('adding /browser/' + mpcp.browser.current + ' to history');
+            console.log('adding /browser/' + mpcp.browser.current +
+                ' to history');
             window.history.pushState('', mpcp.browser.current + ' - MPCParty',
                     '/browser/' + mpcp.browser.current);
         }
     },
 
     // shows directories. use '/' for root
-    updateBrowser: function (directory) {
+    updateBrowser: function (directory, callback) {
         // location bar:
         // split directory based on /'s
         // create a list item for each dir split
@@ -1709,7 +1880,9 @@ mpcp.browser = {
                     '<em class="text-muted">Empty directory</em></td></tr>';
                 $('#file-browser-song-list').append(html);
                 mpcp.pages.update('browser');
-                return console.log('Empty directory');
+                console.log('Empty directory');
+                if (callback) callback();
+                return;
             }
 
             var html = '';
@@ -1726,7 +1899,7 @@ mpcp.browser = {
                 }
             }
 
-            mpcp.browser.updateLocal();
+            mpcp.browser.updateLocal(callback);
         });
     },
 
@@ -1854,8 +2027,10 @@ mpcp.browser = {
         if (value.file) {
             //console.log('file');
 
-            value.Album  = (!value.Album ? mpcp.settings.unknown : value.Album);
-            value.Artist = (!value.Artist ? mpcp.settings.unknown : value.Artist);
+            value.Album  = (!value.Album ? mpcp.settings.unknown :
+                value.Album);
+            value.Artist = (!value.Artist ? mpcp.settings.unknown :
+                value.Artist);
             stripFile    = stripSlash(value.file);
             value.Title  = (!value.Title ? stripFile : value.Title);
 
@@ -1892,7 +2067,8 @@ mpcp.browser = {
             index  = mpcp.playlist.list.files.indexOf(fileid);
 
             if (index != -1) {
-                icon = (parseInt(mpcp.playlist.list.positions[index]) + 1) + '.';
+                icon = (parseInt(mpcp.playlist.list.positions[index]) + 1) +
+                    '.';
                 $(element).children('.pos').html(icon);
             } else {
                 icon = '<span class="text-primary glyphicon glyphicon-file">' +
@@ -1902,7 +2078,7 @@ mpcp.browser = {
         });
     },
 
-    updateLocal: function () {
+    updateLocal: function (callback) {
         console.log('update local browser');
 
         // mpcp.browser.local* always has a length of 1, but may have an empty
@@ -1912,17 +2088,21 @@ mpcp.browser = {
             if ((mpcp.browser.localFolders[0] && Object.getOwnPropertyNames(
                         mpcp.browser.localFolders[0]).length <= 0) &&
                     (mpcp.browser.localFiles[0] && Object.getOwnPropertyNames(
-                        mpcp.browser.localFiles[0]).length <= 0))
+                        mpcp.browser.localFiles[0]).length <= 0)) {
+                if (callback) callback();
                 return;
-            else if (mpcp.browser.localFolders.length <= 0 &&
-                    mpcp.browser.localFiles.length <= 0)
+            } else if (mpcp.browser.localFolders.length <= 0 &&
+                    mpcp.browser.localFiles.length <= 0) {
+                if (callback) callback();
                 return;
+            }
         }
 
         $('#file-browser-song-list .gen').remove();
 
         var start = 0,
-            end   = mpcp.browser.localFolders.length + mpcp.browser.localFiles.length,
+            end   = mpcp.browser.localFolders.length +
+                mpcp.browser.localFiles.length,
             html  = '';
 
         if (mpcp.pages.enabledBrowser) {
@@ -1961,9 +2141,10 @@ mpcp.browser = {
 
         //console.log(current);
 
-        mpcp.browser.createDraggable('#file-browser-song-list', browser);
+        mpcp.browser.createDraggable('#file-browser-song-list', mpcp.browser);
         mpcp.browser.updatePosition();
         mpcp.pages.update('browser');
+        if (callback) callback();
     },
 
     // draggable song-list
@@ -2056,57 +2237,83 @@ mpcp.browser = {
     },
 
     // add all songs in mpcp.browser.current to playlist
-    addAll: function () {
+    addAll: function (callback) {
         console.log('add all songs from ' + mpcp.browser.current);
 
         if (mpcp.browser.searching) {
-            komponist.search('any', mpcp.browser.searchTerm, function (err, files) {
-                if (err) return console.log(err);
+            komponist.search('any', mpcp.browser.searchTerm,
+                    function (err, files) {
+                if (err) {
+                    console.log(err);
+                    if (callback) callback();
+                    return;
+                }
 
                 if ($.isEmptyObject(files[0])) {
-                    return console.log('No songs found');
+                    console.log('No songs found');
+                    if (callback) callback();
+                    return;
                 }
 
                 if (mpcp.pb.current !== null)
-                    mpcp.pb.addSong(files);
+                    mpcp.pb.addSong(files, null, callback);
                 else
                     $(files).each(function (item, value) {
                         komponist.add(value.file, function (err) {
                             if (err) console.log(err);
+                            if (callback) callback();
                         });
                     });
             });
         } else {
             if (mpcp.pb.current) {
                 getAllInfo(mpcp.browser.current, function (files) {
-                    mpcp.pb.addSong(files);
+                    mpcp.pb.addSong(files, null, callback);
                 });
             } else {
                 komponist.lsinfo(mpcp.browser.current, function (err, files) {
                     //console.log(files);
 
-                    if (err) return console.log(err);
+                    if (err) {
+                        console.log(err);
+                        if (callback) callback();
+                        return;
+                    }
 
                     files = toArray(files);
 
-                    if (!files.length) return console.log('Empty directory');
+                    if (!files.length) {
+                        console.log('Empty directory');
+                        if (callback) callback();
+                        return;
+                    }
 
                     $(files).each(function (item, value) {
                         if (value.directory) {
                             komponist.add(value.directory, function (err) {
                                 if (err) console.log(err);
+                                if (callback) callback();
                             });
                         }
 
                         if (value.file) {
                             komponist.add(value.file, function (err) {
                                 if (err) console.log(err);
+                                if (callback) callback();
                             });
                         }
                     });
                 });
             }
         }
+    },
+
+    // used when the user manually opens the browser
+    open: function (callback) {
+        mpcp.settings.saveBrowser('browser');
+        $('#file-browser-song-list.table').trigger('reflow');
+        mpcp.browser.addToHistory();
+        mpcp.browser.update(null, false, callback);
     },
 
     show: function () {
@@ -2122,9 +2329,23 @@ mpcp.browser = {
         mpcp.browser.clearSelected();
     },
 
-    addMulti: function (to) {
+    addMulti: function (to, callback) {
         toArraySelected(mpcp.browser);
-        var i, tr, dir, file;
+        var i, tr, dir, file, j = 0;
+
+        function addFile(file) {
+            mpcp.playlist.addSong(file, to, dontScroll, function () {
+                if (++j == mpcp.browser.selected.length && callback)
+                    callback();
+            });
+        }
+
+        function addDir(dir) {
+            mpcp.playlist.addDir(dir, to, dontScroll, function () {
+                if (++j == mpcp.browser.selected.length && callback)
+                    callback();
+            });
+        }
 
         if (mpcp.pb.current) {
             var arr = [];
@@ -2140,7 +2361,7 @@ mpcp.browser = {
                 }
             }
 
-            mpcp.pb.addArr(arr, to);
+            mpcp.pb.addArr(arr, to, callback);
         } else {
             var dontScroll = false;
             // dont scroll if drag and drop ("to" would not be null)
@@ -2153,10 +2374,13 @@ mpcp.browser = {
                 tr = mpcp.browser.selected[i];
                 if ($(tr).hasClass('file')) {
                     file = $(tr).data().fileid;
-                    mpcp.playlist.addSong(file, to, dontScroll);
+                    addFile(file);
                 } else if ($(tr).hasClass('directory')) {
                     dir = $(tr).data().dirid;
-                    mpcp.playlist.addDir(dir, to, dontScroll);
+                    addDir(dir);
+                } else {
+                    if (++j == mpcp.browser.selected.length && callback)
+                        callback();
                 }
             }
         }
@@ -2164,13 +2388,22 @@ mpcp.browser = {
         mpcp.browser.clearSelected();
     },
 
-    addExternal: function (file, to) {
+    addExternal: function (file, to, callback) {
         if (mpcp.browser.selected.length)
-            mpcp.browser.addMulti(to);
+            mpcp.browser.addMulti(to, callback);
         else if (mpcp.pb.current)
-            mpcp.pb.addid(file, to);
+            mpcp.pb.addid(file, to, callback);
         else
-            mpcp.playlist.addSong(file, to);
+            mpcp.playlist.addSong(file, to, false, callback);
+    },
+
+    addExternalDir: function (dir, to, callback) {
+        if (mpcp.browser.selected.length)
+            mpcp.browser.addMulti(to, callback);
+        else if (mpcp.pb.current)
+            mpcp.pb.add(dir, null, callback);
+        else
+            mpcp.playlist.add(dir, to, callback);
     },
 
     initEvents: function () {
@@ -2194,7 +2427,8 @@ mpcp.browser = {
                         if (err) {
                             $('#update .glyphicon').removeClass('spinning');
                             clearInterval(updateInterval);
-                            lazyToast.error('Error getting the status from MPD!');
+                            lazyToast.error(
+                                'Error getting the status from MPD!');
 
                             return console.log(err);
                         }
@@ -2205,7 +2439,8 @@ mpcp.browser = {
                             // to everyone
                             clearInterval(updateInterval);
                             $('#update .glyphicon').removeClass('spinning');
-                            lazyToast.info('Music library updated!', 'Library');
+                            lazyToast.info(
+                                'Music library updated!', 'Library');
 
                             socket.send(JSON.stringify(
                                     {'type': 'update-browser'}),
@@ -2245,7 +2480,7 @@ mpcp.browser = {
 
         $(document).on('click', '.dir-add', function () {
             var dir = $(this).parent().parent().data().dirid;
-            mpcp.browser.addExternal(dir);
+            mpcp.browser.addExternalDir(dir);
         });
 
         $(document).on('click', '.loc-dir', function () {
@@ -2260,10 +2495,7 @@ mpcp.browser = {
         });
 
         $('#open-file-browser').click(function () {
-            mpcp.settings.saveBrowser('browser');
-            $('#file-browser-song-list.table').trigger('reflow');
-            mpcp.browser.update();
-            mpcp.browser.addToHistory();
+            mpcp.browser.open();
         });
 
         floatTable('#file-browser-song-list.table', '#slwrap');
@@ -2281,7 +2513,8 @@ mpcp.browser = {
         tableSort('#file-browser-song-list',
                 '#file-browser-song-list-col-time',   5, '00:00');
 
-        multiSelect('#file-browser-song-list', mpcp.browser, ['song-add', 'dir-add']);
+        multiSelect('#file-browser-song-list', mpcp.browser,
+            ['song-add', 'dir-add']);
     }
 };
 
@@ -2348,13 +2581,20 @@ mpcp.library = {
 
     // put artists in table
     // artistUse: highlight in table
-    updateArtists: function (artistUse) {
-        if (this.hidden) return;
+    updateArtists: function (artistUse, callback) {
+        if (this.hidden) {
+            if (callback) callback();
+            return;
+        }
 
         console.log('update artists');
 
         komponist.list('artist', function (err, files) {
-            if (err) return console.log(err);
+            if (err) {
+                console.log(err);
+                if (callback) callback();
+                return;
+            }
 
             //console.log(files);
 
@@ -2367,7 +2607,9 @@ mpcp.library = {
                 html = '<tr class="gen"><td colspan="2">' +
                     '<em class="text-muted">No artists</em></td></tr>';
                 $('#library-artists-list .append').append(html);
-                return console.log('No artists found');
+                console.log('No artists found');
+                if (callback) callback();
+                return;
             }
 
             var tableStart = '<table class="fixed-table"><tr><td>',
@@ -2383,23 +2625,33 @@ mpcp.library = {
                 addClass = '';
             }
 
-            mpcp.browser.createDraggable('#library-artists-list', mpcp.libraryArtist);
+            mpcp.browser.createDraggable(
+                '#library-artists-list', mpcp.libraryArtist);
             $('#library-artists-list .append').append(html);
+            if (callback) callback();
         });
     },
 
     // put albums in table
     // albumUse: highlight in table
-    updateAlbums: function (artist, albumUse) {
+    updateAlbums: function (artist, albumUse, poppedState, callback) {
         // if still null, return (user updates library without clicking an
         // artist)
-        if (!artist) return;
+        if (!artist) {
+            if (callback) callback();
+            return;
+        }
 
         console.log('update albums');
         mpcp.library.artist = artist;
 
         komponist.list('album', artist, function (err, files) {
-            if (err) return console.log(err);
+            if (err) {
+                console.log(err);
+                mpcp.library.updateSongs(
+                    artist, albumUse, poppedState, callback);
+                return;
+            }
 
             $('#library-albums-list .gen').remove();
             files = toArray(files);
@@ -2422,7 +2674,10 @@ mpcp.library = {
                 html = '<tr class="gen"><td colspan="6">' +
                     '<em class="text-muted">No albums</em></td></tr>';
                 $('#library-albums-list .append').append(html);
-                return console.log('No albums found');
+                console.log('No albums found');
+                mpcp.library.updateSongs(
+                    artist, albumUse, poppedState, callback);
+                return;
             }
 
             for (var i = 0; i < files.length; ++i) {
@@ -2437,15 +2692,22 @@ mpcp.library = {
 
             $('#library-albums-list .append').append(html);
 
-            mpcp.browser.createDraggable('#library-albums-list', mpcp.libraryAlbum);
+            mpcp.browser.createDraggable(
+                '#library-albums-list', mpcp.libraryAlbum);
+
+            // show all songs initially
+            mpcp.library.updateSongs(artist, albumUse, poppedState, callback);
         });
     },
 
     // put songs in table
-    updateSongs: function (artist, album, poppedState) {
+    updateSongs: function (artist, album, poppedState, callback) {
         // if still null, return (user updates library without clicking an
         // artist)
-        if (!artist) return;
+        if (!artist) {
+            if (callback) callback();
+            return;
+        }
 
         console.log('update songs');
         mpcp.library.album = album;
@@ -2455,7 +2717,8 @@ mpcp.library = {
                 setSongs(err, files);
             });
         } else {
-            komponist.find('artist', artist, 'album', album, function (err, files) {
+            komponist.find('artist', artist, 'album', album,
+                    function (err, files) {
                 setSongs(err, files);
             });
         }
@@ -2463,7 +2726,11 @@ mpcp.library = {
         if (!poppedState) mpcp.library.addToHistory();
 
         function setSongs(err, files) {
-            if (err) return console.log(err);
+            if (err) {
+                console.log(err);
+                if (callback) callback();
+                return;
+            }
 
             //console.log(files);
 
@@ -2488,9 +2755,10 @@ mpcp.library = {
             }
 
             $('#library-songs-list .append').append(html);
-            mpcp.browser.createDraggable('#library-songs-list', browser);
+            mpcp.browser.createDraggable('#library-songs-list', mpcp.browser);
             mpcp.browser.updatePosition();
             //$('#library-songs-list.table').trigger('reflow');
+            if (callback) callback();
         }
     },
 
@@ -2512,6 +2780,13 @@ mpcp.library = {
         window.history.pushState('', url + ' - MPCParty', '/library/' + url);
     },
 
+    // manually open from the user
+    open: function (callback) {
+        mpcp.settings.saveBrowser('library');
+        mpcp.library.addToHistory();
+        mpcp.library.updateArtists(mpcp.library.artist, callback);
+    },
+
     show: function () {
         if (!mpcp.library.hidden) return;
 
@@ -2529,8 +2804,8 @@ mpcp.library = {
         mpcp.library.hidden = true;
         $('#library').hide();
         mpcp.libraryArtist.saveSelected();
-        mpcp.libraryAlbum.saveSelected();
         mpcp.libraryArtist.clearSelected();
+        mpcp.libraryAlbum.saveSelected();
         mpcp.libraryAlbum.clearSelected();
     },
 
@@ -2614,8 +2889,11 @@ mpcp.library = {
             });
     },
 
-    // search mpcp.library. assume mpcp.library.artist and mpcp.library.album is already set
-    search: function (title) {
+    // search mpcp.library. assume mpcp.library.artist and mpcp.library.album
+    // is already set
+    search: function (title, callback) {
+        console.log('library search: ' + title);
+
         function compare(files) {
             //console.log(files);
             $(files).each(function(item, file) {
@@ -2627,12 +2905,14 @@ mpcp.library = {
                     }
                 });
             });
+
+            if (callback) callback();
         }
 
         if (mpcp.library.artist && mpcp.library.album) {
             //console.log('search artist and album');
-            komponist.search('artist', mpcp.library.artist, 'album', mpcp.library.album,
-                    'title', title, function (err, files) {
+            komponist.search('artist', mpcp.library.artist, 'album',
+                    mpcp.library.album, 'title', title, function (err, files) {
                 if (err) return console.log(err);
                 compare(files);
             });
@@ -2645,6 +2925,7 @@ mpcp.library = {
             });
         } else {
             console.log('no artist or album selected?');
+            if (callback) callback();
         }
     },
 
@@ -2675,8 +2956,7 @@ mpcp.library = {
 
         if (mpcp.library.artist != artist) mpcp.library.updateArtists(artist);
 
-        mpcp.library.updateAlbums(artist, album);
-        mpcp.library.updateSongs(artist, album, true);
+        mpcp.library.updateAlbums(artist, album, true);
     },
 
     initEvents: function () {
@@ -2696,18 +2976,12 @@ mpcp.library = {
             1000);
 
         $('#open-library').click(function () {
-            mpcp.settings.saveBrowser('library');
-            mpcp.library.updateArtists(mpcp.library.artist);
-            mpcp.library.addToHistory();
+            mpcp.library.open();
         });
 
         $(document).on('click', '#library-artists-list .gen', function () {
             var artist = $(this).data().artist;
-
             mpcp.library.updateAlbums(artist);
-
-            // show all songs initially
-            mpcp.library.updateSongs(artist);
         });
 
         $(document).on('click', '#library-albums-list .gen', function () {
@@ -2758,7 +3032,8 @@ mpcp.library = {
                 5, '00:00');
 
         // artist
-        tableSort('#library-artists-list', '#library-col-artists', 1, 'string');
+        tableSort(
+            '#library-artists-list', '#library-col-artists', 1, 'string');
 
         // album
         tableSort('#library-albums-list', '#library-col-albums', 1, 'string');
@@ -2790,7 +3065,7 @@ mpcp.stored = {
 
     // used show all playlists
     // fileArr is used when saving the playlist externally after clicking save
-    updatePlaylists: function (id, type) {
+    updatePlaylists: function (id, type, callback) {
         if (type) {
             if (typeof type == 'function') {
                 this.call = type;
@@ -2811,6 +3086,7 @@ mpcp.stored = {
                 }
             }
 
+            if (callback) callback();
             return console.log('no update');
         } else {
             this.current = 'native';
@@ -2828,7 +3104,9 @@ mpcp.stored = {
 
                 html = '<em class="gen text-muted">No saved playlists</em>';
                 $(id +' .modal-body').append(html);
-                return console.log(err);
+                console.log(err);
+                if (callback) callback();
+                return;
             }
 
             if (id == '#playlist-open-modal')
@@ -2853,8 +3131,10 @@ mpcp.stored = {
 
             $(playlists).each(function (item, value) {
                 komponist.listplaylist(value.playlist, function (err, songs) {
-                    if (err && err.message == 'No such playlist [50@0] {listplaylist}') {
-                        console.log('no playlist found: ' + value.playlist);
+                    if (err && err.message ==
+                            'No such playlist [50@0] {listplaylist}') {
+                        console.log('no playlist found: "' +
+                            value.playlist + '"');
                     } else if (err) {
                         console.log(err);
                     }
@@ -2866,14 +3146,15 @@ mpcp.stored = {
                     html += '<tr class="gen" data-fileid="' + value.playlist + '"><td>' + value.playlist + '</td><td>' + songs.length + '</td><td class="text-right"><span class="faded playlist-remove text-danger glyphicon glyphicon-remove" data-fileid="' + value.playlist + '" title="Remove the playlist"></span></td>';
                     if (++i == playlists.length) {
                         $(id +' .playlists tbody').append(html);
+                        if (callback) callback();
                     }
                 });
             });
         });
     },
 
-    // save the mpcp.playlist. Wrapper for komponist.save()
-    save: function (file) {
+    // save the playlist. Wrapper for komponist.save()
+    save: function (file, callback) {
         file = file.toString().trim().replace(/\u00a0/g, " ");
         console.log(file);
 
@@ -2884,6 +3165,7 @@ mpcp.stored = {
             lazyToast.warning('You must provide a title!', 'Playlist');
             $('#playlist-save-modal').modal('hide');
 
+            if (callback) callback();
             return console.log('invalid title');
         }
 
@@ -2892,13 +3174,19 @@ mpcp.stored = {
                 lazyToast.warning('Playlist empty!', 'Playlist');
                 $('#playlist-save-modal').modal('hide');
 
+                if (callback) callback();
                 return console.log('empty playlist');
             }
 
             // overwrite any existing playlist
             komponist.rm(file, function (err, val) {
-                // TODO handle error better
-                if (err) console.log('No playlist to overwrite, continue...');
+                if (err) {
+                    if (err.message == 'No such playlist [50@0] {rm}')
+                        console.log('No playlist to overwrite, continue...');
+                    else
+                        console.log(err);
+                }
+
                 //console.log(mpcp.stored.fileArr);
 
                 // continue saving...
@@ -2917,10 +3205,10 @@ mpcp.stored = {
 
                 function addSongToPlaylist(file, song) {
                     komponist.playlistadd(file, song, function (err2, val) {
-                        // I would like to break from the each loop when an error
-                        // occurs, but getting that set up is hackish. For now,
-                        // it will run the each loop every time an error is
-                        // caught
+                        // I would like to break from the each loop when an
+                        // error occurs, but getting that set up is hackish.
+                        // For now, it will run the each loop every time an
+                        // error is caught
                         ++i;
 
                         if (err2) {
@@ -2939,8 +3227,9 @@ mpcp.stored = {
                             saved = false;
                             // resolves earlier because output would be the
                             // same anyways
+                            console.log(err2);
                             def.resolve();
-                            return console.log(err2);
+                            return;
                         }
 
                         if (i == mpcp.stored.fileArr.length) {
@@ -2959,7 +3248,8 @@ mpcp.stored = {
                 }
 
                 def.done(function () {
-                    // in deferred because the loop can execute the playlistadd multiple times
+                    // in deferred because the loop can execute the
+                    // playlistadd multiple times
                     if (invalid) {
                         lazyToast.warning('Playlist may not contain slashes, newlines, or carriage returns.', 'Invalid Characters', 10000);
                     } else if (noFile) {
@@ -2973,7 +3263,8 @@ mpcp.stored = {
 
                     if (saved) {
                         file = file.replace(/ /g, '\u00a0');
-                        lazyToast.info(file + ' playlist saved!', 'Playlist update');
+                        lazyToast.info(
+                            file + ' playlist saved!', 'Playlist update');
 
                         if (updatedCurrentPlaylist) {
                             var msg = 'You must open the updated playlist for it to update the current mpcp.playlist.';
@@ -2990,6 +3281,8 @@ mpcp.stored = {
                         // clear fileArr after saving
                         mpcp.stored.fileArr = [];
                     }
+
+                    if (callback) callback();
                 });
             });
         } else {
@@ -3004,12 +3297,17 @@ mpcp.stored = {
                 lazyToast.warning('Playlist empty!', 'Playlist');
                 $('#playlist-save-modal').modal('hide');
 
+                if (callback) callback();
                 return console.log('playlist empty');
             }
 
             komponist.rm(file, function (err, val) {
-                // TODO check specific error messages
-                if (err) console.log('No playlist to overwrite');
+                if (err) {
+                    if (err.message == 'No such playlist [50@0] {rm}')
+                        console.log('No playlist to overwrite, continue...');
+                    else
+                        console.log(err);
+                }
 
                 // continue saving...
                 komponist.save(file, function (err, val) {
@@ -3023,16 +3321,25 @@ mpcp.stored = {
                         } else if (err.message == 'playlist name is invalid: playlist names may not contain slashes, newlines or carriage returns [2@0] {save}') {
                             lazyToast.warning('Playlist may not contain slashes, newlines, or carriage returns.', 'Invalid Characters', 10000);
                         }
+
+                        if (callback) callback();
                         return console.log(err);
                     }
 
-                    lazyToast.info(file + ' playlist saved!', 'Playlist update');
+                    lazyToast.info(
+                        file + ' playlist saved!', 'Playlist update');
+
+                    // set title locally before sending to clients
+                    $('#playlist-title strong').html(file);
+                    $('#playlist-title strong').attr('title', file);
 
                     socket.send(JSON.stringify({
                             'type': 'playlist-title', 'info': file
                             }), function (err) {
                         if (err) console.log(err);
                     });
+
+                    if (callback) callback();
                 });
             });
         }
@@ -3040,12 +3347,40 @@ mpcp.stored = {
         $('#playlist-save-modal').modal('hide');
     },
 
+    externalSave: function (callback) {
+        var trs = $(mpcp.pb.table).children('.gen').not('.rem'),
+        fileIds = [];
+
+        for (var i = 0; i < trs.length; ++i)
+            fileIds[i] = $(trs[i]).data().fileid;
+
+        mpcp.stored.updatePlaylists('#playlist-save-modal', fileIds, callback);
+    },
+
+    removePlaylist: function (file, tr, callback) {
+        file = file.replace(/\u00a0/g, " ");
+        // client side deletion, less jaring (stops flashing the list)
+        mpcp.stored.doUpdate = false;
+        console.log('delete playlist ' + file);
+
+        komponist.rm(file, function (err) {
+            if (err) {
+                lazyToast.error(err, 'Error removing playlist!');
+                console.log(err);
+            } else {
+                $(tr).remove();
+            }
+
+            if (callback) callback();
+        });
+    },
+
     // open the mpcp.playlist. Wrapper for komponist.open()
-    open: function (file) {
+    open: function (file, callback) {
         file = file.toString().replace(/\u00a0/g, " ");
         if (this.call !== null) {
             console.log('calling fn..');
-            this.call(file);
+            this.call(file, callback);
             this.call = null;
         } else {
             console.log('confirm open playlist');
@@ -3055,17 +3390,30 @@ mpcp.stored = {
 
             komponist.clear(function (err) {
                 if (err) console.log(err);
+
+                komponist.load(file, function (err) {
+                    if (err) {
+                        lazyToast.error('Error loading the playlist! ' +
+                            err.message);
+                        console.log(err);
+                        if (callback) callback();
+                        return;
+                    }
+
+                    // set title locally before sending to clients
+                    $('#playlist-title strong').html(file);
+                    $('#playlist-title strong').attr('title', file);
+
+                    socket.send(JSON.stringify({
+                            'type': 'playlist-title', 'info': file
+                            }), function (err) {
+                        if (err) console.log(err);
+                    });
+
+                    mpcp.playlist.addCallbackUpdate(callback);
+                });
             });
 
-            komponist.load(file, function (err) {
-                if (err) console.log(err);
-            });
-
-            socket.send(JSON.stringify({
-                    'type': 'playlist-title', 'info': file
-                    }), function (err) {
-                if (err) console.log(err);
-            });
         }
         $('#playlist-open-modal').modal('hide');
     },
@@ -3125,22 +3473,10 @@ mpcp.stored = {
         });
 
         $(document).on('click', '.playlist-remove', function () {
-            var file = $(this).data().fileid.replace(/\u00a0/g, " "),
-                that = this;
+            var file = $(this).data().fileid,
+                tr   = $(this).parent().parent();
 
-            // client side deletion, less jaring (stops flashing the list)
-            mpcp.stored.doUpdate = false;
-
-            komponist.rm(file, function (err) {
-                if (err) {
-                    lazyToast.error(err, 'Error removing playlist!');
-                    console.log(err);
-                } else {
-                    $(that).parent().parent().remove();
-                }
-            });
-
-            console.log('delete playlist ' + file);
+            mpcp.stored.removePlaylist(file, tr);
         });
 
         $(document).on('dblclick', '#playlist-open-modal .gen', function () {
@@ -3180,10 +3516,14 @@ mpcp.stored = {
         });
 
         // separate for open and save because of duplication issues
-        tableSort('#playlist-open-modal table', '#playlist-open-modal .col-playlists-title', 1, 'string');
-        tableSort('#playlist-open-modal table', '#playlist-open-modal .col-playlists-songs', 2, 'number');
-        tableSort('#playlist-save-modal table', '#playlist-save-modal .col-playlists-title', 1, 'string');
-        tableSort('#playlist-save-modal table', '#playlist-save-modal .col-playlists-songs', 2, 'number');
+        tableSort('#playlist-open-modal table',
+            '#playlist-open-modal .col-playlists-title', 1, 'string');
+        tableSort('#playlist-open-modal table',
+            '#playlist-open-modal .col-playlists-songs', 2, 'number');
+        tableSort('#playlist-save-modal table',
+            '#playlist-save-modal .col-playlists-title', 1, 'string');
+        tableSort('#playlist-save-modal table',
+            '#playlist-save-modal .col-playlists-songs', 2, 'number');
     }
 };
 
@@ -3214,7 +3554,8 @@ mpcp.progressbar = {
         $('#music-time').on('change', function () {
             // DO NOT USE seekcur, it introduces the SKIPPING BUG
             // on SOME systems.
-            komponist.seek(mpcp.player.current.Pos, this.value, function (err) {
+            komponist.seek(mpcp.player.current.Pos, this.value,
+                    function (err) {
                 console.log('Seeking...');
                 if (err) console.log('no song playing to seek');
             });
@@ -3252,14 +3593,10 @@ mpcp.pb = {
 
     // file object, position to put song
     // file can be an array of 'file' objects
-    addSong: function (file, pos) {
+    addSong: function (file, pos, callback) {
         //console.log('adding song to pb: ' + mpcp.pb.current);
         //console.log(file);
         mpcp.pb.removeNothingMessage();
-
-        if (mpcp.pb.current != 'local') {
-            conole.log('not implemented');
-        }
 
         var title, html;
         //console.log(file);
@@ -3282,7 +3619,6 @@ mpcp.pb = {
             } else {
                 //console.log('add to ' + pos);
                 $(mpcp.pb.table + ' > .gen:nth-child(' + (pos) + ')').after(html);
-                mpcp.pb.move();
             }
         } else {
             //console.log('add to bottom');
@@ -3290,8 +3626,10 @@ mpcp.pb = {
             $('#pb-main').scrollTop($('#pb-song-list')[0].scrollHeight);
         }
 
+
         mpcp.pb.initDrag();
         mpcp.pb.move();
+        if (callback) callback();
     },
 
     initDrag: function () {
@@ -3412,28 +3750,33 @@ mpcp.pb = {
     },
 
     // wrapper (similar to komponist.addid)
-    addid: function (fileid, pos) {
+    addid: function (fileid, pos, callback) {
+        console.log(fileid);
         komponist.find('file', fileid, function (err, value) {
-            if (err) return console.log(err);
+            if (err) {
+                console.log(err);
+                if (callback) callback();
+                return;
+            }
 
+            //console.log(value);
             value = value[0];
 
             if (value.file && !value.directory) {
-                //console.log(value);
-                mpcp.pb.addSong(value, pos);
+                mpcp.pb.addSong(value, pos, callback);
             }
         });
     },
 
     // add an array so the DOM is only updated once
     // arr: [type][value]
-    addArr: function (arr, pos) {
+    addArr: function (arr, pos, rootCallback) {
         // converts to a files array for addSong
         var newArr = [],
             j      = 0;
 
         function callback() {
-            mpcp.pb.addSong(newArr, pos);
+            mpcp.pb.addSong(newArr, pos, rootCallback);
         }
 
         function setFile(fileid) {
@@ -3484,7 +3827,7 @@ mpcp.pb = {
     },
 
     // wrapper (similar to komponist.add)
-    add: function (dir, pos) {
+    add: function (dir, pos, callback) {
         // FUTURE SELF: DO NOT USE LISTALLINFO, IT WILL HAVE THE "OFF BY ONE"
         // BUG, KEEP THIS 'getAllInfo'.
         // Option 1: Loop through all directories recursively running lsinfo
@@ -3494,7 +3837,7 @@ mpcp.pb = {
         // server can respond per directory (so it can look random)
         getAllInfo(dir, function (files) {
             //console.log(files);
-            mpcp.pb.addSong(files, pos);
+            mpcp.pb.addSong(files, pos, callback);
         });
     },
 
@@ -3527,12 +3870,16 @@ mpcp.pb = {
     },
 
     // open the playlist to the pb
-    open: function (file) {
+    open: function (file, callback) {
         komponist.listplaylistinfo(file, function (err, val) {
-            if (err) return console.log(err);
+            if (err) {
+                console.log(err);
+                if (callback) callback();
+                return;
+            }
 
             mpcp.pb.clear();
-            mpcp.pb.addSong(val);
+            mpcp.pb.addSong(val, null, callback);
         });
     },
 
@@ -3566,13 +3913,14 @@ mpcp.pb = {
     },
 
     // scramble the pb
-    scramble: function () {
+    scramble: function (callback) {
         $(this.table).randomize('.gen');
         this.move();
+        if (callback) callback();
     },
 
     // remove duplicate songs in the pb
-    removeDuplicates: function () {
+    removeDuplicates: function (callback) {
         console.log('remove duplicates');
         var duplicate = {};
 
@@ -3584,6 +3932,8 @@ mpcp.pb = {
             else
                 duplicate[title] = true;
         });
+
+        if (callback) callback();
     },
 
     // move rows to top of pb
@@ -3648,16 +3998,12 @@ mpcp.pb = {
         $(document).on('click', '#pb-close', function () { mpcp.pb.close(); });
 
         $(document).on('click', '#pb-save', function () {
-            var trs = $(mpcp.pb.table).children('.gen').not('.rem'),
-                fileIds = [];
-
-            for (var i = 0; i < trs.length; ++i)
-                fileIds[i] = $(trs[i]).data().fileid;
-
-            mpcp.stored.updatePlaylists('#playlist-save-modal', fileIds);
+            mpcp.stored.externalSave();
         });
 
-        $(document).on('click', '#pb-minimize', function () { mpcp.pb.minimize(); });
+        $(document).on('click', '#pb-minimize', function () {
+            mpcp.pb.minimize();
+        });
 
         $(document).on('click', '#pb-tab', function () { mpcp.pb.resume(); });
 
@@ -3665,7 +4011,9 @@ mpcp.pb = {
             mpcp.stored.updatePlaylists('#playlist-open-modal', mpcp.pb.open);
         });
 
-        $(document).on('click', '#pb-scramble', function () { mpcp.pb.scramble(); });
+        $(document).on('click', '#pb-scramble', function () {
+            mpcp.pb.scramble();
+        });
 
         $(document).on('click', '#pb-remove-duplicates', function () {
             mpcp.pb.removeDuplicates();
@@ -3727,7 +4075,8 @@ var users = {
         $('#user-list .gen').remove();
 
         for (var ip in hostnames) {
-            html += '<li class="gen"><a class="no-hover">' + hostnames[ip] + '</a></li>';
+            html += '<li class="gen"><a class="no-hover">' + hostnames[ip] +
+                '</a></li>';
         }
 
         $('#user-list').append(html);
@@ -4019,7 +4368,8 @@ mpcp.settings = {
 
             if (use) mpcp.pages.enabledPlaylist = (use === 'true');
 
-            $('#use-pages-playlist').prop('checked', mpcp.pages.enabledPlaylist);
+            $('#use-pages-playlist').prop(
+                'checked', mpcp.pages.enabledPlaylist);
 
             if (mpcp.pages.enabledPlaylist)
                 mpcp.pages.show('playlist');
@@ -4167,7 +4517,8 @@ mpcp.settings = {
 
         if (use && use === 'false') mpcp.settings.consumeWarning = false;
 
-        $('#use-consume-warning').prop('checked', mpcp.settings.consumeWarning);
+        $('#use-consume-warning').prop(
+            'checked', mpcp.settings.consumeWarning);
     },
 
     saveConsumeWarning: function (use) {
@@ -4954,14 +5305,17 @@ function contextResponse(key, table, tr) {
                         libraryAlbum, artist, album, undefined, false);
                 break;
             case 'atc':
-                if ($(tr).hasClass('artist') && mpcp.libraryArtist.selected.length) {
+                if ($(tr).hasClass('artist') &&
+                        mpcp.libraryArtist.selected.length) {
                     mpcp.library.addExternal(libraryArtist, artist, album,
                         mpcp.player.current.Pos + 1, false);
-                } else if ($(tr).hasClass('album') && mpcp.libraryAlbum.selected.length) {
+                } else if ($(tr).hasClass('album') &&
+                        mpcp.libraryAlbum.selected.length) {
                     mpcp.library.addExternal(libraryAlbum, artist, album,
                         mpcp.player.current.Pos + 1, false);
                 } else {
-                    mpcp.library.getSongsFromAlbum(artist, album, function (files) {
+                    mpcp.library.getSongsFromAlbum(artist, album,
+                            function (files) {
                         for (var i = 0; i < files.length; ++i) {
                             mpcp.playlist.addToCurrent(files[i].file, 'file');
                         }
@@ -4995,11 +5349,11 @@ $.contextMenu({
             }
         }
 
-        checkInside(playlist);
-        checkInside(browser);
-        checkInside(pb);
-        checkInside(libraryArtist);
-        checkInside(libraryAlbum);
+        checkInside(mpcp.playlist);
+        checkInside(mpcp.browser);
+        checkInside(mpcp.pb);
+        checkInside(mpcp.libraryArtist);
+        checkInside(mpcp.libraryAlbum);
 
         // if its not in .selected, update it.
         if (!inside) {

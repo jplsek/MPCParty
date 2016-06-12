@@ -20,6 +20,7 @@ TODO
     * Loading icon between changing locations?
     * Custom column picker
 * Library:
+    * If user clicks the same album or artist multiple times, don't save it to the history
 * Playlist:
     * Drag and drop through pages
     * Remove songs visually to the single user. (Do not update the playlist via mpd for the user editing it.) It will allow faster deletion for large playlists.
@@ -49,6 +50,7 @@ TODO
 * Loading a theme will add another "theme load" every time.
 * Webkit: resizing pb makes the values "inverted". http://codepen.io/anon/pen/VeWwLa
 * Drag and drop inside artist and album tries to be sortable, unlike song-list
+* Drag and drop is currently broken after scolling down
 * Webkit: library doesn't show up properly with a column (works fine in ff). Currently using a css prefix for ff only until I fix it for webkit.
 
 ---
