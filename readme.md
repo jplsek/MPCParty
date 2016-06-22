@@ -78,7 +78,7 @@ Edit config.cfg
 ## Installation
 ### 1) Dependencies
 * Install [MPD](http://www.musicpd.org/download.html) (`sudo apt-get update && sudo apt-get install mpd`), and get a running instance working (a sample mpd conf file is stored in utils/ to be ran as a local user (run it with `mpd ~/.config/mpd/mpd.conf`))
-* Install [nodejs](https://nodejs.org/download/) (`sudo apt-get install nodejs`) (Minimum node version is 0.12 for the Player)
+* Install [nodejs](https://nodejs.org/download/) (`sudo apt-get install nodejs-legacy`) (Minimum node version is 0.12 for the Player.) Note: on non-debian based systems you should try to install nodejs with the package "node" or "nodejs".
 
 > I only have binaries for GNU/Linux. OSX and BSD should work via the development version. I have yet to get Windows to compile with the Download Player enabled (Windows works, just without the Player, so if you try starting the server, and nothing happens, disable the Player from the config file).
 

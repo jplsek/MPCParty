@@ -868,7 +868,7 @@ mpcp.playlist = {
                     mpcp.playlist.local = playlistLoad;
 
                     if ($.isEmptyObject(playlistLoad[0])) {
-                        var html = '<tr class="rem gen"><td><em class="text-muted">The playlist is empty! Songs can be added from the browser or by opening a mpcp.playlist.</em></td></tr>';
+                        var html = '<tr class="rem gen"><td><em class="text-muted">The playlist is empty! Songs can be added from the browser or by opening a playlist.</em></td></tr>';
                         $('#playlist-song-list').append(html);
                         // fix for removing the last song that's
                         // playling from the playlist
@@ -1552,7 +1552,7 @@ mpcp.playlist = {
         mpcp.pages.go('playlist', pos / mpcp.pages.maxPlaylist + 1);
     },
 
-    // goes to the current song in the mpcp.playlist.
+    // goes to the current song in the playlist.
     goToCurrent: function (callback) {
         console.log('go to current');
 
@@ -3159,7 +3159,7 @@ mpcp.stored = {
         console.log(file);
 
         // When titles are "", it updates the current playlist, kind of.
-        // It works via playlist buffer, but not the mpcp.playlist.
+        // It works via playlist buffer, but not the playlist.
         // So I'd rather disable the feature in case people get confused.
         if (file === "") {
             lazyToast.warning('You must provide a title!', 'Playlist');
@@ -3978,7 +3978,7 @@ mpcp.pb = {
     },
 
     showNothingMessage: function () {
-        var html = '<tr class="rem gen"><td><em class="text-muted">The playlist buffer is empty! Songs can be added from the browser or by opening a mpcp.playlist.</em></td></tr>';
+        var html = '<tr class="rem gen"><td><em class="text-muted">The playlist buffer is empty! Songs can be added from the browser or by opening a playlist.</em></td></tr>';
         $(mpcp.pb.table).append(html);
         mpcp.pb.initDrag();
     },
@@ -4607,7 +4607,7 @@ mpcp.settings = {
 
 // the video (audio) player
 mpcp.video = {
-    // current tile on mpcp.player.
+    // current tile on player.
     title: '',
 
     // download the video
