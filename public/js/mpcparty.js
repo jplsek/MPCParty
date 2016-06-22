@@ -661,15 +661,15 @@ mpcp.player = {
         if (vote.enabled) {
             mpcp.player.addCallbackUpdate(callback);
 
-            if (!$(this).hasClass('active')) {
+            if (!$('#next').hasClass('active')) {
                 socket.send(JSON.stringify({
                         'type': 'song-vote-next', 'info': 'yes'
                         }), function (err) {
                     if (err) console.log(err);
                 });
-                $(this).addClass('active');
+                $('#next').addClass('active');
             } else {
-                $(this).removeClass('active');
+                $('#next').removeClass('active');
                 socket.send(JSON.stringify({
                         'type': 'song-vote-next', 'info': 'no'
                         }), function (err) {
@@ -703,15 +703,15 @@ mpcp.player = {
         if (vote.enabled) {
             mpcp.player.addCallbackUpdate(callback);
 
-            if (!$(this).hasClass('active')) {
+            if (!$('#previous').hasClass('active')) {
                 socket.send(JSON.stringify({
                         'type': 'song-vote-previous', 'info': 'yes'
                         }), function (err) {
                     if (err) console.log(err);
                 });
-                $(this).addClass('active');
+                $('#previous').addClass('active');
             } else {
-                $(this).removeClass('active');
+                $('#previous').removeClass('active');
                 socket.send(JSON.stringify({
                         'type': 'song-vote-previous', 'info': 'no'
                         }), function (err) {
@@ -4048,7 +4048,7 @@ var vote = {
 
     // send a message to the client (using setTitle as the message)
     message: function (current, id) {
-        toastr.info(vote.setTitles(current, id), 'Song Skip');
+        lazyToast.info(vote.setTitles(current, id), 'Song Skip');
     },
 
     // create a title for the next and previous buttons
