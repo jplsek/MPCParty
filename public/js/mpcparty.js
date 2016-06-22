@@ -1352,7 +1352,7 @@ mpcp.playlist = {
     // TODO Goal: remove song from playlist without mpd updating the playlist
     // locally. Have to update mpcp.playlist.local .Pos to work, or somehow
     // use numbered table rows instead of using Pos.
-    // remove song from the mpcp.playlist. The element must be removed
+    // remove song from the playlist. The element must be removed
     // manually before or after calling!
     removeSong: function (fileid) {
         komponist.deleteid(fileid, function (err, val) {
@@ -2180,7 +2180,7 @@ mpcp.browser = {
                     }
                 }
 
-                // if its not in mpcp.playlist.selected, update it.
+                // if its not in *.selected, update it.
                 if (!inside) {
                     if (mpcp.libraryArtist.selected.length) {
                         mpcp.libraryArtist.saveSelected();
@@ -3267,7 +3267,7 @@ mpcp.stored = {
                             file + ' playlist saved!', 'Playlist update');
 
                         if (updatedCurrentPlaylist) {
-                            var msg = 'You must open the updated playlist for it to update the current mpcp.playlist.';
+                            var msg = 'You must open the updated playlist for it to update the current playlist.';
                             mpcp.history.add(msg, 'info');
                             toastr.info(msg + '<button title="Reloads the playlist" class="playlist-reload btn btn-default pull-right"><span class="glyphicon glyphicon-repeat"></span></button>', 'Playlist update', {
                                 'closeButton': true,
@@ -3375,7 +3375,7 @@ mpcp.stored = {
         });
     },
 
-    // open the mpcp.playlist. Wrapper for komponist.open()
+    // open the playlist. Wrapper for komponist.open()
     open: function (file, callback) {
         file = file.toString().replace(/\u00a0/g, " ");
         if (this.call !== null) {
@@ -3850,7 +3850,7 @@ mpcp.pb = {
                 $(tr).remove();
             });
 
-            // clear mpcp.playlist.selected just in case.
+            // clear mpcp.pb.selected just in case.
             mpcp.pb.clearSelected();
         } else {
             $(element).remove();
