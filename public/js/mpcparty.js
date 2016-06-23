@@ -612,7 +612,12 @@ mpcp.player = {
 
     // create a queue because the server responds once for a dom update
     addCallbackUpdate: function (callback) {
-        if (callback) mpcp.player.callbackUpdates.push(callback);
+        if (typeof callback === 'function') {
+            mpcp.player.callbackUpdates.push(callback);
+        } else if (callback) {
+            console.log('!!! This is not a function, fix it:');
+            console.log(callback);
+        }
     },
 
     callbackUpdate: function () {
@@ -1660,8 +1665,11 @@ mpcp.playlist = {
 
     // create a queue because the server responds once for a dom update
     addCallbackUpdate: function (callback) {
-        if (callback) {
+        if (typeof callback === 'function') {
             mpcp.playlist.callbackUpdates.push(callback);
+        } else if (callback) {
+            console.log('!!! This is not a function, fix it:');
+            console.log(callback);
         }
     },
 
