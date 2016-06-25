@@ -1006,6 +1006,7 @@ mpcp.playlist = {
             items: 'tr.gen',
             appendTo: 'parent',
             helper: 'clone',
+            cursor: 'move',
             start: function (e, ui) {
                 //console.log(e);
                 //console.log(ui);
@@ -2162,6 +2163,8 @@ mpcp.browser = {
             items: 'tr.gen',
             connectWith: '.connected',
             placeholder: 'no-placeholder',
+            scroll: false,
+            cursor: 'move',
             start: function (e, ui) {
                 //console.log(e);
                 //console.log(ui);
@@ -3643,6 +3646,7 @@ mpcp.pb = {
     initDrag: function () {
         $('#pb-song-list .append').sortable({
             items: '.gen',
+            cursor: 'move',
             appendTo: 'parent',
             helper: 'clone',
             start: function (e, ui) {
