@@ -347,6 +347,8 @@ app.use('/toastr',
     express.static(__dirname + '/bower_components/toastr/'));
 app.use('/jquery-contextmenu',
     express.static(__dirname + '/bower_components/jQuery-contextMenu/dist/'));
+app.use('/html5sortable',
+    express.static(__dirname + '/bower_components/html.sortable/dist/'));
 
 // 404 requests
 app.use(function (req, res, next) {

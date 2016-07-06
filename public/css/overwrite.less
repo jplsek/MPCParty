@@ -81,11 +81,7 @@ main {
     }
     #library {
         display: flex;
-        // set flex-direction to column when fixed in webkit
-        flex-direction: row;
-        @-moz-document url-prefix() {
-            flex-direction: column;
-        }
+        flex-direction: column;
 
         -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
 
@@ -94,7 +90,7 @@ main {
             flex: 1;
             overflow: auto;
 
-            #library-artists-wrap, library-albums-wrap {
+            #library-artists-wrap, #library-albums-wrap {
                 overflow: auto;
             }
 

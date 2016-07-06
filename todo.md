@@ -14,9 +14,6 @@ TODO
     * Sharing with other users? (utilize users object?)
     * Page support
 * Browser:
-    * Drag and drop from browser to playlist:
-        * Making tr smaller while dragging >>> jquery sortable dragged item was not under cursor when changing the width (using .ui-sortable-helper to change the width)
-        * Fix jquery sortable bug when starting to drag from the right most part of the tr and not registering in the sortable playlist?
     * Loading icon between changing locations?
     * Custom column picker
 * Library:
@@ -48,10 +45,6 @@ TODO
 ## Bugs
 * It seems crashing is due to refreshing too many times?
 * Loading a theme will add another "theme load" every time.
-* Webkit: resizing pb makes the values "inverted". http://codepen.io/anon/pen/VeWwLa
-* Drag and drop inside artist and album tries to be sortable, unlike song-list
-* Drag and drop is currently broken after scolling down
-* Webkit: library doesn't show up properly with a column (works fine in ff). Currently using a css prefix for ff only until I fix it for webkit.
 
 ---
 
