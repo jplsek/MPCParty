@@ -1341,7 +1341,7 @@ mpcp.playlist = {
 
     // plays the song in the playlist
     playSong: function (file) {
-        console.log('play song from playlist');
+        console.log('play song from playlist: ' + file);
         komponist.playid(file, function (err, val) {
             // false positive error
             if (err && err.message !=
@@ -1802,8 +1802,8 @@ mpcp.playlist = {
             mpcp.playlist.remove(ele);
         });
 
-        $(document).on('dblclick', this.table + ' tr', function () {
-            var file = $(mpcp.playlist).data().fileid;
+        $(document).on('dblclick', this.tbody + ' tr', function () {
+            var file = $(this).data().fileid;
             mpcp.playlist.playSong(file);
         });
 
