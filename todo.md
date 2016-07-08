@@ -25,6 +25,9 @@ TODO
 * Download Player:
     * List available files to play from download directory? (What if user has it set to their music library? Have a config option?)
     * Make it into a video streamer (muted by default on the client)?
+* Playlists:
+    * Tell the user when the playlists cannot be loaded due to permission errors
+* http stream support
 * Option to disable notifications?
 * Navigator? (tag grouping)
 * MPD password support?

@@ -646,7 +646,7 @@ QUnit.test('library albums + all', function (assert) {
         $(childrenArtists[0]).click();
         var artist = $(childrenArtists[0]).data().artist;
 
-        mpcp.library.updateAlbums(artist, null, false, function () {
+        mpcp.libraryAlbums.update(artist, null, false, function () {
             assert.ok(~document.location.pathname.indexOf('/library/' + encodeURIComponent(artist)), 'check if url contains /library/artist');
             var children = $(libAlb).children();
             assert.ok(children.length > 1, 'more than All is shown');
