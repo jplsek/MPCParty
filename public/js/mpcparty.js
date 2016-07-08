@@ -1632,14 +1632,13 @@ mpcp.playlist = {
     },
 
     search: function (val) {
-        // do not use 'this' keyword. May be used in callback.
         if (!val)
-            val = this.searchTerm;
+            val = mpcp.playlist.searchTerm;
         else
-            this.searchTerm = val;
+            mpcp.playlist.searchTerm = val;
 
         // set to true (in case of after clicking clear)
-        this.isSearching = true;
+        mpcp.playlist.isSearching = true;
 
         komponist.playlistsearch('any', val, function(err, response) {
             if (err) return console.log(err);
