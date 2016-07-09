@@ -4720,7 +4720,7 @@ mpcp.video = {
     // play the Player (after download)
     play: function () {
         // if there is no title, and the user clicks play, just download
-        // the mpcp.video.
+        // the video.
         if (this.title === '') {
             this.downloadFromPlayer();
         } else {
@@ -4953,9 +4953,9 @@ socket.onmessage = function (event) {
         case 'init':
             mpcp.playlist.updateTitle(msg['playlist-title']);
             vote .enabled =      msg['song-vote'];
-            mpcp.video.setVolume(     msg['player-volume']);
-            mpcp.video.setStatus(     msg['player-status']);
-            mpcp.video.setTitle (     msg['player-title']);
+            mpcp.video.setVolume(msg['player-volume']);
+            mpcp.video.setStatus(msg['player-status']);
+            mpcp.video.setTitle (msg['player-title']);
             initAfterConnection();
             break;
 
@@ -5064,7 +5064,7 @@ socket.onmessage = function (event) {
 
         // video
         case 'download-video':
-            mpcp.video.setStatus('Downloading and converting mpcp.video...');
+            mpcp.video.setStatus('Downloading and converting video...');
             break;
 
         case 'download-video-title':
