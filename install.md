@@ -24,7 +24,7 @@ You may have issues running mpd. Good luck.
 
 ### Windows
 Install [nodejs](https://nodejs.org/download/)  
-Install [mpd](http://www.musicpd.org/download.html) 
+Install [mpd](http://www.musicpd.org/download.html)  
 Install [libav](https://libav.org/download/) or [ffmpeg](http://ffmpeg.org/download.html)  
 You will need nodejs to be in your path. The youtube player will not work unless you install several versions of visual studio (I have no idea), so running `npm install` will throw errors, but MPCParty should still be able to run.
 
