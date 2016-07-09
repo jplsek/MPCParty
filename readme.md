@@ -5,11 +5,11 @@ This is yet another MPD web client. It was inspired to be used in multi-user env
 
 The interface is similar to Client175, while using Nodejs as a backend for better synchronization and performance between the server and the clients (hopefully).
 
-![Screenshot](https://github.com/jplsek/MPCParty/raw/master/screenshot.png)
+![Screenshot](screenshot.png)
 
 Showing the Default theme, and file browser view
 
-![Screenshot2](https://github.com/jplsek/MPCParty/raw/master/screenshot2.png)
+![Screenshot2](screenshot2.png)
 
 Showing the Materialish theme, library view, and playlist buffer
 
@@ -24,7 +24,7 @@ Showing the Materialish theme, library view, and playlist buffer
     * Remove duplicate songs from the playlist
     * Scramble the playlist
     * Right click to: play, remove, and move songs to the top, bottom, or after the currently playing song of the playlist
-    * Multiselection (ctrl, shift: remove, weird drag and drop; right click: add to top, bottom, current)
+    * Multiselection (ctrl, shift: remove, drag and drop; right click: add to top, bottom, current)
     * Playlist searching
     * Skip to remove songs (when user voting is disabled)
 * File browser
@@ -44,7 +44,7 @@ Showing the Materialish theme, library view, and playlist buffer
     * Drag and drop, multiselection, context menus, column sorting, search filtering.
 * Playlist buffer
     * Create and edit playlists without interrupting the current playlist
-    * Multiselection (ctrl, shift: remove, weird drag and drop; right click: add to top, bottom)
+    * Multiselection (ctrl, shift: remove, drag and drop; right click: add to top, bottom)
     * Right click to remove or move songs to the top or bottom of the playlist
     * Scramble and remove duplicates
 * Download Player
@@ -61,6 +61,9 @@ Showing the Materialish theme, library view, and playlist buffer
 * Playlist buffer: Create and edit playlists without interrupting the current playlist
 * User lists (optional)
 
+## Installation
+Read [install.md](install.md).
+
 ## Configuration
 Edit config.cfg
 
@@ -74,36 +77,6 @@ Edit config.cfg
 * Set Download Player download location (default is ./downloads, but I recommend setting it to your Music folder)
 * Set the default volume of the Download Player (default is 50%)
 * Set whether or not to keep the downloaded videos after conversion (default is true)
-
-## Installation
-### 1) Dependencies
-* Install [MPD](http://www.musicpd.org/download.html) (`sudo apt-get update && sudo apt-get install mpd`), and get a running instance working (a sample mpd conf file is stored in utils/ to be ran as a local user (run it with `mpd ~/.config/mpd/mpd.conf`))
-* Install [nodejs](https://nodejs.org/download/) (`sudo apt-get install nodejs-legacy`) (Minimum node version is 0.12 for the Player.) Note: on non-debian based systems you should try to install nodejs with the package "node" or "nodejs".
-
-> I only have binaries for GNU/Linux. OSX and BSD should work via the development version. I have yet to get Windows to compile with the Download Player enabled (Windows works, just without the Player, so if you try starting the server, and nothing happens, disable the Player from the config file).
-
-#### Optional dependencies for the Download Player (Youtube player)
-* Install [ffmpeg](http://ffmpeg.org/download.html) or [libav](https://libav.org/download/) (`sudo apt-get install libav-tools`), it is used for video conversion with youtube-dl
-
-### 2) Release version
-* Download the latest release from the GitHub [releases](https://github.com/jplsek/MPCParty/releases) page.
-
-### 2) Development version (should be stable)
-* `sudo apt-get install npm build-essential libav-tools libasound2 libasound2-dev`
-* `sudo npm install -g bower`
-* Clone this repository (`git clone https://github.com/jplsek/MPCParty`)
-* Run `npm install` from the project's directory (to install all the libraries)
-* If there are errors, make sure your node version is greater than 0.12
-
-> If you are not using the Download Player, you can ignore compile errors for the speaker module when running `npm install`, and preferably disable it via the config file.
-
-### 3) Running
-* Run with `./run.sh` from this directory (or `npm start`)
-* Done
-
-### 4) Auto restarts (recommended!)
-* Users: install [forever](https://github.com/foreverjs/forever#installation) then start `./run.sh` again.
-* Sever admins: copy the reference systemd service file in utils/ and set it up to your needs
 
 ## Custom Theme Development
 * Copy public/css/themes/default-thin and rename it to anything.
