@@ -1056,7 +1056,7 @@ mpcp.playlist = {
                 return;
             }
 
-            console.log(e);
+            //console.log(e);
             console.log('sort update for playlist');
 
             var index = e.detail.index;
@@ -1087,9 +1087,6 @@ mpcp.playlist = {
                 newPos--;
 
             // dragged from browser
-            //if ($(e.detail.startparent).parent().hasClass('song-list')) {
-            // for some reason, startparent is always undefined
-            console.log(mpcp.browser.isDragging);
             if (mpcp.browser.isDragging) {
                 mpcp.browser.isDragging = false;
                 mpcp.playlist.fromSortableSender(e, newPos);
