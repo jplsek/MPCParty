@@ -22,7 +22,9 @@ var express         = require('express'),
     // ip:hostname
     hostnames = {},
     // checks if the song changed to clear user votes
-    currentSong = null;
+    currentSong = null,
+    // currently playing song's album art url
+    currentArt = null;
 
 io.broadcast = function(data) {
     io.clients.forEach(function each(client) {
@@ -351,7 +353,9 @@ app.use('/html5sortable',
     express.static(__dirname + '/bower_components/html.sortable/dist/'));
 
 // 404 requests
-app.use(function (req, res, next) {
+// currently disabled until we can get dynamic urls to not 404 with this
+// enabled
+/*app.use(function (req, res, next) {
     res.status(404);
 
     // respond with html page
@@ -370,7 +374,7 @@ app.use(function (req, res, next) {
 
     // default to plain-text. send()
     res.type('txt').send('Not found');
-});
+});*/
 
 // default config
 var config = {
@@ -493,6 +497,89 @@ fs.readFile(__dirname + '/config.cfg', function (err, data) {
     });
 });
 
+function sendArtworkMessage() {
+    io.broadcast(JSON.stringify({'type': 'album-art', 'url': currentArt}),
+            function (err) {
+        if (err) {
+            console.log('Error sending album art information');
+            console.log(err);
+        }
+    });
+}
+
+// get album art based on the directory the file is in
+function getImage(song) {
+
+    if (!song) {
+        currentArt = null;
+        sendArtworkMessage();
+        return;
+    }
+
+    console.log('');
+    var subFolder = song.file.substr(0, song.file.lastIndexOf('/'));
+
+    // TODO: set absolute path to folder. How do we find out where the
+    // root of the music folder is located (preferably without setting
+    // a parameter in config.cfg)? mpd.config() does not work because
+    // of permissions. The way other GUI mpd clients operate, is that they add
+    // a mount, thus the user inputs a custom location specific to that
+    // client (and in our case, our config file).
+    mpd.config(function (err, val) {
+        if (err) {
+            console.log(err);
+        }
+        // (if this actually worked, this would be called during server
+        // initialization)
+        console.log('mpd config:');
+        console.log(val);
+    })
+
+    var musicRoot = '/home/jeremy/Music';
+
+    var folder = musicRoot + '/' + subFolder;
+
+    console.log(folder);
+
+    // TODO: look for *.jpg or *.png and set it
+    var imageName = 'cover.jpg';
+    var imageLocation = folder + '/' + imageName;
+
+    // testing with an absolute path
+    //imageLocation = '~/Music/path/to/cover.jpg';
+
+    console.log(imageLocation);
+
+    fs.stat(imageLocation, function (err, stats) {
+        if (err) {
+            //console.log(err);
+            currentArt = null;
+            sendArtworkMessage();
+        } else if (stats.isFile(imageLocation)) {
+            currentArt =
+                encodeURI('/album-art/' + subFolder + '/' + imageName);
+
+            console.log(currentArt);
+
+            // create a new url
+            app.get(currentArt, function (req, res) {
+                res.sendFile(imageLocation, function (err) {
+                    if (err) {
+                        console.log(err);
+                        res.status(err.status).end();
+                    }
+                });
+            });
+
+            sendArtworkMessage();
+        } else {
+            console.log(imageLocation + ' is not a file?');
+            currentArt = null;
+            sendArtworkMessage();
+        }
+    });
+}
+
 function setSong(client) {
     client.currentsong(function (err, song) {
         if (err) {
@@ -504,12 +591,15 @@ function setSong(client) {
 
         if (isEmpty(song)) {
             currentSong = null;
+            getImage();
             return console.log('No song selected');
         }
 
         if (currentSong != song.file) {
             console.log('Now playing: ' + song.file);
             skip.reset();
+
+            getImage(song);
         }
 
         currentSong = song.file;
@@ -683,7 +773,8 @@ io.on('connection', function (socket) {
     socket.send(JSON.stringify({
             'type': 'init', 'playlist-title': playlisttitle,
             'song-vote': skip.voting, 'player-volume': video.volume,
-            'player-status': video.msg, 'player-title': video.title
+            'player-status': video.msg, 'player-title': video.title,
+            'album-art': currentArt
             }),
             function (err) {
         if (err) {

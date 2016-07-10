@@ -4956,6 +4956,7 @@ socket.onmessage = function (event) {
             mpcp.video.setVolume(msg['player-volume']);
             mpcp.video.setStatus(msg['player-status']);
             mpcp.video.setTitle (msg['player-title']);
+            setCurrentAlbumArt  (msg['album-art']);
             initAfterConnection();
             break;
 
@@ -5102,6 +5103,10 @@ socket.onmessage = function (event) {
                 $('#download-player-pause').removeClass('active');
             }
             $('#download-player-status').html(msg.info);
+            break;
+
+        case 'album-art':
+            setCurrentAlbumArt(msg.url)
             break;
     }
 };
@@ -5705,6 +5710,16 @@ function clearSelected(obj) {
     });
 
     obj.selected = [];
+}
+
+function setCurrentAlbumArt(url) {
+    console.log(url);
+
+    if (!url) {
+        $('#album-art').hide().attr('src', '');
+    } else {
+        $('#album-art').show().attr('src', url);
+    }
 }
 
 // enables resizable playlist buffer

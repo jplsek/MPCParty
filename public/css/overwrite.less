@@ -42,6 +42,12 @@ header {
         -webkit-align-items: center;
         align-items: center;
         flex: 2;
+
+        #album-art {
+            flex: 0;
+            height: 64px;
+            padding: 0 5px;
+        }
     }
     #header-right {
         display: -webkit-box; /* fallback for apple webkit */
@@ -396,6 +402,9 @@ table.floatThead-table {
     main {
         flex-direction: column;
         height: auto;
+    }
+    #album-art {
+        display: none;
     }
     #pb, #pb-tab { // playlist buffer
         width: 100%;
