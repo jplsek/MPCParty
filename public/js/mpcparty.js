@@ -579,6 +579,7 @@ mpcp.player = {
                     $('#warning-consume').css('display', 'block');
             }
 
+            if (!status.xfade) status.xfade = 0;
             $('#crossfade').val(status.xfade);
 
             mpcp.player.callbackUpdate();
