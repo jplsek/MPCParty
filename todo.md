@@ -48,7 +48,6 @@ TODO
 ## Bugs
 * It seems crashing is due to refreshing too many times?
 * Loading a theme will add another "theme load" every time.
-* Remove song information context menu from libraryartist/album
 
 ---
 

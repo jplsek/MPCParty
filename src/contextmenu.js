@@ -117,20 +117,20 @@ function contextResponse(key, table, tr) {
             case 'atbPb':
                 if ($(tr).hasClass('artist'))
                     mpcp.library.addExternal(
-                            mpcp.libraryArtists, artist, album, undefined, false);
+                        mpcp.libraryArtists, artist, album, undefined, false);
                 else if ($(tr).hasClass('album'))
                     mpcp.library.addExternal(
-                            mpcp.libraryAlbums, artist, album, undefined, false);
+                        mpcp.libraryAlbums, artist, album, undefined, false);
                 break;
             case 'atc':
                 if ($(tr).hasClass('artist') &&
                         mpcp.libraryArtists.selected.length) {
-                    mpcp.library.addExternal(mpcp.libraryArtists, artist, album,
-                            mpcp.player.current.Pos + 1, false);
+                    mpcp.library.addExternal(mpcp.libraryArtists, artist,
+                        album, mpcp.player.current.Pos + 1, false);
                 } else if ($(tr).hasClass('album') &&
                         mpcp.libraryAlbums.selected.length) {
                     mpcp.library.addExternal(mpcp.libraryAlbums, artist, album,
-                            mpcp.player.current.Pos + 1, false);
+                        mpcp.player.current.Pos + 1, false);
                 } else {
                     mpcp.library.getSongsFromAlbum(artist, album,
                             function (files) {
@@ -294,7 +294,9 @@ $.contextMenu({
                     'atbPlaylist': {name: 'Add to bottom of playlist'}
                 };
 
-            if (!$($trigger).hasClass('directory'))
+            if (!($($trigger).hasClass('directory') ||
+                    $($trigger).hasClass('artist') ||
+                    $($trigger).hasClass('album')))
                 items.infoBrowser = {name: 'Song information'};
         } else {
             items = {
