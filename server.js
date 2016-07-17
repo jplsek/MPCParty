@@ -6,6 +6,7 @@ var express         = require('express'),
     komponist       = require('komponist'),
     fs              = require('fs'),
     less            = require('less-middleware'),
+    browserify      = require('browserify-middleware'),
     dns             = require('dns'),
     toml            = require('toml'),
     // optional modules
@@ -278,6 +279,9 @@ var skip = {
 app.disable('x-powered-by');
 // less config
 app.use(less(__dirname + '/public'));
+// compile js client side code
+app.get('/mpcparty.js', browserify(__dirname + '/src/main.js'));
+app.get('/testing.js', browserify(__dirname + '/tests/main.js'));
 // serve static files here
 app.use(express.static(__dirname + '/public'));
 // use pug with express
