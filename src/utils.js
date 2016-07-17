@@ -117,9 +117,10 @@ return {
     },
 
     // create the popup window for song information
-    parseSongInfo: function (err, values) {
+    parseSongInfo: function (err, values, callback) {
         if (err || !values || Object.keys(values).length < 1) {
             mpcp.lazyToast.warning('This is most likely a bug with MPCParty or the song is not in the live database.', 'Error getting song information.', 10000);
+            if (callback) callback();
             return console.log(err);
         }
 
@@ -140,6 +141,8 @@ return {
         });
 
         $('#song-info tbody').append(html);
+
+        if (callback) callback();
     },
 
     // replace listAllInfo because of issues with it

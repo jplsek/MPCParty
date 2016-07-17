@@ -812,13 +812,13 @@ return {
     },
 
     // show song information to the user
-    getSongInfo: function (file) {
+    getSongInfo: function (file, callback) {
         komponist.playlistfind('file', file, function (err, value) {
-            mpcp.utils.parseSongInfo(err, value[0]);
+            mpcp.utils.parseSongInfo(err, value[0], callback);
         });
     },
 
-    search: function (val) {
+    search: function (val, callback) {
         if (!val)
             val = mpcp.playlist.searchTerm;
         else
@@ -828,7 +828,10 @@ return {
         mpcp.playlist.isSearching = true;
 
         komponist.playlistsearch('any', val, function(err, response) {
-            if (err) return console.log(err);
+            if (err) {
+                if (callback) callback();
+                return console.log(err);
+            }
 
             //console.log(response);
 
@@ -844,6 +847,7 @@ return {
                 mpcp.player.updateAll();
                 mpcp.pages.update('playlist');
                 mpcp.browser.updatePosition();
+                if (callback) callback();
                 return console.log('No songs found in playlist search');
             }
 
@@ -857,12 +861,18 @@ return {
 
             mpcp.playlist.updateLocal(function () {
                 // fixes issues such as the last song not updating the player;
-                mpcp.player.updateAll();
+                mpcp.player.updateAll(callback);
             });
         });
     },
 
-            // open playlist from stored element
+    resetSearch: function (callback) {
+        mpcp.playlist.addCallbackUpdate(callback);
+        mpcp.playlist.isSearching = false;
+        mpcp.playlist.updateAll();
+    },
+
+    // open playlist from stored element
     openFromStored: function (callback) {
         // disable events
         $(document).off('keydown');
@@ -980,10 +990,7 @@ return {
             }
         });
 
-        mpcp.utils.createSearch('#search-playlist', this.search, function () {
-            mpcp.playlist.isSearching = false;
-            mpcp.playlist.updateAll();
-        }, '#search-playlist-clear');
+        mpcp.utils.createSearch('#search-playlist', this.search, this.resetSearch, '#search-playlist-clear');
 
         $(document).on('click', '.song-remove', function () {
             var ele = $(this).parent().parent();

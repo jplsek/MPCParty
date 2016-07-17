@@ -28,6 +28,18 @@ $(function () {
             $('#use-pages-browser').click();
         }
 
+        if ($('#items-max-playlist').val() != 200) {
+            mpcp.settings.saveItemsMax('browser', 200);
+        }
+
+        if (!$('#use-pages-playlist').is(':checked')) {
+            $('#use-pages-playlist').click();
+        }
+
+        if ($('#items-max-playlist').val() != 200) {
+            mpcp.settings.saveItemsMax('playlist', 200);
+        }
+
         if ($('#random').hasClass('active')) {
             $('#random').click();
         }
@@ -45,14 +57,10 @@ require('./library.js')(utils);
 require('./playlist.js')(utils);
 require('./playlistbuffer.js')(utils);
 require('./stored.js')(utils);
+require('./settings.js')(utils);
 
-// TODO test settings
-// TODO check unknown
-// TODO check skip to remove
-// TODO check consume
 // TODO check rows for browser
 // TODO check rows for playlist
 
 // TODO test pages
-// TODO test song information
 // TODO check update music database

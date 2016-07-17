@@ -53,6 +53,9 @@ QUnit.test('pl + player: add songs + play + next + previous + clear ', function 
 
         utils.play(assert, function () {
             utils.next(assert, function () {
+                // .status is getting called during this timeout which calls the previous()'s callback to early
+                setTimeout(function () {
+
                 utils.previous(assert, function () {
                     var childrenNow = $(utils.pl).children('.gen');
                     assert.equal($(childrenNow).length, 2, 'check if 2 songs left');
@@ -61,6 +64,8 @@ QUnit.test('pl + player: add songs + play + next + previous + clear ', function 
                         done();
                     });
                 });
+
+                }, 500);
             });
         });
     });
@@ -164,6 +169,46 @@ QUnit.test('browser to playlist: folder + save + clear + open + delete + clear',
     });
 });
 
-// TODO test playlist search
+QUnit.test('add all + search', function (assert) {
+    var done = assert.async();
+
+    mpcp.browser.addAll(function () {
+        var pages = $('#playlist-pages .total-pages').text();
+
+        mpcp.playlist.search('love', function () {
+            var pagesNow = $('#playlist-pages .total-pages').text();
+            assert.ok(pages != pagesNow, 'check if pages are different');
+            var childrenNow = $(utils.pl).children('.gen');
+            assert.ok($(childrenNow).length > 1, 'check if at least 2 songs are in pl');
+
+            mpcp.playlist.resetSearch(function () {
+                var pagesNow = $('#playlist-pages .total-pages').text();
+                assert.ok(pages == pagesNow, 'check if pages are the same again');
+
+                utils.clearPlaylist(assert, function () {
+                    done();
+                });
+            });
+        });
+    });
+});
+
+QUnit.test('pl song info', function (assert) {
+    var done = assert.async();
+
+    utils.addDirToPl(assert, function () {
+        var file = $($(utils.pl).find('.gen')[0]).data().file;
+
+        mpcp.playlist.getSongInfo(file, function () {
+            var children = $('#song-info tbody').children('.gen');
+            assert.ok($(children).length > 1, 'check if at least 2 items are in song info');
+            $('#song-info-modal').modal('hide');
+
+            utils.clearPlaylist(assert, function () {
+                done();
+            });
+        });
+    });
+});
 
 };

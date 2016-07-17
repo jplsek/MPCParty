@@ -266,7 +266,7 @@ return {
     // wrapper for komponist.previous
     previous: function (callback) {
         if (mpcp.vote.enabled) {
-            this.addCallbackUpdate(callback);
+            mpcp.player.addCallbackUpdate(callback);
 
             if (!$('#previous').hasClass('active')) {
                 socket.send(JSON.stringify({
@@ -366,7 +366,7 @@ return {
 
         mpcp.utils.createSearch(
             '#search-browser', mpcp.browser.search,
-            mpcp.browser.update, '#search-clear');
+            mpcp.browser.resetSearch, '#search-clear');
     }
 };
 

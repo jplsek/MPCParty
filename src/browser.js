@@ -132,7 +132,7 @@ return {
 
     // replaces the browser with search results
     // searches for all files based on file name and tag
-    search: function (name, poppedState) {
+    search: function (name, poppedState, callback) {
         console.log('mpcp.browser.search: ' + name);
 
         if (mpcp.browser.hidden) {
@@ -144,12 +144,14 @@ return {
         // search for tag
         komponist.search('any', name, function (err, anyFiles) {
             if (err) {
+                if (callback) callback();
                 return console.log(err);
             }
 
             // search for file name
             komponist.search('file', name, function (err, files) {
                 if (err) {
+                    if (callback) callback();
                     return console.log(err);
                 }
 
@@ -180,11 +182,11 @@ return {
                 }
 
                 //console.log(unique);
-                callback(unique);
+                callbackSearch(unique);
             });
         });
 
-        function callback(files) {
+        function callbackSearch(files) {
             if (mpcp.browser.searchTerm == name) {
                 // just don't add repeated search to history
                 poppedState = true;
@@ -205,6 +207,7 @@ return {
                     '<em class="text-muted">No songs found</em></td></tr>';
                 $(mpcp.browser.table).append(html);
                 mpcp.pages.update('browser');
+                if (callback) callback(0);
                 return console.log('No songs found');
             }
 
@@ -223,8 +226,13 @@ return {
                     '/search/' + encodeURIComponent(name));
             }
 
-            mpcp.browser.updateLocal();
+            mpcp.browser.updateLocal(callback);
         }
+    },
+
+    // used for unit tests atm
+    resetSearch: function (callback) {
+        mpcp.browser.update(null, null, callback);
     },
 
     getHtmlFolders: function (value) {
@@ -459,9 +467,9 @@ return {
     },
 
     // show song information to the user
-    getSongInfo: function (file) {
+    getSongInfo: function (file, callback) {
         komponist.find('file', file, function (err, value) {
-            mpcp.utils.parseSongInfo(err, value[0]);
+            mpcp.utils.parseSongInfo(err, value[0], callback);
         });
     },
 
@@ -486,13 +494,15 @@ return {
 
                 if (mpcp.pb.current !== null)
                     mpcp.pb.addSong(files, null, callback);
-                else
+                else {
+                    mpcp.playlist.addCallbackUpdate(callback);
+
                     $(files).each(function (item, value) {
                         komponist.add(value.file, function (err) {
                             if (err) console.log(err);
-                            if (callback) callback();
                         });
                     });
+                }
             });
         } else {
             if (mpcp.pb.current) {
@@ -517,18 +527,18 @@ return {
                         return;
                     }
 
+                    mpcp.playlist.addCallbackUpdate(callback);
+
                     $(files).each(function (item, value) {
                         if (value.directory) {
                             komponist.add(value.directory, function (err) {
                                 if (err) console.log(err);
-                                if (callback) callback();
                             });
                         }
 
                         if (value.file) {
                             komponist.add(value.file, function (err) {
                                 if (err) console.log(err);
-                                if (callback) callback();
                             });
                         }
                     });
