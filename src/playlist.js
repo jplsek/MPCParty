@@ -352,6 +352,7 @@ return {
                     });
         } else {
             console.log('not supported drag for: ' + $(e.detail.item).attr('class'));
+            mpcp.sortHelper.removeItem(e);
         }
     },
 

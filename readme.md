@@ -90,7 +90,7 @@ Edit config.cfg
 
 ## Contribution
 * Read todo.md or the issue tracker for suggestions of things to add or fix.
-* The project itself is stored in src/. The js is automatically compiled when the page is loaded.
+* The project itself is stored in src/. The js, css, and html is automatically compiled when the page is loaded.
 * I recommend using [jshint](http://jshint.com/install/) before sending something.
 
 ## License
