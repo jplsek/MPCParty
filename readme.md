@@ -35,20 +35,20 @@ Showing the Materialish theme, library view, and playlist buffer
     * Add all songs based on current page to the playlist
     * Playlist position indication for songs
     * Folder url linking
-    * Drag and drop, multiselection, context menus, column sorting.
+    * Drag and drop, multiselection, context menus, column sorting
 * Library browser
     * Select songs from their respective artist and album, without worring about files and folders
     * Add all songs from an artist or album by pressing "+" or double clicking
     * Playlist position indication for songs
     * Library url linking
-    * Drag and drop, multiselection, context menus, column sorting, search filtering.
+    * Drag and drop, multiselection, context menus, column sorting, search filtering
 * Playlist buffer
     * Create and edit playlists without interrupting the current playlist
     * Multiselection (ctrl, shift: remove, drag and drop; right click: add to top, bottom)
     * Right click to remove or move songs to the top or bottom of the playlist
     * Scramble and remove duplicates
 * Download Player
-    * Download videos, such as from youtube, and play the audio on the server.
+    * Download videos, such as from youtube, straight to the music library
 * Update music database
 * Basic mobile support
 * Basic theming support
@@ -70,13 +70,13 @@ Edit config.cfg
 * Web port (default is 8081)
 * MPD url (default is localhost)
 * MPD port (default is 6600)
+* MPD library location, used for special features like downloading (default is '' (disabled))
 * Enable vote skipping (default is true)
 * Vote skipping percentage (default is 75%, aka 75% of the users need to vote before taking effect)
 * Show user lists (default is false)
-* Enable the Download Player (default is true)
-* Set Download Player download location (default is ./downloads, but I recommend setting it to your Music folder)
-* Set the default volume of the Download Player (default is 50%)
-* Set whether or not to keep the downloaded videos after conversion (default is true)
+* Enable the Downloader (default is true)
+* Set the relative Downloader location (default is Downloads)
+* Set whether or not to keep the downloaded videos after conversion (default is false)
 
 ## Custom Theme Development
 * Copy public/css/themes/default-thin and rename it to anything.

@@ -85,10 +85,8 @@ socket.onmessage = function (event) {
 
         case 'init':
             mpcp.playlist.updateTitle(msg['playlist-title']);
-            mpcp.vote .enabled =      msg['song-vote'];
-            mpcp.video.setVolume(msg['player-volume']);
-            mpcp.video.setStatus(msg['player-status']);
-            mpcp.video.setTitle (msg['player-title']);
+            mpcp.vote.enabled =       msg['song-vote'];
+            mpcp.downloader.init(     msg['downloader-location']);
             initAfterConnection();
             break;
 
@@ -195,46 +193,13 @@ socket.onmessage = function (event) {
             mpcp.users.populate(msg.info);
             break;
 
-            // video
-        case 'download-video':
-            mpcp.video.setStatus('Downloading and converting video...');
+            // downloader
+        case 'downloader-download':
+            mpcp.downloader.setStatus('Downloading and converting video...');
             break;
 
-        case 'download-video-title':
-            console.log('received download player title: ' + msg.info);
-            mpcp.video.setTitle(msg.info);
-            break;
-
-        case 'download-video-play':
-            mpcp.video.setStatus('Playing...');
-            break;
-
-        case 'download-video-pause':
-            //console.log(msg.info);
-            if (msg.info) {
-                mpcp.video.setStatus('Paused...');
-            } else {
-                mpcp.video.setStatus('Playing...');
-            }
-            break;
-
-        case 'download-video-stop':
-            mpcp.video.setStatus('Stopping...');
-            break;
-
-        case 'download-video-volume':
-            mpcp.video.setVolume(msg.info);
-            break;
-
-        case 'download-video-status':
-            if (~msg.info.indexOf('Error')) {
-                // downloading errror
-                $('#download-player-btn')
-                    .addClass('btn-default')
-                    .removeClass('btn-warning');
-                $('#download-player-pause').removeClass('active');
-            }
-            $('#download-player-status').html(msg.info);
+        case 'downloader-status':
+            $('#downloader-status').html(msg.info);
             break;
     }
 };

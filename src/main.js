@@ -23,7 +23,7 @@ mpcp.vote           = require('./vote.js')(mpcp);
 mpcp.users          = require('./users.js')(mpcp);
 mpcp.pages          = require('./pages.js')(mpcp);
 mpcp.settings       = require('./settings.js')(mpcp);
-mpcp.video          = require('./video.js')(mpcp);
+mpcp.downloader     = require('./downloader.js')(mpcp);
 mpcp.lazyToast      = require('./lazytoast.js')(mpcp);
 mpcp.sortHelper     = require('./sorthelper.js')(mpcp);
 require('./contextmenu.js')(mpcp);
@@ -164,7 +164,7 @@ mpcp.pages      .initEvents();
 mpcp.pb         .initEvents();
 mpcp.history    .initEvents();
 mpcp.stored     .initEvents();
-mpcp.video      .initEvents();
+mpcp.downloader .initEvents();
 mpcp.disconnect .initEvents();
 mpcp.library    .initEvents();
 
