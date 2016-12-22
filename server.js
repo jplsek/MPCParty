@@ -10,8 +10,8 @@ var express         = require('express'),
     dns             = require('dns'),
     toml            = require('toml'),
     path            = require('path'),
+    tilde           = require('expand-tilde'),
     // optional modules
-    Player          = null,
     youtubedl       = null,
 
     // mpd: komponist mpd connection; pack: package.json;
@@ -148,7 +148,7 @@ var downloader = {
     },
 
     getLocation: function (location) {
-        return path.normalize(config.mpd.library + path.sep + location);
+        return path.normalize(tilde(config.mpd.library + path.sep + location));
     }
 };
 
@@ -367,17 +367,13 @@ fs.readFile(__dirname + '/config.cfg', function (err, data) {
     if (downloader.enabled) {
         (function() {
             youtubedl = require('youtube-dl');
-            // tilde is only here because the Player is the only thing using a
-            // custom dir.
-            var tilde = require('expand-tilde');
-            downloader.directory = tilde(downloader.directory);
             var location = downloader.getLocation(downloader.directory);
 
             fs.mkdir(location, function (err) {
                 // ignore exists error
                 if (err) {
                     if (err.code == 'EEXIST') {
-                        console.log('Using directory for the ' +
+                        console.log('Default directory for the ' +
                             'Downloader: ' + location);
                     } else {
                         console.log('!!! Error creating directory "' +
