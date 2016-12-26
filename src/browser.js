@@ -247,7 +247,6 @@ return {
             strippedDir = mpcp.utils.stripSlash(value.directory);
 
             html = '<tr class="context-menu directory gen" data-dirid="' + value.directory + '"><td class="song-list-icons"><span class="text-warning glyphicon glyphicon-folder-open"></span> <span class="folder-open faded glyphicon glyphicon-share-alt" title="Open directory. Note: You can double click the directory to open"></span></a></td><td colspan="3" title="' + strippedDir + '">' + tableStart + strippedDir + tableEnd + '</td><td colspan="2" class="song-list-icons text-right"><span class="dir-add faded text-success glyphicon glyphicon-plus" title="Add whole directory of songs to the bottom of the playlist"></span></td></tr>';
-
         }
 
         return html;
@@ -270,7 +269,6 @@ return {
             value.Title  = (!value.Title ? stripFile : value.Title);
 
             html = '<tr class="context-menu file gen" data-fileid="' + value.file + '"><td class="song-list-icons pos"><span class="text-primary glyphicon glyphicon-file"></span></td><td title="' + value.Title + '">' + tableStart + value.Title + tableEnd + '</td><td title="' + value.Artist + '">' + tableStart + value.Artist + tableEnd + '</td><td title="' + value.Album + '">' + tableStart + value.Album + tableEnd + '</td><td class="nowrap">' + mpcp.utils.toMMSS(value.Time) + '</td><td class="song-list-icons text-right"><span class="song-add faded text-success glyphicon glyphicon-plus" title="Add song to the bottom of the playlist"></span></td></tr>';
-
         }
 
         return html;
@@ -321,9 +319,9 @@ return {
         if (this.localFolders.length <= 1 &&
                 this.localFiles.length <= 1) {
             if ((this.localFolders[0] && Object.getOwnPropertyNames(
-                            this.localFolders[0]).length <= 0) &&
-                    (this.localFiles[0] && Object.getOwnPropertyNames(
-                                                                      this.localFiles[0]).length <= 0)) {
+                    this.localFolders[0]).length <= 0) &&
+                        (this.localFiles[0] && Object.getOwnPropertyNames(
+                            this.localFiles[0]).length <= 0)) {
                 if (callback) callback();
                 return;
             } else if (this.localFolders.length <= 0 &&

@@ -37,7 +37,7 @@ Showing the Materialish theme, library view, and playlist buffer
     * Folder url linking
     * Drag and drop, multiselection, context menus, column sorting
 * Library browser
-    * Select songs from their respective artist and album, without worring about files and folders
+    * Select songs from their respective artist and album, without worrying about files and folders
     * Add all songs from an artist or album by pressing "+" or double clicking
     * Playlist position indication for songs
     * Library url linking
@@ -48,7 +48,7 @@ Showing the Materialish theme, library view, and playlist buffer
     * Right click to remove or move songs to the top or bottom of the playlist
     * Scramble and remove duplicates
 * Download Player
-    * Download videos, such as from youtube, straight to the music library
+    * Download videos, such as from YouTube, straight to the music library
 * Update music database
 * Basic mobile support
 * Basic theming support
@@ -92,6 +92,10 @@ Edit config.cfg
 * Read todo.md or the issue tracker for suggestions of things to add or fix.
 * The project itself is stored in src/. The js, css, and html is automatically compiled when the page is loaded.
 * I recommend using [jshint](http://jshint.com/install/) before sending something.
+
+## Long term goals
+* I plan on a 1.0 release in Summer 2017 and when I feel certain feature are implemented and basic issues are fixed.
+* 2.0, if I get around to it, will be a rewrite to use TypeScript (maybe with P/React?), an attempt to decouple things, and to be able to choose whether to run the process intensive things on the client (which is done right now) or choose to run it on the server. (Lan party = beefy desktops usually, and for our setup we had an old server. But what about phones and non-beefy pc's? Then we would want it to run it on the server.) It will also use a lighter / more "low level" mpd js library.
 
 ## License
 GNU Lesser General Public License v3 (LGPL-3.0)

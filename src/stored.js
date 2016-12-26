@@ -16,6 +16,8 @@ return {
     currentId: 0,
     // currently opened modal (open or save)
     active: '',
+    // get row selected
+    rowSelect: null,
 
     // used show all playlists
     // fileArr is used when saving the playlist externally after clicking save
@@ -97,7 +99,7 @@ return {
                         songs = [songs];
 
                     value.playlist = value.playlist.replace(/ /g, '\u00a0');
-                    html += '<tr class="gen" data-fileid="' + value.playlist + '"><td>' + value.playlist + '</td><td>' + songs.length + '</td><td class="text-right"><span class="faded playlist-remove text-danger glyphicon glyphicon-remove" data-fileid="' + value.playlist + '" title="Remove the playlist"></span></td>';
+                    html += '<tr class="gen playlists-row" data-fileid="' + value.playlist + '"><td>' + value.playlist + '</td><td>' + songs.length + '</td><td class="text-right"><span class="faded playlist-remove text-danger glyphicon glyphicon-remove" data-fileid="' + value.playlist + '" title="Remove the playlist"></span></td>';
                     if (++i == playlists.length) {
                         $(id +' .playlists tbody').append(html);
                         if (callback) callback();
@@ -109,19 +111,19 @@ return {
 
     // save the playlist. Wrapper for komponist.save()
     save: function (file, callback) {
-        file = file.toString().trim().replace(/\u00a0/g, " ");
-        console.log(file);
-
         // When titles are "", it updates the current playlist, kind of.
         // It works via playlist buffer, but not the playlist.
         // So I'd rather disable the feature in case people get confused.
-        if (file === "") {
+        if (!file || file === "") {
             mpcp.lazyToast.warning('You must provide a title!', 'Playlist');
             $('#playlist-save-modal').modal('hide');
 
             if (callback) callback();
             return console.log('invalid title');
         }
+
+        file = file.trim().replace(/\u00a0/g, " ");
+        console.log(file);
 
         if (this.current == 'fileids') {
             if (!this.fileArr.length) {
@@ -329,9 +331,10 @@ return {
         });
     },
 
-    // open the playlist. Wrapper for komponist.open()
+    // open a playlist. Wrapper for komponist.open()
     open: function (file, callback) {
         file = file.toString().replace(/\u00a0/g, " ");
+
         if (this.call !== null) {
             console.log('calling fn..');
             this.call(file, callback);
@@ -367,63 +370,38 @@ return {
                     mpcp.playlist.addCallbackUpdate(callback);
                 });
             });
-
         }
         $('#playlist-open-modal').modal('hide');
     },
 
     initEvents: function () {
-        $(document).on('click', '.playlists .gen', function () {
-            console.log('select playlist');
-            // unbind any previous keydowns
-            $(document).off('keydown');
-            mpcp.utils.rowSelect(this, '.playlists', 'bg-primary');
+        var rowSelect = mpcp.utils.rowSelect('.playlists-row', 'bg-primary');
 
-            var file = $(this).data().fileid;
+        rowSelect.on('down', function (ele) {
+            var file = $(ele).data().fileid;
             $('#playlist-save-input').val(file);
+        });
 
-            var ele = this;
+        rowSelect.on('up', function (ele) {
+            var file = $(ele).data().fileid;
+            $('#playlist-save-input').val(file);
+        });
 
-            $(document).keydown(function (e) {
-                switch (e.keyCode) {
-                    // enter key
-                    case 13:
-                        if (mpcp.stored.active == 'open')
-                            mpcp.playlist.openFromStored();
-                        else if (mpcp.stored.active == 'save')
-                            mpcp.playlist.saveFromStored();
+        rowSelect.on('click', function (ele) {
+            var file = $(ele).data().fileid;
+            $('#playlist-save-input').val(file);
+        });
 
-                        break;
+        rowSelect.on('enter', function (ele) {
+            if (mpcp.stored.active == 'open')
+                mpcp.playlist.openFromStored();
+            else if (mpcp.stored.active == 'save')
+                mpcp.playlist.saveFromStored();
+        });
 
-                        // down arrow
-                    case 40:
-                        if (!$(ele).next().length) break;
-
-                        $(ele).removeClass('selected');
-                        $('.playlists td').removeClass('bg-primary');
-                        ele = $(ele).next();
-                        $(ele).children().addClass('bg-primary');
-                        $(ele).addClass('selected');
-
-                        file = $(ele).data().fileid;
-                        $('#playlist-save-input').val(file);
-                        break;
-
-                        // up arrow
-                    case 38:
-                        if (!$(ele).prev().length) break;
-
-                        $(ele).removeClass('selected');
-                        $('.playlists td').removeClass('bg-primary');
-                        ele = $(ele).prev();
-                        $(ele).children().addClass('bg-primary');
-                        $(ele).addClass('selected');
-
-                        file = $(ele).data().fileid;
-                        $('#playlist-save-input').val(file);
-                        break;
-                }
-            });
+        rowSelect.on('delete', function (ele) {
+            var file = $(ele).data().fileid;
+            mpcp.stored.removePlaylist(file, ele);
         });
 
         $(document).on('click', '.playlist-remove', function () {
@@ -455,12 +433,7 @@ return {
         $('#playlist-save-clear').click(function () {
             $('#playlist-save-input').val('');
             $('#playlist-save-input').focus();
-
-            // unbind any previous keydowns
-            $(document).off('keydown');
-            // bg to td instead of tr because of override
-            $('.playlists td').removeClass('bg-primary');
-            $(this).removeClass('selected');
+            rowSelect.deselect();
         });
 
         $('#playlist-save-input').focus(function () {

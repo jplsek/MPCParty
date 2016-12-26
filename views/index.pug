@@ -210,9 +210,28 @@ html
                             span ×
                         h4.modal-title
                     .modal-body
-                        table#song-info.table: tbody
+                        table#downloader-location-list.table: tbody
                     .modal-footer
                         button.btn.btn-default(type='button', data-dismiss='modal') Close
+
+        if (config.downloader)
+            #downloader-location-modal.modal.fade(tabindex='-1')
+                .modal-dialog
+                    .modal-content
+                        .modal-header
+                            button.close(type='button', data-dismiss='modal')
+                                span ×
+                            h4.modal-title Select Location
+                        .modal-body
+                            #downloader-location-crumb.flex-full
+                                ol.breadcrumb
+                                    li: span#downloader-home.glyphicon.glyphicon-home(title='Go to the root of the music database.')
+                            #downloader-wrap
+                                table#downloader-folder-list.table.table-hover
+                                    tbody.append
+                        .modal-footer
+                            button.btn.btn-default(type='button', data-dismiss='modal') Close
+                            button#downloader-location-confirm.btn.btn-primary(type='button', data-dismiss='modal') Select
 
         #page-wrapper
             header.navbar.navbar-default
@@ -267,7 +286,11 @@ html
                                                     button#downloader-download.btn.btn-default(type='button', title='Download')
                                                         span.glyphicon.glyphicon-download-alt
                                             label(for='downloader-location') Location
-                                            input#downloader-location.form-control(type='text', title='Location to download the file')
+                                            .input-group
+                                                input#downloader-location.form-control(type='text', title='Location to download the file')
+                                                span.input-group-btn
+                                                    button#downloader-browse.btn.btn-default(type='button', title='Browse to location', data-toggle='modal', data-target='#downloader-location-modal')
+                                                        span.glyphicon.glyphicon-folder-open
                                         #downloader-title
                                         .space-between
                                             #downloader-status

@@ -318,17 +318,120 @@ return {
         }
     },
 
-    // select a bootstrap table row.
-    // ele: element to add 'selected' class, par: the table,
-    // style: the background color
-    rowSelect: function (ele, par, style) {
-        // bg to td instead of tr because of override
-        $(par + ' td').removeClass(style);
-        $(ele).removeClass('selected');
-        // fix hover issues
-        $(ele).children().addClass(style);
-        $(ele).addClass('selected');
-    },
+    // select a table row and apply a custom style
+    // ele: the table to click the rows with
+    // scrollEle: element to scroll if out of view
+    rowSelect: (function (ele, style, scrollEle) {
+        var selected,
+            downCallback,
+            upCallback,
+            enterCallback,
+            clickCallback,
+            deleteCallback;
+
+        function deselect() {
+            if (selected) {
+                $(selected).children().removeClass(style);
+                $(selected).removeClass('selected');
+            }
+        }
+
+        function select(obj) {
+            // fix hover issues
+            $(obj).children().addClass(style);
+            $(obj).addClass('selected');
+            selected = obj;
+        }
+
+        function checkScroll(top) {
+            if (!scrollEle) return;
+
+            var middle = $(selected)[0].offsetTop - ($(scrollEle).height() / 2);
+            $(scrollEle)[0].scrollTo(0, middle);
+        }
+
+        $(document).on('click', ele, function () {
+            deselect();
+            select(this);
+
+            if (clickCallback) clickCallback(selected);
+        });
+
+        $(document).on('keydown', selected, function (e) {
+            // we don't want to fire an event if it's not visible (these are
+            // so far only in modals)
+            // pretty sure there is a better way, but idk
+            if (!$(ele).is(':visible')) return;
+
+            switch (e.keyCode) {
+                // enter key
+                case 13:
+                    if (enterCallback) enterCallback(selected);
+                    break;
+
+                // up arrow
+                case 38:
+                    if (!$(selected).prev().length) break;
+
+                    deselect();
+                    select($(selected).prev());
+                    checkScroll(true);
+
+                    if (upCallback) upCallback(selected);
+
+                    break;
+
+                // down arrow
+                case 40:
+                    if (!$(selected).next().length) break;
+
+                    deselect();
+                    select($(selected).next());
+                    checkScroll(false);
+
+                    if (downCallback) downCallback(selected);
+
+                    break;
+
+                // delete
+                case 46:
+                    if (deleteCallback) deleteCallback(selected);
+
+                    break;
+            }
+        });
+
+        return {
+            getSelected: function () {
+                return selected;
+            },
+
+            deselect: function () {
+                deselect();
+                selected = null;
+            },
+
+            on: function (event, callback) {
+                switch(event) {
+                    case 'down':
+                        downCallback = callback;
+                        break;
+                    case 'up':
+                        upCallback = callback;
+                        break;
+                    case 'enter':
+                        enterCallback = callback;
+                        break;
+                    case 'click':
+                        clickCallback = callback;
+                        break;
+                    case 'delete':
+                        deleteCallback = callback;
+                        break;
+                }
+            }
+        };
+    }),
 
     buttonSelect: function (ele, par) {
         $(par).children().removeClass('active');

@@ -875,9 +875,6 @@ return {
 
     // open playlist from stored element
     openFromStored: function (callback) {
-        // disable events
-        $(document).off('keydown');
-
         if ($('#playlist-open-modal .selected').length) {
             var file = $('#playlist-open-modal .selected').data().fileid;
             mpcp.stored.open(file, callback);
@@ -890,8 +887,6 @@ return {
 
     // save playlist from stored element
     saveFromStored: function (callback) {
-        // disable events
-        $(document).off('keydown');
         console.log('confirm save playlist');
         var file = $('#playlist-save-input').val();
         mpcp.stored.save(file, callback);

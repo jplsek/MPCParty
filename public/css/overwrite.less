@@ -233,6 +233,11 @@ main {
     flex: 0;
     text-align: center;
 }
+#downloader-wrap {
+    overflow: auto;
+    height: ~"calc(100vh - 300px)";
+    min-height: 100px;
+}
 #testing { // unit testing ouput
     width: 400px;
     height: 300px;
@@ -282,7 +287,7 @@ table.floatThead-table {
     -webkit-box-flex: 1; /* fallback for apple webkit */
     flex: 1;
 }
-.song-list, #playlist-song-list, #home, .loc-dir, .playlists, .faded, #library-artists-list, #library-albums-list {
+.song-list, #downloader-folder-list, #playlist-song-list, #home, #downloader-home .loc-dir, .downloader-loc-dir,  .playlists, .faded, #library-artists-list, #library-albums-list, #downloader-home {
     cursor: pointer;
 }
 .faded {
@@ -313,7 +318,7 @@ table.floatThead-table {
     bottom: 0px;
     z-index: 9999;
 }
-.playlists, #pb-main {
+.playlists, #pb-main, #downloader-folder-list {
     user-select: none; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
 }
 .none { // like .hidden, except without !important
