@@ -26,11 +26,11 @@ html
         script(src='/js/jquery-ui.min.js')
         script(src='/jquery-contextmenu/jquery.contextMenu.min.js')
         script(src='/js/jquery-multiselect.js')
-        script(src='/js/mpcparty.js')
+        script(src='/mpcparty.js')
         if (config.testing)
             link(rel='stylesheet', href='https://code.jquery.com/qunit/qunit-1.23.1.css')
             script(src='https://code.jquery.com/qunit/qunit-1.23.1.js')
-            script(src='/js/testing.js')
+            script(src='/testing.js')
 
     body
         #info-modal.modal.fade(tabindex='-1')
@@ -43,6 +43,7 @@ html
                     .modal-body
                         p
                             = pack.description
+                        hr
                         h4 Database Statistics
                         p#stats
                         hr
@@ -81,10 +82,6 @@ html
                             |  - Download videos from a wide variety of websites (This is a 'frontend' to&nbsp;
                             a(href='https://rg3.github.io/youtube-dl/') youtube-dl
                             | )
-
-                        p
-                            a(href='https://www.npmjs.com/pack/player', target='_blank') player
-                            |  - Play local audio files
                         hr
                         h4 Themes
                         p: a(href='http://getbootstrap.com/', target='_blank') Default Theme
@@ -107,54 +104,60 @@ html
                     .modal-body
                         form.form-group(autocomplete='off')
                             h3 Client Settings
-                            label Theme
-                            select#themes.form-control
-                                option(value='default') Default
-                                option(value='default-thin') Default (Thin)
-                                option(value='materialish') Materialish
-                                option(value='materialish-thin') Materialish (Thin)
-                            .checkbox
-                                label(title='Note: This client will be slow with playlists larger than 2000 songs if pagination is disabled.')
-                                    input#use-pages-playlist(type='checkbox')
-                                    | Use playlist pagination
-                            label Maximum playlist table rows per page
-                            input#items-max-playlist.form-control(type='number', min='5', max='1000')
-                            .checkbox
-                                label(title='Note: This client will be slow with libraries larger than 2000 songs if pagination is disabled.')
-                                    input#use-pages-browser(type='checkbox')
-                                    | Use browser pagination
-                            label Maximum browser table rows per page
-                            input#items-max-browser.form-control(type='number', min='5', max='1000')
-                            br
-                            label Maximum notification history table rows
-                            input#history-max.form-control(type='number', min='0', max='1000')
-                            .checkbox
-                                label(title='Disabling pulse animations may improve performace')
-                                    input#use-pulse(type='checkbox')
-                                    | Use pulse animation
-                            .checkbox
-                                label(title='Show or hide "unknown" text in the browser')
-                                    input#use-unknown(type='checkbox')
-                                    | Use 'unknown' text in the browser (if false, it will show nothing)
-                            .checkbox
-                                label(title='When enabled, whenever you skip a song, it will be removed from the playlist')
-                                    input#use-skip-to-remove(type='checkbox')
-                                    | Use skip to remove feature (only works when voting is disabled)
-                            .checkbox
-                                label(title='Stops showing the warning icon when consume mode is enabled')
-                                    input#use-consume-warning(type='checkbox')
-                                    | Show MPD's consume warning
-                            .checkbox
-                                label(title='Note: some errors you may see are false-positives.')
-                                    input#show-all-errors(type='checkbox')
-                                    | Debug: Show all errors
+                            .form-group
+                                label Theme
+                                select#themes.form-control
+                                    option(value='default') Default
+                                    option(value='default-thin') Default (Thin)
+                                    option(value='materialish') Materialish
+                                    option(value='materialish-thin') Materialish (Thin)
+                            .form-group
+                                .checkbox
+                                    label(title='Note: This client will be slow with playlists larger than 2000 songs if pagination is disabled.')
+                                        input#use-pages-playlist(type='checkbox')
+                                        | Use playlist pagination
+                                label Maximum playlist table rows per page
+                                input#items-max-playlist.form-control(type='number', min='5', max='1000')
+                            .form-group
+                                .checkbox
+                                    label(title='Note: This client will be slow with libraries larger than 2000 songs if pagination is disabled.')
+                                        input#use-pages-browser(type='checkbox')
+                                        | Use browser pagination
+                                label Maximum browser table rows per page
+                                input#items-max-browser.form-control(type='number', min='5', max='1000')
+                            .form-group
+                                label Maximum notification history table rows
+                                input#history-max.form-control(type='number', min='0', max='1000')
+                            .form-group
+                                .checkbox
+                                    label(title='Disabling pulse animations may improve performace')
+                                        input#use-pulse(type='checkbox')
+                                        | Use pulse animation
+                                .checkbox
+                                    label(title='Show or hide "unknown" text in the browser')
+                                        input#use-unknown(type='checkbox')
+                                        | Use 'unknown' text in the browser (if false, it will show nothing)
+                                .checkbox
+                                    label(title='When enabled, whenever you skip a song, it will be removed from the playlist')
+                                        input#use-skip-to-remove(type='checkbox')
+                                        | Use skip to remove feature (only works when voting is disabled)
+                                .checkbox
+                                    label(title='Stops showing the warning icon when consume mode is enabled')
+                                        input#use-consume-warning(type='checkbox')
+                                        | Show MPD's consume warning
+                                .checkbox
+                                    label(title='Note: some errors you may see are false-positives.')
+                                        input#show-all-errors(type='checkbox')
+                                        | Debug: Show all errors
                             h3 Server Settings
-                            label Track crossfade (0 - 10 seconds)
-                            input#crossfade(type='range', min='0', max='10')
-                            .checkbox
-                                label(title='Removes songs when skipping and when the song finishes')
-                                    input#consume(type='checkbox')
-                                    | Use consume mode
+                            .form-group
+                                label Track crossfade (0 - 10 seconds)
+                                input#crossfade(type='range', min='0', max='10')
+                            .form-group
+                                .checkbox
+                                    label(title='Removes songs when skipping and when the song finishes')
+                                        input#consume(type='checkbox')
+                                        | Use consume mode
                     .modal-footer
                         button.btn.btn-default(type='button', data-dismiss='modal') Close
 
@@ -207,9 +210,28 @@ html
                             span ×
                         h4.modal-title
                     .modal-body
-                        table#song-info.table: tbody
+                        table#downloader-location-list.table: tbody
                     .modal-footer
                         button.btn.btn-default(type='button', data-dismiss='modal') Close
+
+        if (config.downloader)
+            #downloader-location-modal.modal.fade(tabindex='-1')
+                .modal-dialog
+                    .modal-content
+                        .modal-header
+                            button.close(type='button', data-dismiss='modal')
+                                span ×
+                            h4.modal-title Select Location
+                        .modal-body
+                            #downloader-location-crumb.flex-full
+                                ol.breadcrumb
+                                    li: span#downloader-home.glyphicon.glyphicon-home(title='Go to the root of the music database.')
+                            #downloader-wrap
+                                table#downloader-folder-list.table.table-hover
+                                    tbody.append
+                        .modal-footer
+                            button.btn.btn-default(type='button', data-dismiss='modal') Close
+                            button#downloader-location-confirm.btn.btn-primary(type='button', data-dismiss='modal') Select
 
         #page-wrapper
             header.navbar.navbar-default
@@ -250,32 +272,29 @@ html
                         span#time-total
                 #header-right
                     #header-right-top.space-between
-                        if (config.player)
+                        if (config.downloader)
                             span.dropdown
-                                button#download-player-btn.btn.btn-default.dropdown-toggle(title='Audio player' data-toggle='dropdown')
+                                button#downloader-btn.btn.btn-default.dropdown-toggle(title='Downloader' data-toggle='dropdown')
                                     span.glyphicon.glyphicon-facetime-video
-                                ul#download-player.dropdown-menu.dropdown-menu-right.stop-click-event
-                                    li.dropdown-header Audio Player (WIP)
+                                ul#downloader.dropdown-menu.dropdown-menu-right.stop-click-event
+                                    li.dropdown-header Audio Downloader
                                     li: a.no-hover
                                         form(autocomplete='off')
+                                            label(for='downloader-url') URL
                                             .input-group
-                                                input#download-player-url.form-control(type='text', title='Enter a URL, such as from youtube, and the player will download the audio, and play it back on the server.', placeholder='Enter a url (Ex: a video from youtube)')
+                                                input#downloader-url.form-control(type='text', title='Enter a URL, such as from youtube, and this will download the audio on to the server.', placeholder='Enter a url (Ex: a video from youtube)')
                                                 span.input-group-btn
-                                                    button#download-player-search.btn.btn-default(type='button')
-                                                        span.glyphicon.glyphicon-search
-                                        #download-player-title
+                                                    button#downloader-download.btn.btn-default(type='button', title='Download')
+                                                        span.glyphicon.glyphicon-download-alt
+                                            label(for='downloader-location') Location
+                                            .input-group
+                                                input#downloader-location.form-control(type='text', title='Location to download the file')
+                                                span.input-group-btn
+                                                    button#downloader-browse.btn.btn-default(type='button', title='Browse to location', data-toggle='modal', data-target='#downloader-location-modal')
+                                                        span.glyphicon.glyphicon-folder-open
+                                        #downloader-title
                                         .space-between
-                                            #download-player-controls.btn-group
-                                                button#download-player-play.btn.btn-default(title='Play song in playlist')
-                                                    span.glyphicon.glyphicon-play
-                                                button#download-player-pause.btn.btn-default(title='Pause song in playlist')
-                                                    span.glyphicon.glyphicon-pause
-                                                button#download-player-stop.btn.btn-default(title='Stop song in playlist')
-                                                    span.glyphicon.glyphicon-stop
-                                            #download-player-status
-                                        .space-between
-                                            span Volume&nbsp;
-                                            input#download-player-volume(type='range', min='0', max='1', step='0.01', title='Change the volume')
+                                            #downloader-status
                         span.dropdown
                             button.btn.btn-default.dropdown-toggle(title='History' data-toggle='dropdown')
                                 span.glyphicon.glyphicon-time
@@ -477,4 +496,3 @@ html
                     button#start-testing.pull-right.btn.btn-default(type='button') Start tests
                 #testing-main.panel-body
                     #qunit
-

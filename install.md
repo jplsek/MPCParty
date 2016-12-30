@@ -4,29 +4,28 @@ Installing MPCParty
 ## 1) Dependencies
 
 ### Ubuntu / Debian / Linux Mint
-`sudo apt update && sudo apt install git mpd nodejs-legacy npm libav-tools build-essential libasound2 libasound2-dev && sudo npm install -g bower`
+`sudo apt update && sudo apt install git mpd nodejs npm libav-tools && sudo npm install -g bower`
 
 ### Arch Linux / Antergos / Manjaro
-`sudo pacman -Sy git mpd nodejs npm ffmpeg base-devel alsa-lib && sudo npm install -g bower`
+`sudo pacman -Sy git mpd nodejs npm ffmpeg && sudo npm install -g bower`
 
 ### Fedora / Cent OS / RHEL
-`sudo yum groupinstal "Development Tools" && sudo yum install epel-release`  
+`sudo yum install epel-release`  
 Install [mpd](http://mpd.wikia.com/wiki/Install)  
-`sudo yum install nodejs npm alsa-lib-devel && sudo npm install -g bower`  
+`sudo yum install nodejs npm && sudo npm install -g bower`  
 Install [libav](https://libav.org/download/) or [ffmpeg](http://ffmpeg.org/download.html)  
 You may have issues running mpd. Good luck.
 
 ### Suse
-`sudo zypper install -t pattern devel_basis`  
 Install [mpd](http://mpd.wikia.com/wiki/Install)  
-`sudo zypper install git nodejs npm alsa-devel libav-tools && sudo npm install -g bower`  
+`sudo zypper install git nodejs npm libav-tools && sudo npm install -g bower`  
 You may have issues running mpd. Good luck.
 
 ### Windows
 Install [nodejs](https://nodejs.org/download/)  
 Install [mpd](http://www.musicpd.org/download.html)  
 Install [libav](https://libav.org/download/) or [ffmpeg](http://ffmpeg.org/download.html)  
-You will need nodejs to be in your path. The youtube player will not work unless you install several versions of visual studio (I have no idea), so running `npm install` will throw errors, but MPCParty should still be able to run.
+You will need nodejs to be in your path.
 
 ## 2) Release version
 Download the latest release from the GitHub [releases](https://github.com/jplsek/MPCParty/releases) page.

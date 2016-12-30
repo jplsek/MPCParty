@@ -46,6 +46,7 @@ TODO
 * One day restructure everything to reduce coupling and maybe follow some patterns...
 
 ## Bugs
+* Browser: scroll down, search something, the table header goes to the top of the page.
 * It seems crashing is due to refreshing too many times?
 * Loading a theme will add another "theme load" every time.
 

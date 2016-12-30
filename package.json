@@ -1,6 +1,6 @@
 {
   "name": "MPCParty",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "description": "Another MPD web client meant for multi-user usage.",
   "main": "server.js",
   "author": "Jeremy Plsek",
@@ -10,13 +10,13 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "browserify-middleware": "^7.0.0",
     "expand-tilde": "^1.2.0",
     "express": "^4.13.4",
     "fs": "0.0.2",
     "http": "0.0.0",
     "komponist": "~0.1.0",
     "less-middleware": "^2.0.1",
-    "player": "^0.6.1",
     "pug": "^2.0.0-alpha7",
     "toml": "^2.3.0",
     "ws": "^1.0.1",

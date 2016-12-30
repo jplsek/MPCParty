@@ -6,10 +6,12 @@ var express         = require('express'),
     komponist       = require('komponist'),
     fs              = require('fs'),
     less            = require('less-middleware'),
+    browserify      = require('browserify-middleware'),
     dns             = require('dns'),
     toml            = require('toml'),
+    path            = require('path'),
+    tilde           = require('expand-tilde'),
     // optional modules
-    Player          = null,
     youtubedl       = null,
 
     // mpd: komponist mpd connection; pack: package.json;
@@ -49,176 +51,106 @@ function getHostname(ip, callback) {
                 console.log(err);
             }
         }
+
         // first hostname as a string
         if (!hostname || hostname.length === 0) {
             // in case response is not an array
             hostname    = [];
             hostname[0] = ip;
         }
+
         //console.log('hostname: ' + hostname[0]);
         if (typeof callback == 'function') callback(hostname[0], ip);
     });
 }
 
-var video = {
-    // the current Player
+var downloader = {
     // some of these settings get set in config.json
     enabled: true,
-    directory: __dirname + '/downloads',
-    keepVideo: true,
-    player: null,
-    file: null,
-    playing: false,
-    paused: false,
-    volume: 0.5,
-    msg: '',
-    title: '',
+    directory: 'Downloads',
+    keepVideo: false,
 
     // TODO check if file already exists
-    download: function (url, address) {
-        io.broadcast(JSON.stringify({'type': 'download-video'}));
-        this.msg    = 'Downloading and converting video...';
-        this.paused = false;
+    download: function (url, location, address, socket) {
+        location = downloader.getLocation(location);
+
+        socket.send(JSON.stringify({
+            'type': 'downloader-status',
+            'info': 'Downloading and converting video...'
+        }));
+
         var option  = ['-x', '--audio-format', 'mp3'];
-        console.log('Requesting video download: ' + url + ' from ' + address);
+        console.log('Requesting video download: ' + url + ' from ' + address +
+            ' to ' + location);
 
         if (this.keepVideo) option.push('-k');
 
-        youtubedl.exec(url, option, {cwd: video.directory},
-                function exec(err, output) {
+        // create the folder if it doesn't exist
+        fs.mkdir(location, function (err) {
+            // ignore exists error
             if (err) {
-                io.broadcast(JSON.stringify({
-                    'type': 'download-video-status',
-                    'info': 'Error! Invalid url?'
-                }));
-                video.msg = 'Stopped...';
-                return console.log(err);
-            }
+                if (err.code == 'EEXIST') {
+                    console.log('Using directory for the ' +
+                        'Downloader: ' + location);
+                } else {
+                    console.log('!!! Error creating directory "' +
+                        location + '" for the Downloader.');
+                    console.log(err);
 
-            // just in case there is something already playing
-            video.stop();
-
-            console.log('============ start youtube-dl ============');
-            console.log(output.join('\n'));
-            console.log('============  end  youtube-dl ============');
-
-            for (var item = 0; item < output.length; ++item) {
-                if (~output[item].indexOf('.mp3')) {
-                    var str = output[item];
-                    var colon = str.indexOf(':');
-                    var newstr = str.substring(colon + 2);
-                    //console.log(newstr);
-                    video.title = newstr;
-                    io.broadcast(JSON.stringify(
-                        {'type': 'download-video-title', 'info': newstr}));
-                    video.file = video.directory + '/' + newstr;
-                    video.play();
+                    socket.send(JSON.stringify({
+                        'type': 'downloader-status',
+                        'info': 'Error creating directory!'
+                    }));
                 }
-            }
-        });
-
-        // I would like to use this instead... but it doesnt seem to work
-        // unless I use a write steam
-        //var ytdl = youtubedl(url, ['-x', '--audio-format', 'mp3'],
-            //{cwd: video.directory});
-        //ytdl.on('info', function (info) {
-            //console.log('video download starting!');
-        //});
-        //ytdl.on('end', function (info) {
-            //console.log('video download complete!');
-            //video.file = video.directory + '/' + info._filename;
-            //video.play();
-        //});
-    },
-
-    // play the Player (after download)
-    play: function () {
-        // prevent duplicate play requests
-        if (this.playing) return;
-
-        this.playing = true;
-        video.player = new Player(this.file);
-        video.player.play();
-        io.broadcast(JSON.stringify({'type': 'download-video-play'}));
-        this.msg = 'Playing...';
-
-        // TODO Random bug sometimes??: if this stops working: go to
-        // node_modules/player/dist/player.js and look for
-        // "self.send('playing', song);" add another line like
-        // "self.send('playingTest', song);" and change the "playing"
-        // on this next line to "playingTest"
-        video.player.on('playing', function (item) {
-            console.log('Playing downloaded video: ' + item._name);
-            //console.log('player.on.playing works now!');
-            video.setVolume();
-        });
-
-        video.player.on('playend', function (item) {
-            console.log('Playend downloaded video: ' + item._name);
-            video.stop();
-        });
-
-        video.player.on('error', function (err){
-            // ignore error
-            if (err == 'No next song was found') {
-                console.log('> Got "finish" event, waiting...');
-                // TODO
-                // because playend event doesn't work on some systems
-                // I'm using this error code to detect the end.
-                // unfortunalty, this also cuts the last ~5 seconds of
-                // audio, so I added a dirty timeout
-                // Overall, this Player module is a little buggy, but I
-                // don't want to recreate an audio stack...
-                setTimeout(function () {
-                    console.log('> Stopping song!');
-                    video.stop();
-                }, 5000);
             } else {
-                console.log('Error playing song!');
-                console.log(err);
+                console.log('Creating directory for the ' +
+                    'Downloader: ' + location);
             }
+
+            youtubedl.exec(url, option, {cwd: location},
+                    function exec(err, output) {
+                if (err) {
+                    socket.send(JSON.stringify({
+                        'type': 'downloader-status',
+                        'info': 'Error! Invalid url?'
+                    }));
+                    return console.log(err);
+                }
+
+                console.log('============ start youtube-dl ============');
+                console.log(output.join('\n'));
+                console.log('============  end  youtube-dl ============');
+
+                //for (var item = 0; item < output.length; ++item) {
+                //    if (~output[item].indexOf('.mp3')) {
+                //        var str = output[item];
+                //        var colon = str.indexOf(':');
+                //        var newstr = str.substring(colon + 2);
+                //        console.log(newstr);
+                //    }
+                //}
+
+                socket.send(JSON.stringify({
+                    'type': 'downloader-status',
+                    'info': 'Done'
+                }));
+            });
+
+            // I would like to use this instead... but it doesnt seem to work
+            // unless I use a write steam
+            //var ytdl = youtubedl(url, ['-x', '--audio-format', 'mp3'],
+                //{cwd: downloader.directory});
+            //ytdl.on('info', function (info) {
+                //console.log('video download starting!');
+            //});
+            //ytdl.on('end', function (info) {
+                //console.log('video download complete!');
+            //});
         });
     },
 
-    // pause or play the Player
-    pause: function () {
-        // dont do anything if nothing is playing
-        if (!this.player) return;
-
-        this.player.pause();
-        // for some reason, the volume gets reset after a pause
-        this.player.setVolume(video.volume);
-        this.paused = !this.paused;
-
-        if (this.paused) {
-            io.broadcast(JSON.stringify(
-                {'type': 'download-video-pause', 'info': true}));
-            this.msg = 'Paused...';
-        } else {
-            io.broadcast(JSON.stringify(
-                {'type': 'download-video-pause', 'info': false}));
-            this.msg = 'Playing...';
-        }
-    },
-
-    // stop the Player
-    stop: function () {
-        // dont do anything if nothing is playing
-        if (!this.player) return;
-
-        io.broadcast(JSON.stringify({'type': 'download-video-stop'}));
-        this.msg = 'Stopped...';
-        this.player.stop();
-        this.playing = false;
-        this.paused  = false;
-    },
-
-    setVolume: function (volume) {
-        if (volume) video.volume = volume;
-        io.broadcast(JSON.stringify(
-            {'type': 'download-video-volume', 'info': video.volume}));
-        if (this.player)
-            this.player.setVolume(video.volume);
+    getLocation: function (location) {
+        return path.normalize(tilde(config.mpd.library + path.sep + location));
     }
 };
 
@@ -280,6 +212,9 @@ var skip = {
 app.disable('x-powered-by');
 // less config
 app.use(less(__dirname + '/public'));
+// compile js client side code
+app.get('/mpcparty.js', browserify(__dirname + '/src/main.js'));
+app.get('/testing.js', browserify(__dirname + '/tests/main.js'));
 // serve static files here
 app.use(express.static(__dirname + '/public'));
 // use pug with express
@@ -299,7 +234,7 @@ app.get('/', function (req, res) {
         pack: pack,
         config: {
             "showUsers": config.users.enabled,
-            "player": video.enabled,
+            "downloader": downloader.enabled,
             "testing": config.testing.enabled
         }
     });
@@ -310,7 +245,7 @@ app.get('/browser/*', function (req, res) {
         pack: pack,
         config: {
             "showUsers": config.users.enabled,
-            "player": video.enabled,
+            "downloader": downloader.enabled,
             "testing": config.testing.enabled
         }
     });
@@ -321,7 +256,7 @@ app.get('/library/*', function (req, res) {
         pack: pack,
         config: {
             "showUsers": config.users.enabled,
-            "player": video.enabled,
+            "downloader": downloader.enabled,
             "testing": config.testing.enabled
         }
     });
@@ -332,7 +267,7 @@ app.get('/search/*', function (req, res) {
         pack: pack,
         config: {
             "showUsers": config.users.enabled,
-            "player": video.enabled,
+            "downloader": downloader.enabled,
             "testing": config.testing.enabled
         }
     });
@@ -383,7 +318,8 @@ var config = {
     },
     mpd: {
         url: 'localhost',
-        port: 6600
+        port: 6600,
+        library: ''
     },
     users: {
         enabled: false
@@ -408,6 +344,8 @@ fs.readFile(__dirname + '/config.cfg', function (err, data) {
             data.mpd.url : config.mpd.url);
         config.mpd.port = (data.mpd.port !== undefined ?
             data.mpd.port : config.mpd.port);
+        config.mpd.library = (data.mpd.library !== undefined ?
+            data.mpd.library : config.mpd.library);
         config.users.enabled = (data.users.enabled !== undefined ?
             data.users.enabled : config.users.enabled);
         config.testing.enabled = (data.testing.enabled !== undefined ?
@@ -416,50 +354,41 @@ fs.readFile(__dirname + '/config.cfg', function (err, data) {
             data.vote.enabled : skip.voting);
         skip.votePercent = (data.vote.percent !== undefined ?
             data.vote.percent : skip.votePercent);
-        video.enabled = (data.player.enabled !== undefined ?
-            data.player.enabled : video.enabled);
-        video.directory = (data.player.directory !== undefined ?
-            data.player.directory : video.directory);
-        video.volume = (data.player.volume !== undefined ?
-            data.player.volume : video.volume);
-        video.keepVideo = (data.player.keep_videos !== undefined ?
-            data.player.keep_videos : video.keepVideo);
+        downloader.enabled = (data.downloader.enabled !== undefined ?
+            data.downloader.enabled : downloader.enabled);
+        downloader.directory = (data.downloader.directory !== undefined ?
+            data.downloader.directory : downloader.directory);
+        downloader.keepVideo = (data.downloader.keep_videos !== undefined ?
+            data.downloader.keep_videos : downloader.keepVideo);
+    }
+
+    // if we don't know the location of the library, disable extra features
+    if (config.mpd.library === '') {
+        downloader.enabled = false;
     }
 
     // create video.directory folder
-    if (video.enabled) {
+    if (downloader.enabled) {
         (function() {
-            try {
-                Player = require('player');
-            } catch(e) {
-                console.log('Error loading the player module. Disabling the ' +
-                    'Download Player.');
-                console.log(e);
-                video.enabled = false;
-                return;
-            }
-
             youtubedl = require('youtube-dl');
-            // tilde is only here because the Player is the only thing using a
-            // custom dir.
-            var tilde = require('expand-tilde');
-            video.directory = tilde(video.directory);
+            var location = downloader.getLocation(downloader.directory);
 
-            fs.mkdir(video.directory, function (err) {
+            fs.mkdir(location, function (err) {
                 // ignore exists error
                 if (err) {
                     if (err.code == 'EEXIST') {
-                        console.log('Using directory for the ' +
-                            'Download Player: ' + video.directory);
+                        console.log('Default directory for the ' +
+                            'Downloader: ' + location);
                     } else {
-                        console.log('!!! Error creating a directory for the ' +
-                            'Download Player, disabling...');
-                        video.enabled = false;
+                        console.log('!!! Error creating directory "' +
+                            location + '" for the ' +
+                            'Downloader, disabling...');
+                        downloader.enabled = false;
                         console.log(err);
                     }
                 } else {
                     console.log('Creating directory for the ' +
-                        'Download Player: ' + video.directory);
+                        'Downloader: ' + location);
                 }
             });
         })();
@@ -609,7 +538,6 @@ function setSong(client) {
 // sendUpdate manages the users connected and sends vote information
 // to the clients
 var sendUpdate = function (address, connect, customSocket) {
-
     var oldAddresses = addresses,
         i;
 
@@ -772,9 +700,9 @@ io.on('connection', function (socket) {
     // on client connect, send init values to single client
     socket.send(JSON.stringify({
             'type': 'init', 'playlist-title': playlisttitle,
-            'song-vote': skip.voting, 'player-volume': video.volume,
-            'player-status': video.msg, 'player-title': video.title,
-            'album-art': currentArt
+            'song-vote': skip.voting,
+            'downloader-location': downloader.directory,
+            'album-art': currentArt,
             }),
             function (err) {
         if (err) {
@@ -946,24 +874,8 @@ io.on('connection', function (socket) {
                 });
                 break;
 
-            case 'download-video':
-                video.download(msg.info, address);
-                break;
-
-            case 'download-video-play':
-                video.play();
-                break;
-
-            case 'download-video-pause':
-                video.pause();
-                break;
-
-            case 'download-video-stop':
-                video.stop();
-                break;
-
-            case 'download-video-volume':
-                video.setVolume(msg.info);
+            case 'downloader-download':
+                downloader.download(msg.url, msg.location, address, socket);
                 break;
         }
 
