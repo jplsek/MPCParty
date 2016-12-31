@@ -620,16 +620,16 @@ return {
 
         obj.selected = [];
     },
+
+    setCurrentAlbumArt: function (url) {
+        //console.log(url);
+
+        if (!url) {
+            $('#album-art').hide().attr('src', '');
+        } else {
+            $('#album-art').show().attr('src', url);
+        }
+    },
 };
-
-function setCurrentAlbumArt(url) {
-    console.log(url);
-
-    if (!url) {
-        $('#album-art').hide().attr('src', '');
-    } else {
-        $('#album-art').show().attr('src', url);
-    }
-}
 
 };

@@ -87,7 +87,7 @@ socket.onmessage = function (event) {
             mpcp.playlist.updateTitle(msg['playlist-title']);
             mpcp.vote.enabled = msg['song-vote'];
             mpcp.downloader.init(msg['downloader-location']);
-            setCurrentAlbumArt(msg['album-art']);
+            mpcp.utils.setCurrentAlbumArt(msg['album-art']);
             initAfterConnection();
             break;
 
@@ -205,7 +205,7 @@ socket.onmessage = function (event) {
 
             // album art
         case 'album-art':
-            setCurrentAlbumArt(msg.url);
+            mpcp.utils.setCurrentAlbumArt(msg.url);
             break;
     }
 };

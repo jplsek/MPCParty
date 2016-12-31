@@ -11,11 +11,16 @@ var express         = require('express'),
     toml            = require('toml'),
     path            = require('path'),
     tilde           = require('expand-tilde'),
+    glob            = require('glob'),
     // optional modules
     youtubedl       = null,
 
     // mpd: komponist mpd connection; pack: package.json;
     mpd, pack,
+
+    // some of these varaibles are saved so that a new client can quickly get
+    // unique information the server knows about.
+
     // save playlist title for future connections (because I have no idea how
     // to get the playlist title on initial load)
     playlisttitle = '',
@@ -438,74 +443,47 @@ function sendArtworkMessage() {
 
 // get album art based on the directory the file is in
 function getImage(song) {
-
-    if (!song) {
+    if (!song || config.mpd.library === '') {
         currentArt = null;
         sendArtworkMessage();
         return;
     }
 
-    console.log('');
-    var subFolder = song.file.substr(0, song.file.lastIndexOf('/'));
+    var subFolder = song.file.substr(0, song.file.lastIndexOf('/')),
+        folder    = tilde(config.mpd.library + '/' + subFolder);
 
-    // TODO: set absolute path to folder. How do we find out where the
-    // root of the music folder is located (preferably without setting
-    // a parameter in config.cfg)? mpd.config() does not work because
-    // of permissions. The way other GUI mpd clients operate, is that they add
-    // a mount, thus the user inputs a custom location specific to that
-    // client (and in our case, our config file).
-    mpd.config(function (err, val) {
-        if (err) {
-            console.log(err);
-        }
-        // (if this actually worked, this would be called during server
-        // initialization)
-        console.log('mpd config:');
-        console.log(val);
-    })
+    //console.log(folder);
+    glob('{*.jpg,*.png}', {cwd:folder}, function(err, files) {
+        if (err) return console.log(err);
 
-    var musicRoot = '/home/jeremy/Music';
-
-    var folder = musicRoot + '/' + subFolder;
-
-    console.log(folder);
-
-    // TODO: look for *.jpg or *.png and set it
-    var imageName = 'cover.jpg';
-    var imageLocation = folder + '/' + imageName;
-
-    // testing with an absolute path
-    //imageLocation = '~/Music/path/to/cover.jpg';
-
-    console.log(imageLocation);
-
-    fs.stat(imageLocation, function (err, stats) {
-        if (err) {
-            //console.log(err);
+        //console.log(files);
+        if (files.length === 0) {
             currentArt = null;
             sendArtworkMessage();
-        } else if (stats.isFile(imageLocation)) {
-            currentArt =
-                encodeURI('/album-art/' + subFolder + '/' + imageName);
+            return;
+        }
 
-            console.log(currentArt);
+        // just grab the first file
+        var imageLocation = tilde(folder + path.sep + files[0]);
+        //console.log(imageLocation);
 
-            // create a new url
-            app.get(currentArt, function (req, res) {
-                res.sendFile(imageLocation, function (err) {
-                    if (err) {
-                        console.log(err);
-                        res.status(err.status).end();
-                    }
-                });
+        currentArt = encodeURI('/album-art/' + subFolder + '/' + files[0]);
+
+        console.log('Creating art URL: ' + currentArt);
+
+        // TODO check if there is a way to remove the old url when a
+        // new one is created (or will the gc or express handle that?)
+        // create a new url
+        app.get(currentArt, function (req, res) {
+            res.sendFile(imageLocation, function (err) {
+                if (err) {
+                    console.log(err);
+                    res.status(err.status).end();
+                }
             });
+        });
 
-            sendArtworkMessage();
-        } else {
-            console.log(imageLocation + ' is not a file?');
-            currentArt = null;
-            sendArtworkMessage();
-        }
+        sendArtworkMessage();
     });
 }
 
@@ -527,7 +505,6 @@ function setSong(client) {
         if (currentSong != song.file) {
             console.log('Now playing: ' + song.file);
             skip.reset();
-
             getImage(song);
         }
 

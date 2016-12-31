@@ -16,23 +16,16 @@ TODO
 * Browser:
     * Loading icon between changing locations?
     * Custom column picker
-* Library:
-    * If user clicks the same album or artist multiple times, don't save it to the history
 * Playlist:
     * Drag and drop through pages
     * Remove songs visually to the single user. (Do not update the playlist via mpd for the user editing it.) It will allow faster deletion for large playlists.
     * Give a warning if the playlist was not saved when the user tries to clear it
-* Download Player:
-    * List available files to play from download directory? (What if user has it set to their music library? Have a config option?)
-    * Make it into a video streamer (muted by default on the client)?
 * Playlists:
     * Tell the user when the playlists cannot be loaded due to permission errors
 * http stream support
 * Option to disable notifications?
 * Navigator? (tag grouping)
 * MPD password support?
-* Keyboard shortcuts?
-* Album covers? (May use MusicBrainz)
 * Switch to Bootstrap 4 when released?
 * Playlist queueing (so it doesn't stop the song playing when opening a playlist)
 * Some simple visualizer?
@@ -40,7 +33,7 @@ TODO
 * Undo actions (like removing a song from the playlist)?
 * Add a max updates per second setting
 * Found out that the way I'm using floathead makes the app comparatively slower than not using it. So I might one day create a "lightweight" version from scratch.
-* hotkeys for erything (delete songs from playlists, delete playlist, pausing, etc)
+* Keyboard shortcuts for erything (delete songs from playlists, delete playlist, pausing, etc)
 
 * Unit testing
 * One day restructure everything to reduce coupling and maybe follow some patterns...
@@ -55,9 +48,6 @@ TODO
 # server.js
 
 ## Partially implemented
-* Video Player:
-    * General video controls are not very responsive
-    * Give more specific error messages to the client
 
 ## To implement
 
