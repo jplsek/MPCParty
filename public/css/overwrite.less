@@ -86,6 +86,7 @@ main {
         #slwrap {
             flex-grow: 2;
             overflow-x: hidden; // in case of size issues with js
+            position: relative;
         }
     }
     #library {
@@ -291,6 +292,9 @@ table.floatThead-table {
     flex-grow: 2;
     display: flex;
     overflow: auto;
+}
+.floatThead-container {
+    top: auto !important;
 }
 .flex-full {
     -webkit-box-flex: 1; /* fallback for apple webkit */
