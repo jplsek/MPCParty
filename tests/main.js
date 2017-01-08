@@ -5,7 +5,6 @@
 // 1st artist in library contains atleast 1 album
 // 1st artist in library contains more than 1 song
 // The browser must be focused the whole time, cannot be clicked around.
-// I recommend a webkit browser for testing, (like chrom*) because the js and dom rendering engine is faster than gecko based browsers (like ff)
 
 QUnit.config.autostart = false;
 

@@ -15,7 +15,6 @@ $.fn.randomize = function (childElem) {
 };
 
 return {
-
     // convert int to mm:ss
     toMMSS: function (str) {
         str = (!str ? '0' : str);
@@ -140,7 +139,6 @@ return {
             html += '<tr class="gen"><td>' + key + '</td><td>' + values[key] + '</td></tr>';
         });
 
-console.log(html);
         $('#song-info tbody')[0].innerHTML = html;
 
         if (callback) callback();

@@ -1,5 +1,8 @@
 module.exports = function (utils) {
 
+// I'm hoping not all of them contain this keyword...
+var keyword = 'e';
+
 QUnit.test('open and close pb', function (assert) {
     utils.openPb(assert);
     utils.closePb(assert);
@@ -248,6 +251,54 @@ QUnit.test('pb duplicate check', function (assert) {
     });
 });
 
-// TODO test pb search
+QUnit.test('pb search check with clear', function (assert) {
+    var done = assert.async();
+    utils.openPb(assert);
+    utils.addSong(5, true, function () {
+        var children = $(utils.pb).children('.gen');
+        assert.equal($(children).length, 5, 'check if 5 songs added');
+        assert.ok(!$('#search-pb').is(':visible'), 'check if search is not visible');
+        $('#pb-search-toggle').click();
+        assert.ok($('#search-pb').is(':visible'), 'check if search is visible');
+        $('#search-pb').val(keyword);
+
+        setTimeout(function () {
+            var childrenNow = $(utils.pb).children('.gen:visible');
+            assert.notEqual($(childrenNow).length, $(children).length, 'check if less songs');
+            $('#search-pb-clear').click();
+            childrenNow = $(utils.pb).children('.gen:visible');
+            assert.equal($(childrenNow).length, $(children).length, 'check if same songs');
+            $('#pb-search-toggle').click();
+            assert.ok(!$('#search-pb').is(':visible'), 'check if search is not visible');
+            utils.closePb(assert);
+            done();
+        }, 2000);
+    });
+});
+
+QUnit.test('pb search check with cancel', function (assert) {
+    var done = assert.async();
+    utils.openPb(assert);
+    utils.addSong(5, true, function () {
+        var children = $(utils.pb).children('.gen');
+        assert.equal($(children).length, 5, 'check if 5 songs added');
+        assert.ok(!$('#search-pb').is(':visible'), 'check if search is not visible');
+        $('#pb-search-toggle').click();
+        assert.ok($('#search-pb').is(':visible'), 'check if search is visible');
+        $('#search-pb').val(keyword);
+
+        setTimeout(function () {
+            var childrenNow = $(utils.pb).children('.gen:visible');
+            console.log($(childrenNow).length);
+            assert.notEqual($(childrenNow).length, $(children).length, 'check if less songs');
+            $('#pb-search-toggle').click();
+            assert.ok(!$('#search-pb').is(':visible'), 'check if search is not visible');
+            childrenNow = $(utils.pb).children('.gen:visible');
+            assert.equal($(childrenNow).length, $(children).length, 'check if same songs');
+            utils.closePb(assert);
+            done();
+        }, 2000);
+    });
+});
 
 };
