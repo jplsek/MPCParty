@@ -37,7 +37,7 @@ return {
 
                 if ($('.playlists .append').children('.gen') < 1) {
                     var html = '<tr class="gen"><td colspan="2"><em class="text-muted">No playlists found</em></td></tr>';
-                    $(id +' .playlists tbody').append(html);
+                    $(id +' .playlists tbody')[0].innerHTML = html;
                     console.log('no playlists found (dont update)');
                 }
             }
@@ -59,7 +59,7 @@ return {
                 }
 
                 html = '<em class="gen text-muted">No saved playlists</em>';
-                $(id +' .modal-body').append(html);
+                $(id +' .modal-body')[0].innerHTML = html;
                 console.log(err);
                 if (callback) callback();
                 return;
@@ -79,7 +79,7 @@ return {
 
             if (!playlists.length) {
                 html = '<em class="gen text-muted">No saved playlists</em>';
-                $(id +' .modal-body').append(html);
+                $(id +' .modal-body')[0].innerHTML = html;
                 return console.log('No playlists');
             }
 
@@ -101,7 +101,7 @@ return {
                     value.playlist = value.playlist.replace(/ /g, '\u00a0');
                     html += '<tr class="gen playlists-row" data-fileid="' + value.playlist + '"><td>' + value.playlist + '</td><td>' + songs.length + '</td><td class="text-right"><span class="faded playlist-remove text-danger glyphicon glyphicon-remove" data-fileid="' + value.playlist + '" title="Remove the playlist"></span></td>';
                     if (++i == playlists.length) {
-                        $(id +' .playlists tbody').append(html);
+                        $(id +' .playlists tbody')[0].innerHTML = html;
                         if (callback) callback();
                     }
                 });
@@ -286,7 +286,7 @@ return {
                             file + ' playlist saved!', 'Playlist update');
 
                     // set title locally before sending to clients
-                    $('#playlist-title strong').html(file);
+                    $('#playlist-title strong')[0].innerHTML = file;
                     $('#playlist-title strong').attr('title', file);
 
                     socket.send(JSON.stringify({
@@ -314,7 +314,7 @@ return {
     },
 
     removePlaylist: function (file, tr, callback) {
-        file = file.replace(/\u00a0/g, " ");
+        file = String(file).replace(/\u00a0/g, " ");
         // client side deletion, less jaring (stops flashing the list)
         mpcp.stored.doUpdate = false;
         console.log('delete playlist ' + file);
@@ -324,7 +324,7 @@ return {
                 mpcp.lazyToast.error(err, 'Error removing playlist!');
                 console.log(err);
             } else {
-                $(tr).remove();
+                $(tr)[0].remove();
             }
 
             if (callback) callback();
@@ -358,7 +358,7 @@ return {
                     }
 
                     // set title locally before sending to clients
-                    $('#playlist-title strong').html(file);
+                    $('#playlist-title strong')[0].innerHTML = file;
                     $('#playlist-title strong').attr('title', file);
 
                     socket.send(JSON.stringify({
@@ -379,17 +379,17 @@ return {
 
         rowSelect.on('down', function (ele) {
             var file = $(ele).data().fileid;
-            $('#playlist-save-input').val(file);
+            document.getElementById('playlist-save-input').value = file;
         });
 
         rowSelect.on('up', function (ele) {
             var file = $(ele).data().fileid;
-            $('#playlist-save-input').val(file);
+            document.getElementById('playlist-save-input').value = file;
         });
 
         rowSelect.on('click', function (ele) {
             var file = $(ele).data().fileid;
-            $('#playlist-save-input').val(file);
+            document.getElementById('playlist-save-input').value = file;
         });
 
         rowSelect.on('enter', function (ele) {
@@ -431,7 +431,7 @@ return {
         });
 
         $('#playlist-save-clear').click(function () {
-            $('#playlist-save-input').val('');
+            document.getElementById('playlist-save-input').value = '';
             $('#playlist-save-input').focus();
             rowSelect.deselect();
         });

@@ -53,7 +53,7 @@ return {
                         !files[0].Artist)) {
                 html = '<tr class="gen"><td colspan="6">' +
                     '<em class="text-muted">No songs found</em></td></tr>';
-                $(mpcp.librarySongs.tbody).append(html);
+                $(mpcp.librarySongs.tbody)[0].innerHTML = html;
                 return console.log('No songs found');
             }
 
@@ -64,7 +64,8 @@ return {
                 html += mpcp.browser.getHtmlFiles(files[i]);
             }
 
-            $(mpcp.librarySongs.tbody).append(html);
+            $(mpcp.librarySongs.tbody)[0].innerHTML = html;
+
             mpcp.sortHelper.reloadSortable(mpcp.librarySongs);
             mpcp.browser.updatePosition();
             if (callback) callback();
@@ -75,7 +76,7 @@ return {
         mpcp.browser.selected = this.selected;
         mpcp.browser.addMulti(to);
         mpcp.utils.clearSelected(mpcp.librarySongs);
-        $(mpcp.librarySongs.clone).removeClass('info');
+        $(mpcp.librarySongs.clone)[0].classList.remove('info');
         return;
     },
 
@@ -88,8 +89,10 @@ return {
             $(files).each(function (item, file) {
                 $(mpcp.librarySongs.tbody + ' .gen').each(function (item, val) {
                     if ($(val).data().fileid == file.file) {
+                        //$(this)[0].style.display = 'block';
                         $(this).show();
                     } else {
+                        //$(this)[0].style.display = 'none';
                         $(this).hide();
                     }
                 });

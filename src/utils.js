@@ -126,11 +126,11 @@ return {
 
         //console.log(values);
         $('#song-info .gen').remove();
-        $('#song-info-modal h4').html('');
+        $('#song-info-modal h4')[0].innerHTML = '';
         $('#song-info-modal').modal('show');
 
         var title = mpcp.utils.getSimpleTitle(values.Title, values.Artist, values.file);
-        $('#song-info-modal h4').append(title);
+        $('#song-info-modal h4')[0].innerHTML = title;
 
         if (values.Time) values.Time = mpcp.utils.toMMSS(values.Time);
 
@@ -140,7 +140,8 @@ return {
             html += '<tr class="gen"><td>' + key + '</td><td>' + values[key] + '</td></tr>';
         });
 
-        $('#song-info tbody').append(html);
+console.log(html);
+        $('#song-info tbody')[0].innerHTML = html;
 
         if (callback) callback();
     },
@@ -294,7 +295,7 @@ return {
             //console.log(stats);
             var html = '<small>' + stats.artists + ' artists, ' + stats.albums + ' albums, ' + stats.songs + ' songs (' + mpcp.utils.toFriendlyDDHHMM(stats.db_playtime) + '). Last database update: ' + new Date(stats.db_update * 1000).toLocaleString() + '</small>';
             //console.log(html);
-            $('#stats').html(html);
+            document.getElementById('stats').innerHTML = html;
         });
     },
 
@@ -332,14 +333,14 @@ return {
         function deselect() {
             if (selected) {
                 $(selected).children().removeClass(style);
-                $(selected).removeClass('selected');
+                $(selected)[0].classList.remove('selected');
             }
         }
 
         function select(obj) {
             // fix hover issues
             $(obj).children().addClass(style);
-            $(obj).addClass('selected');
+            $(obj)[0].classList.add('selected');
             selected = obj;
         }
 
@@ -435,7 +436,7 @@ return {
 
     buttonSelect: function (ele, par) {
         $(par).children().removeClass('active');
-        $(ele).addClass('active');
+        $(ele)[0].classList.add('active');
     },
 
     reflowAll: function () {
@@ -450,7 +451,7 @@ return {
     createSearch: function (input, callSearch, callReset, inputClear, time) {
         if (!time) time = 3000;
 
-        function getSearchVal() { return $(input).val().toLowerCase(); }
+        function getSearchVal() { return $(input)[0].value.toLowerCase(); }
 
         // searching the database, instant searching is "slowed"
         // for better client and server performance
@@ -482,7 +483,7 @@ return {
 
         $(inputClear).click(function () {
             //console.log('clearing search');
-            $(input).val('');
+            $(input)[0].value = '';
             $(input).focus();
             lastVal = '';
             callReset();
@@ -518,14 +519,17 @@ return {
         mpcp.utils.createSearch(
             input,
             function (search) {
-                $(table + ' .gen').each(function (item, val) {
-                    var str = String($(val).data()[data]).toLowerCase();
+                var tr = $(table + ' .gen');
+
+                for (var i = 0; i < tr.length; ++i) {
+                    var str = String($(tr[i]).data()[data]).toLowerCase();
+
                     if (~str.indexOf(search)) {
-                        $(this).show();
+                        $(tr[i])[0].style.display = 'block';
                     } else {
-                        $(this).hide();
+                        $(tr[i])[0].style.display = 'none';
                     }
-                });
+                }
             },
             function () {
                 $(table + ' .gen').show();
@@ -613,10 +617,10 @@ return {
     clearSelected: function (obj) {
         console.log('clearing selected: ' + obj.table);
 
-        $(obj.selected).each(function (item, tr) {
-            //console.log(tr);
-            $(tr).removeClass('info');
-        });
+        for (var i = 0; i < obj.selected.length; ++i) {
+            //console.log(obj.selected[i]);
+            $(obj.selected[i])[0].classList.remove('info');
+        }
 
         obj.selected = [];
     },

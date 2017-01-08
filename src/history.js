@@ -20,7 +20,7 @@ return {
 
     initEvents: function () {
         $(document).on('click', '.history-remove', function () {
-            $(this).parent().parent().remove();
+            $(this)[0].parentNode.parentNode.remove();
         });
     }
 };

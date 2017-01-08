@@ -17,12 +17,12 @@ return {
     },
 
     removeClone: function (e, obj) {
-        $(mpcp.sortHelper.cloned).remove();
+        $(mpcp.sortHelper.cloned)[0].remove();
     },
 
     // remove the dud (since the clone replaced it)
     removeItem: function (e) {
-        $(e.detail.item).remove();
+        $(e.detail.item)[0].remove();
     },
 
     // return true if not correct obj (not itself)

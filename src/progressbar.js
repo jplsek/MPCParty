@@ -8,8 +8,8 @@ return {
     progressfn: function () {
         // avoid 'this' as it's in a new scope of setInterval
         ++mpcp.progressbar.progress;
-        $('#music-time').val(mpcp.progressbar.progress);
-        $('#time-current').html(mpcp.utils.toMMSS(mpcp.progressbar.progress));
+        document.getElementById('music-time').value = mpcp.progressbar.progress;
+        document.getElementById('time-current').innerHTML = mpcp.utils.toMMSS(mpcp.progressbar.progress);
     },
 
     stopProgress: function () {

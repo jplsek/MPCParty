@@ -91,13 +91,13 @@ return {
                 dirId += '/' + dirs[i+1];
             }
 
-        $('#location ol').append(html);
+        $('#location ol')[0].innerHTML += html;
 
         komponist.lsinfo(directory, function (err, files) {
             //console.log(files);
             if (err) return console.log(err);
 
-            $(mpcp.browser.table + ' .gen').remove();
+            $(mpcp.browser.tbody)[0].innerHTML = '';
             mpcp.browser.localFolders = [];
             mpcp.browser.localFiles = [];
             files = mpcp.utils.toArray(files);
@@ -105,7 +105,7 @@ return {
             if (!files.length) {
                 html = '<tr class="directory gen"><td colspan="6">' +
                     '<em class="text-muted">Empty directory</em></td></tr>';
-                $(mpcp.browser.table).append(html);
+                document.getElementById(mpcp.browser.table).innerHTML = html;
                 mpcp.pages.update('browser');
                 console.log('Empty directory');
                 if (callback) callback();
@@ -193,7 +193,7 @@ return {
             }
 
             // do this after (in case of error)
-            $(mpcp.browser.table + ' .gen').remove();
+            $(mpcp.browser.tbody)[0].innerHTML = '';
             mpcp.browser.searching = true;
             mpcp.browser.searchTerm = name;
             mpcp.browser.localFolders = [];
@@ -205,7 +205,7 @@ return {
                 // history
                 html = '<tr class="directory gen"><td colspan="6">' +
                     '<em class="text-muted">No songs found</em></td></tr>';
-                $(mpcp.browser.table).append(html);
+                $(mpcp.browser.tbody)[0].innerHTML = html;
                 mpcp.pages.update('browser');
                 if (callback) callback(0);
                 return console.log('No songs found');
@@ -288,27 +288,32 @@ return {
                 mpcp.player.setCurrent(song);
 
             if (mpcp.player.current) {
-                $('#title-pos').html((mpcp.player.current.Pos + 1) + '. ');
+                document.getElementById('title-pos').innerHTML =
+                    (mpcp.player.current.Pos + 1) + '. ';
             }
         });
 
-        $.each(tr, function (name, element) {
-            if (!$(element).hasClass('file')) return true;
+        var element, fileid, icon, index;
 
-            var fileid = $(element).data().fileid,
-                icon   = '',
-                index  = mpcp.playlist.list.files.indexOf(fileid);
+        for (var i = 0; i < tr.length; ++i) {
+            element = tr[i];
+
+            if (!$(element)[0].classList.contains('file')) return true;
+
+            fileid = $(element).data().fileid;
+            icon   = '';
+            index  = mpcp.playlist.list.files.indexOf(fileid);
 
             if (index != -1) {
                 icon = (parseInt(mpcp.playlist.list.positions[index]) + 1) +
                     '.';
-                $(element).children('.pos').html(icon);
+                element.firstChild.innerHTML = icon;
             } else {
                 icon = '<span class="text-primary glyphicon glyphicon-file">' +
                     '</span>';
-                $(element).children('.pos').html(icon);
+                element.firstChild.innerHTML = icon;
             }
-        });
+        }
     },
 
     updateLocal: function (callback) {
@@ -331,7 +336,7 @@ return {
             }
         }
 
-        $(this.table + ' .gen').remove();
+        $(this.tbody)[0].innerHTML = '';
 
         var start = 0,
             end   = this.localFolders.length + this.localFiles.length,
@@ -369,7 +374,7 @@ return {
             current++;
         }
 
-        $(this.tbody).append(html);
+        $(this.tbody)[0].innerHTML = html;
 
         //console.log(current);
 
@@ -557,11 +562,11 @@ return {
         if (!this.hidden) return;
         this.hidden = false;
         mpcp.utils.buttonSelect("#open-file-browser", "#browser-selection");
-        $('#browser').show();
+        document.getElementById('browser').style.display = 'flex';
     },
 
     hide: function () {
-        $('#browser').hide();
+        document.getElementById('browser').style.display = 'none';
         this.hidden = true;
         mpcp.utils.clearSelected(mpcp.browser);
     },
@@ -590,11 +595,11 @@ return {
 
             for (i = 0; i < this.selected.length; ++i) {
                 tr = this.selected[i];
-                if ($(tr).hasClass('file')) {
+                if ($(tr)[0].classList.contains('file')) {
                     file = $(tr).data().fileid;
                     console.log('adding ----- ' + file);
                     arr.push(['id', file]);
-                } else if ($(tr).hasClass('directory')) {
+                } else if ($(tr)[0].classList.contains('directory')) {
                     dir = $(tr).data().dirid;
                     arr.push(['dir', dir]);
                 }
@@ -612,10 +617,10 @@ return {
             this.selected.reverse();
             for (i = 0; i < this.selected.length; ++i) {
                 tr = this.selected[i];
-                if ($(tr).hasClass('file')) {
+                if ($(tr)[0].classList.contains('file')) {
                     file = $(tr).data().fileid;
                     addFile(file);
-                } else if ($(tr).hasClass('directory')) {
+                } else if ($(tr)[0].classList.contains('directory')) {
                     dir = $(tr).data().dirid;
                     addDir(dir);
                 } else {
@@ -665,7 +670,7 @@ return {
 
                     komponist.status(function (err, status) {
                         if (err) {
-                            $('#update .glyphicon').removeClass('spinning');
+                            $('#update .glyphicon')[0].classList.remove('spinning');
                             clearInterval(updateInterval);
                             mpcp.lazyToast.error(
                                     'Error getting the status from MPD!');
@@ -678,7 +683,7 @@ return {
                             // stop interval and send update-browser
                             // to everyone
                             clearInterval(updateInterval);
-                            $('#update .glyphicon').removeClass('spinning');
+                            $('#update .glyphicon')[0].classList.remove('spinning');
                             mpcp.lazyToast.info(
                                     'Music library updated!', 'Library');
 
@@ -693,7 +698,7 @@ return {
             });
         });
 
-        $('#home').click(function () {
+        $(document).on('click', '#home', function () {
             console.log('home');
             mpcp.browser.update('/');
         });

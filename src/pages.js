@@ -26,13 +26,13 @@ return {
             // just in case
             if (this.totalPlaylist <= 0) this.totalPlaylist = 1;
 
-            $('#playlist-pages .total-pages').html(this.totalPlaylist);
+            $('#playlist-pages .total-pages')[0].innerHTML = this.totalPlaylist;
             $('#playlist-pages input').prop('max', this.totalPlaylist);
 
             // checks while user updating maximum item values
-            if($('#playlist-pages input').val() > this.totalPlaylist) {
+            if($('#playlist-pages input')[0].value > this.totalPlaylist) {
                 console.log('changing to max page');
-                $('#playlist-pages input').val(this.totalPlaylist);
+                $('#playlist-pages input')[0].value = this.totalPlaylist;
                 this.go('playlist', this.totalPlaylist);
             }
         } else if (type == 'browser') {
@@ -42,13 +42,13 @@ return {
             // just in case
             if (this.totalBrowser <= 0) this.totalBrowser = 1;
 
-            $('#browser-pages .total-pages').html(this.totalBrowser);
+            $('#browser-pages .total-pages')[0].innerHTML = this.totalBrowser;
             $('#browser-pages input').prop('max', this.totalBrowser);
 
             // checks while user updating maximum item values
-            if($('#browser-pages input').val() > this.totalBrowser) {
+            if($('#browser-pages input')[0].value > this.totalBrowser) {
                 console.log('changing to max page');
-                $('#browser-pages input').val(this.totalBrowser);
+                $('#browser-pages input')[0].value = this.totalBrowser;
                 this.go('browser', this.totalBrowser);
             }
         }
@@ -63,14 +63,14 @@ return {
             if (page < 1 || page > this.totalPlaylist) return;
 
             this.currentPlaylist = parseInt(page);
-            $('#playlist-pages input').val(this.currentPlaylist);
+            $('#playlist-pages input')[0].value = this.currentPlaylist;
             mpcp.playlist.updateLocal();
             $('#pslwrap').scrollTop($(mpcp.playlist.table));
         } else if (type == 'browser' && this.enabledBrowser) {
             if (page < 1 || page > this.totalBrowser) return;
 
             this.currentBrowser = parseInt(page);
-            $('#browser-pages input').val(this.currentBrowser);
+            $('#browser-pages input')[0].value = this.currentBrowser;
             mpcp.browser.updateLocal();
             $('#slwrap').scrollTop($(mpcp.browser.table));
         }
@@ -81,9 +81,9 @@ return {
         console.log('show pages: ' + type);
 
         if (type == 'playlist')
-            $('#playlist-pages').show();
+            document.getElementById('playlist-pages').style.display = 'flex';
         else if (type == 'browser')
-            $('#browser-pages').show();
+            document.getElementById('browser-pages').style.display = 'flex';
         else
             $('.pages').show();
     },
@@ -93,9 +93,9 @@ return {
         console.log('hide pages: ' + type);
 
         if (type == 'playlist')
-            $('#playlist-pages').hide();
+            document.getElementById('playlist-pages').style.display = 'none';
         else if (type == 'browser')
-            $('#browser-pages').hide();
+            document.getElementById('browser-pages').style.display = 'none';
         else
             $('.pages').hide();
     },

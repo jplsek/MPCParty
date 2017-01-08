@@ -41,7 +41,7 @@ function contextResponse(key, table, tr) {
 
     // browser
     // directory
-    if ($(tr).hasClass('directory')) {
+    if ($(tr)[0].classList.contains('directory')) {
         var dirid = tr.data().dirid;
 
         switch(key) {
@@ -80,7 +80,7 @@ function contextResponse(key, table, tr) {
     }
 
     // file
-    if ($(tr).hasClass('file')) {
+    if ($(tr)[0].classList.contains('file')) {
         var fileid = tr.data().fileid;
 
         switch(key) {
@@ -99,35 +99,35 @@ function contextResponse(key, table, tr) {
     }
 
     // library
-    if ($(tr).hasClass('artist') || $(tr).hasClass('album')) {
+    if ($(tr)[0].classList.contains('artist') || $(tr)[0].classList.contains('album')) {
         var artist = $(tr).data().artist,
             album  = $(tr).data().album;
 
         switch(key) {
             case 'attPlaylist':
             case 'attPb':
-                if ($(tr).hasClass('artist'))
+                if ($(tr)[0].classList.contains('artist'))
                     mpcp.library.addExternal(
                             mpcp.libraryArtists, artist, album, 0, false);
-                else if ($(tr).hasClass('album'))
+                else if ($(tr)[0].classList.contains('album'))
                     mpcp.library.addExternal(
                             mpcp.libraryAlbums, artist, album, 0, false);
                 break;
             case 'atbPlaylist':
             case 'atbPb':
-                if ($(tr).hasClass('artist'))
+                if ($(tr)[0].classList.contains('artist'))
                     mpcp.library.addExternal(
                         mpcp.libraryArtists, artist, album, undefined, false);
-                else if ($(tr).hasClass('album'))
+                else if ($(tr)[0].classList.contains('album'))
                     mpcp.library.addExternal(
                         mpcp.libraryAlbums, artist, album, undefined, false);
                 break;
             case 'atc':
-                if ($(tr).hasClass('artist') &&
+                if ($(tr)[0].classList.contains('artist') &&
                         mpcp.libraryArtists.selected.length) {
                     mpcp.library.addExternal(mpcp.libraryArtists, artist,
                         album, mpcp.player.current.Pos + 1, false);
-                } else if ($(tr).hasClass('album') &&
+                } else if ($(tr)[0].classList.contains('album') &&
                         mpcp.libraryAlbums.selected.length) {
                     mpcp.library.addExternal(mpcp.libraryAlbums, artist, album,
                         mpcp.player.current.Pos + 1, false);
@@ -192,7 +192,7 @@ $.contextMenu({
             // item as a title.
             title = $trigger.attr('title');
 
-        if (table.hasClass('song-list'))
+        if (table[0].classList.contains('song-list'))
             title = $trigger.children('td:nth-child(2)').attr('title');
 
         //console.log($trigger);
@@ -202,14 +202,14 @@ $.contextMenu({
         // the playlist
         if (mpcp.pb.current && table.attr('id') != 'playlist-song-list') {
             // browser
-            if (table.hasClass('song-list')) {
+            if (table[0].classList.contains('song-list')) {
                 items = {
                     'title': {name: title},
                     'attPb': {name: 'Add to top of playlist buffer'},
                     'atbPb': {name: 'Add to bottom of playlist buffer'}
                 };
 
-                if (!$($trigger).hasClass('directory'))
+                if (!$($trigger)[0].classList.contains('directory'))
                     items.infoBrowser = {name: 'Song information'};
                 // only on pb
             } else if (table.attr('id') == 'pb-song-list') {
@@ -220,7 +220,7 @@ $.contextMenu({
                     'remPb':       {name: 'Remove'},
                     'infoBrowser': {name: 'Song information'}
                 };
-            } else if (table.hasClass('library-list-context')) {
+            } else if (table[0].classList.contains('library-list-context')) {
                 items = {
                     'title': {name: title},
                     'attPb': {name: 'Add to top of playlist buffer'},
@@ -257,7 +257,7 @@ $.contextMenu({
                 };
         }
         // only on browser
-        else if (table.hasClass('song-list')) {
+        else if (table[0].classList.contains('song-list')) {
             // song is playing
             if (mpcp.player.current)
                 items = {
@@ -274,10 +274,10 @@ $.contextMenu({
                     'atbPlaylist': {name: 'Add to bottom of playlist'}
                 };
 
-            if (!$($trigger).hasClass('directory'))
+            if (!$($trigger)[0].classList.contains('directory'))
                 items.infoBrowser = {name: 'Song information'};
             // only on browser
-        } else if (table.hasClass('library-list-context')) {
+        } else if (table[0].classList.contains('library-list-context')) {
             // song is playing
             if (mpcp.player.current)
                 items = {
@@ -294,9 +294,9 @@ $.contextMenu({
                     'atbPlaylist': {name: 'Add to bottom of playlist'}
                 };
 
-            if (!($($trigger).hasClass('directory') ||
-                    $($trigger).hasClass('artist') ||
-                    $($trigger).hasClass('album')))
+            if (!($($trigger)[0].classList.contains('directory') ||
+                    $($trigger)[0].classList.contains('artist') ||
+                    $($trigger)[0].classList.contains('album')))
                 items.infoBrowser = {name: 'Song information'};
         } else {
             items = {

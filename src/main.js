@@ -68,7 +68,7 @@ $(document).on('click', '.stop-click-event', function (event) {
 
 $('.dropdown').on('hide.bs.dropdown', function (e) {
     // if keep-shown, don't close dropwdown
-    return !$(e.target).hasClass('keep-open');
+    return !$(e.target)[0].classList.contains('keep-open');
 });
 
 $(document).on('click', '.stop-server', function () {

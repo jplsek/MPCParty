@@ -16,7 +16,7 @@ return {
 
         if (curLocation) location = curLocation;
 
-        $('#downloader-location').val(location);
+        document.getElementById('downloader-location').value = location;
     },
 
     // download the video
@@ -47,13 +47,13 @@ return {
 
     // grab url from downloader element
     downloadFromDownloader: function () {
-        var url = $('#downloader-url').val();
-        var location = $('#downloader-location').val();
+        var url = document.getElementById('downloader-url').value;
+        var location = document.getElementById('downloader-location').value;
         this.download(url, location);
     },
 
     setStatus: function (str) {
-        $('#downloader-status').html(str);
+        document.getElementById('downloader-status').innerHTML = str;
     },
 
     updateLocal: function (callback) {
@@ -69,7 +69,7 @@ return {
             }
         }
 
-        $(this.table + ' .gen').remove();
+        $(this.table + ' .gen')[0].remove();
 
         var start = 0,
             end   = this.localFolders.length,
@@ -88,7 +88,7 @@ return {
             ++current;
         }
 
-        $(this.tbody).append(html);
+        $(this.tbody)[0].innerHTML = html;
 
         //console.log(current);
 
@@ -100,7 +100,7 @@ return {
         // location bar:
         // split directory based on /'s
         // create a list item for each dir split
-        $('#downloader-location-crumb .downloader-loc-dir').remove();
+        $('#downloader-location-crumb .downloader-loc-dir')[0].remove();
         // toString incase of number only directories
         var dirs  = directory.toString().split('/'),
             dirId = dirs[0],
@@ -114,20 +114,20 @@ return {
                 dirId += '/' + dirs[i+1];
             }
 
-        $('#downloader-location-crumb ol').append(html);
+        $('#downloader-location-crumb ol')[0].innerHTML = html;
 
         komponist.lsinfo(directory, function (err, files) {
             //console.log(files);
             if (err) return console.log(err);
 
-            $(mpcp.downloader.table + ' .gen').remove();
+            $(mpcp.downloader.table + ' .gen')[0].remove();
             mpcp.downloader.localFolders = [];
             files = mpcp.utils.toArray(files);
 
             if (!files.length) {
                 html = '<tr class="directory gen"><td colspan="6">' +
                     '<em class="text-muted">Empty directory</em></td></tr>';
-                $(mpcp.downloader.table).append(html);
+                $(mpcp.downloader.tbody)[0].innerHTML = html;
                 console.log('Empty directory');
                 if (callback) callback();
                 return;
@@ -164,13 +164,20 @@ return {
     },
 
     doneSelection: function () {
-        var dir = $(mpcp.downloader.rowSelect.getSelected()).data().dirid;
-        $('#downloader-location').val(dir);
+        // "root" folder
+        var dir = '';
+
+        if (mpcp.downloader.rowSelect.getSelected()) {
+            dir = $(mpcp.downloader.rowSelect.getSelected()).data().dirid;
+            mpcp.downloader.rowSelect.deselect();
+        }
+
+        document.getElementById('downloader-location').value = dir;
         mpcp.downloader.saveLocation();
     },
 
     saveLocation: function () {
-        var location = $('#downloader-location').val();
+        var location = document.getElementById('downloader-location').value;
         localStorage.setItem('mpcp-downloader-location', location);
     },
 
@@ -207,7 +214,7 @@ return {
 
         $(document).on('click', '#downloader-browse', function () {
             mpcp.downloader.setStatus('');
-            $('#downloader-btn').parent().addClass('keep-open');
+            document.getElementById('downloader-btn').parentElement.classList.add('keep-open');
             mpcp.downloader.update('/');
         });
 
@@ -235,7 +242,7 @@ return {
         });
 
         $('#downloader-location-modal').on('hidden.bs.modal', function (e) {
-            $('#downloader-btn').parent().removeClass('keep-open');
+            document.getElementById('downloader-btn').parentElement.classList.remove('keep-open');
         });
     }
 };

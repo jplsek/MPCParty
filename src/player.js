@@ -23,11 +23,12 @@ return {
             //console.log(song);
 
             if ($.isEmptyObject(song)) {
-                $('#title-text').html('<em class="text-muted" title="No song selected">No song selected</em>');
+                document.getElementById('title-text').innerHTML =
+                    '<em class="text-muted" title="No song selected">No song selected</em>';
                 document.title = 'MPCParty';
-                $('#title-pos').html('');
-                $('#time-total').html(
-                    '<span class="text-muted">-- / --</span>');
+                document.getElementById('title-pos').innerHTML = '';
+                document.getElementById('time-total').innerHTML =
+                    '<span class="text-muted">-- / --</span>';
                 mpcp.player.setCurrent(null);
                 console.log('No song selected');
                 mpcp.player.updateControls(callback);
@@ -43,22 +44,23 @@ return {
             }
 
             mpcp.player.setCurrent(song);
-
-            $('#title-text').html(mpcp.player.title).attr(
-                'title', mpcp.player.title);
+            document.getElementById('title-text').innerHTML = mpcp.player.title;
+            $('#title-text').attr('title', mpcp.player.title);
             document.title =  mpcp.player.title + ' - MPCParty';
-            $('#title-pos').html((parseInt(song.Pos) + 1) + '. ');
+            document.getElementById('title-pos').innerHTML =
+                (parseInt(song.Pos) + 1) + '. ';
             $('#music-time').attr('max', song.Time);
-            $('#time-total').html(' / ' + mpcp.utils.toMMSS(song.Time));
+            document.getElementById('time-total').innerHTML =
+                ' / ' + mpcp.utils.toMMSS(song.Time);
 
             // highlight song in playlist with song.Id and data-fileid
             // this happens with only a player update
             $(mpcp.playlist.table + ' .gen').each(function () {
                 var id = $(this).data().fileid;
                 if (parseInt(id) == mpcp.player.current.Id) {
-                    $(this).addClass('bg-success');
+                    $(this)[0].classList.add('bg-success');
                 } else {
-                    $(this).removeClass('bg-success');
+                    $(this)[0].classList.remove('bg-success');
                 }
             });
 
@@ -77,13 +79,13 @@ return {
                 return;
             }
 
-            $('#music-time').val(status.elapsed);
+            document.getElementById('music-time').value = status.elapsed;
             if (mpcp.player.current !== null && status.state == 'stop') {
-                $('#time-current').html('00:00');
+                document.getElementById('time-current').innerHTML = '00:00';
             } else if (!status.elapsed) {
-                $('#time-current').html('');
+                document.getElementById('time-current').innerHTML = '';
             } else {
-                $('#time-current').html(mpcp.utils.toMMSS(status.elapsed));
+                document.getElementById('time-current').innerHTML = mpcp.utils.toMMSS(status.elapsed);
             }
 
             mpcp.progressbar.progress = parseInt(status.elapsed);
@@ -93,53 +95,54 @@ return {
 
             switch (status.state) {
                 case 'stop':
-                    $('#stop').hide();
-                    $('#pause').hide();
-                    $('#play').show();
+                    document.getElementById('stop').style.display = 'none';
+                    document.getElementById('pause').style.display = 'none';
+                    document.getElementById('play').style.display = 'block';
                     mpcp.progressbar.stopProgress();
                     break;
 
                 case 'play':
-                    $('#stop').show();
-                    $('#pause').show();
-                    $('#play').hide();
-                    $('#pause').removeClass('active');
+                    document.getElementById('stop').style.display = 'block';
+                    document.getElementById('pause').style.display = 'block';
+                    document.getElementById('play').style.display = 'none';
+                    document.getElementById('pause').classList.remove('active');
                     mpcp.progressbar.startProgress();
                     break;
 
                 case 'pause':
-                    $('#play').hide();
-                    $('#pause').addClass('active');
+                    document.getElementById('play').style.display = 'none';
+                    document.getElementById('pause').classList.add('active');
                     mpcp.progressbar.stopProgress();
                     break;
             }
 
             // random
             if (parseInt(status.random) === 0) {
-                $('#random').removeClass('active');
+                document.getElementById('random').classList.remove('active');
             } else if (parseInt(status.random) == 1) {
-                $('#random').addClass('active');
+                document.getElementById('random').classList.add('active');
             }
 
             // repeat
             if (parseInt(status.repeat) === 0) {
-                $('#repeat').removeClass('active');
+                document.getElementById('repeat').classList.remove('active');
             } else if (parseInt(status.repeat) == 1) {
-                $('#repeat').addClass('active');
+                document.getElementById('repeat').classList.add('active');
             }
 
             // consume
             if (parseInt(status.consume) === 0) {
                 $('#consume').prop('checked', false);
-                $('#warning-consume').css('display', 'none');
+                document.getElementById('warning-consume').style.display = 'none';
             } else if (parseInt(status.consume) == 1) {
                 $('#consume').prop('checked', true);
                 if (mpcp.settings.consumeWarning)
-                    $('#warning-consume').css('display', 'block');
+                    document.getElementById('warning-consume').style.display =
+                        'block';
             }
 
             if (!status.xfade) status.xfade = 0;
-            $('#crossfade').val(status.xfade);
+            document.getElementById('crossfade').value = status.xfade;
 
             mpcp.player.callbackUpdate();
             if (callback) callback();
@@ -152,7 +155,7 @@ return {
             //console.log(status);
             if (err) return console.log(err);
 
-            $('#volume').val(status.volume);
+            document.getElementById('volume').value = status.volume;
 
             if (status.error) {
                 lazyToast.error(status.error);
@@ -207,6 +210,12 @@ return {
     // wrapper for komponist.toggle
     toggle: function (callback) {
         console.log('toggle');
+
+        // 1. (playing) -> mousedown adds active -> mouseup -> active goes away ->
+        // wait for mpd -> active comes back (to indicate pause).
+        // This removes the "active goes away" part so it is more consistent.
+        document.getElementById('pause').classList.toggle('active');
+
         komponist.toggle(function (err) {
             if (err) console.log(err);
             mpcp.player.addCallbackUpdate(callback);
@@ -226,15 +235,18 @@ return {
         if (mpcp.vote.enabled) {
             mpcp.player.addCallbackUpdate(callback);
 
-            if (!$('#next').hasClass('active')) {
+            if (!document.getElementById('next').classList.contains('active')) {
+                document.getElementById('next').classList.add('active');
+
                 socket.send(JSON.stringify({
                     'type': 'song-vote-next', 'info': 'yes'
                 }), function (err) {
                     if (err) console.log(err);
                 });
-                $('#next').addClass('active');
+
             } else {
-                $('#next').removeClass('active');
+                document.getElementById('next').classList.remove('active');
+
                 socket.send(JSON.stringify({
                     'type': 'song-vote-next', 'info': 'no'
                 }), function (err) {
@@ -268,15 +280,15 @@ return {
         if (mpcp.vote.enabled) {
             mpcp.player.addCallbackUpdate(callback);
 
-            if (!$('#previous').hasClass('active')) {
+            if (!document.getElementById('previous').classList.contains('active')) {
                 socket.send(JSON.stringify({
                     'type': 'song-vote-previous', 'info': 'yes'
                 }), function (err) {
                     if (err) console.log(err);
                 });
-                $('#previous').addClass('active');
+                document.getElementById('previous').classList.add('active');
             } else {
-                $('#previous').removeClass('active');
+                document.getElementById('previous').classList.remove('active');
                 socket.send(JSON.stringify({
                     'type': 'song-vote-previous', 'info': 'no'
                 }), function (err) {
@@ -339,13 +351,15 @@ return {
 
         $('#random').click(function () {
             console.log('random');
-            if ($('#random').hasClass('active')) {
-                $('#random').removeClass('active');
+            if (document.getElementById('random').classList.contains('active')) {
+                // read 1.
+                document.getElementById('random').classList.toggle('active');
                 komponist.random(0, function (err) {
                     if (err) console.log(err);
                 });
             } else {
-                $('#random').addClass('active');
+                // read 1.
+                document.getElementById('random').classList.toggle('active');
                 komponist.random(1, function (err) {
                     if (err) console.log(err);
                 });
@@ -354,14 +368,19 @@ return {
 
         $('#repeat').click(function () {
             console.log('repeat');
-            if ($('#repeat').hasClass('active'))
+            if (document.getElementById('repeat').classList.contains('active')) {
+                // read 1.
+                document.getElementById('repeat').classList.toggle('active');
                 komponist.repeat(0, function (err) {
                     if (err) console.log(err);
                 });
-            else
+            } else {
+                // read 1.
+                document.getElementById('repeat').classList.toggle('active');
                 komponist.repeat(1, function (err) {
                     if (err) console.log(err);
                 });
+            }
         });
 
         mpcp.utils.createSearch(

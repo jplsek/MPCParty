@@ -28,7 +28,7 @@ function initAfterConnection() {
         mpcp.browser.show();
         request = decodeURIComponent(request);
         mpcp.browser.search(request);
-        $('#search-browser').val(request);
+        document.getElementById('search-browser').value = request;
     } else if (action == 'library') {
         mpcp.library.decodeRequest(request);
     } else if (action == 'browser') {
@@ -156,14 +156,14 @@ socket.onmessage = function (event) {
 
         case 'request-vote-update-from-server':
             // assums a vote reset
-            $('#next').removeClass('active');
-            $('#previous').removeClass('active');
+            document.getElementById('next').classList.remove('active');
+            document.getElementById('previous').classList.remove('active');
             break;
 
         case 'skipped':
             console.log('skip successful received');
-            $('#next').removeClass('active');
-            $('#previous').removeClass('active');
+            document.getElementById('next').classList.remove('active');
+            document.getElementById('previous').classList.remove('active');
             var str = '';
 
             for (var i in msg.info) {
@@ -182,11 +182,11 @@ socket.onmessage = function (event) {
             break;
 
         case 'user-skip-next':
-            $('#next').addClass('active');
+            document.getElementById('next').classList.add('active');
             break;
 
         case 'user-skip-previous':
-            $('#previous').addClass('active');
+            document.getElementById('previous').classList.add('active');
             break;
 
         case 'hostnames':
@@ -200,7 +200,7 @@ socket.onmessage = function (event) {
             break;
 
         case 'downloader-status':
-            $('#downloader-status').html(msg.info);
+            document.getElementById('downloader-status').innerHTML = msg.info;
             break;
 
             // album art

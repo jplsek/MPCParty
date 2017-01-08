@@ -35,7 +35,7 @@ return {
 
         if (theme) this.theme = theme;
 
-        $('#themes').val(this.theme);
+        document.getElementById('themes').value = this.theme;
 
         $('#theme').load(function () {
             console.log('theme loaded');
@@ -55,7 +55,7 @@ return {
 
         if (max) mpcp.history.max = max;
 
-        $('#history-max').val(mpcp.history.max);
+        document.getElementById('history-max').value = mpcp.history.max;
     },
 
     saveHistoryMax: function (max) {
@@ -72,7 +72,8 @@ return {
 
             if (max) mpcp.pages.maxPlaylist = parseInt(max);
 
-            $('#items-max-playlist').val(mpcp.pages.maxPlaylist);
+            document.getElementById('items-max-playlist').value =
+                mpcp.pages.maxPlaylist;
         }
 
         if (type == 'browser' || type === undefined) {
@@ -80,7 +81,8 @@ return {
 
             if (max) mpcp.pages.maxBrowser = parseInt(max);
 
-            $('#items-max-browser').val(mpcp.pages.maxBrowser);
+            document.getElementById('items-max-browser').value =
+                mpcp.pages.maxBrowser;
         }
 
         if (type !== undefined) mpcp.pages.update(type);
@@ -266,9 +268,9 @@ return {
         this.consumeWarning = use;
 
         if (use && $('#consume').is(':checked'))
-            $('#warning-consume').css('display', 'block');
+            document.getElementById('warning-consume').style.display = 'block';
         else
-            $('#warning-consume').css('display', 'none');
+            document.getElementById('warning-consume').style.display = 'none';
 
         localStorage.setItem('mpcp-use-consume-warning', use);
     },

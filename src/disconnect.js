@@ -17,6 +17,7 @@ return {
             var msg = 'The page will refresh when it comes back online.';
             mpcp.lazyToast.error(msg + '<br>Retrying in <span id="count">1</span> second(s)... <button title="Force a retry" class="retry-server btn btn-warning pull-right"><span class="glyphicon glyphicon-repeat"></span></button>', 'Server Disconnected!', 5000, false);
         }, 200);
+
         this.retryWebSocket(1);
     },
 
@@ -25,10 +26,11 @@ return {
 
         mpcp.socket.onclose = function () {
             var seconds = attempts;
-            $('#count').html(seconds--);
+
+            document.getElementById('count').innerHTML = seconds--;
 
             mpcp.disconnect.secInterval = setInterval(function () {
-                $('#count').html(seconds--);
+                document.getElementById('count').innerHTML = seconds--;
             }, 1000);
 
             mpcp.disconnect.retryTimeout = setTimeout(function () {

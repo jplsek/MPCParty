@@ -51,7 +51,8 @@ return {
             // and other operations
             mpcp.player.updateAll(function () {
                 komponist.playlistinfo(function (err, playlistLoad) {
-                    $('#playlist-title strong').html(mpcp.playlist.current);
+                    $('#playlist-title strong')[0].innerHTML =
+                        mpcp.playlist.current;
                     $('#playlist-title strong').attr('title',
                         mpcp.playlist.current);
 
@@ -61,12 +62,12 @@ return {
                         return;
                     }
 
-                    $(mpcp.playlist.table + ' .gen').remove();
+                    $(mpcp.playlist.tbody)[0].innerHTML = '';
                     mpcp.playlist.local = playlistLoad;
 
                     if ($.isEmptyObject(playlistLoad[0])) {
                         var html = '<tr class="rem gen"><td><em class="text-muted">The playlist is empty! Songs can be added from the browser or by opening a playlist.</em></td></tr>';
-                        $(mpcp.playlist.table).append(html);
+                        $(mpcp.playlist.tbody)[0].innerHTML = html;
                         // fix for removing the last song that's
                         // playling from the playlist
                         mpcp.playlist.doUpdate = true;
@@ -170,12 +171,11 @@ return {
             //console.log(i + ': start');
 
             html += '<tr class="drag context-menu ' + current + '" title="' + title + '" data-fileid="' + value.Id + '" data-file="' + value.file + '" data-pos="' + value.Pos +  '"><td class="playlist-song-list-icons"><span class="glyphicon glyphicon-play song-play faded text-success" title="Play song"></span>' + (value.Pos + 1) + '.</td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><span class="song-remove faded text-danger glyphicon glyphicon-remove" title="Remove song from playlist"></span></td></tr>';
-
         }
 
         this.toPulse = [];
 
-        $(this.tbody).append(html);
+        $(this.tbody)[0].innerHTML = html;
 
         mpcp.sortHelper.reloadSortable(this);
         mpcp.browser.updatePosition();
@@ -254,7 +254,7 @@ return {
             //console.log(mpcp.pages.currentPlaylist);
             // check if nothing is in playlist
             if (index == 1 &&
-                    $($(mpcp.playlist.tbody).children()[0]).hasClass(
+                    $($(mpcp.playlist.tbody).children()[0])[0].classList.contains(
                         'rem')) {
                 mpcp.playlist.fromSortableSender(e, 0);
                 return;
@@ -284,7 +284,7 @@ return {
                 mpcp.playlist.fromSortableSelf(e, newPos);
             }
 
-            $(e.detail.item).remove();
+            $(e.detail.item)[0].remove();
         });
     },
 
@@ -292,7 +292,7 @@ return {
     fromSortableSender: function (e, newIndex) {
         //console.log(e.detail.item);
         console.log('from sortable sender (playlist)');
-        $(mpcp.browser.clone).removeClass('info');
+        $(mpcp.browser.clone)[0].classList.remove('info');
 
         if (mpcp.browser.selected.length) {
             mpcp.browser.addMulti(newIndex);
@@ -300,11 +300,11 @@ return {
         } else if (mpcp.librarySongs.selected.length) {
             mpcp.librarySongs.addMulti(newIndex);
             return;
-        } else if ($(e.detail.item).hasClass('artist') &&
+        } else if ($(e.detail.item)[0].classList.contains('artist') &&
                 mpcp.libraryArtists.selected.length) {
             mpcp.library.addMulti(mpcp.libraryArtists, newIndex, true);
             return;
-        } else if ($(e.detail.item).hasClass('album') &&
+        } else if ($(e.detail.item)[0].classList.contains('album') &&
                 mpcp.libraryAlbums.selected.length) {
             mpcp.library.addMulti(mpcp.libraryAlbums, newIndex, true);
             return;
@@ -314,7 +314,7 @@ return {
 
         // file
         // note: multiselect is checked in addDir and addSong!
-        if ($(e.detail.item).hasClass('file')) {
+        if ($(e.detail.item)[0].classList.contains('file')) {
             var file = e.detail.item.dataset.fileid;
             // check if nothing in playlist
             if (this.local.length <= 1) {
@@ -322,7 +322,7 @@ return {
             } else {
                 this.addSong(file, newIndex, true);
             }
-        } else if ($(e.detail.item).hasClass('directory')) {
+        } else if ($(e.detail.item)[0].classList.contains('directory')) {
             // directory
             var dir = e.detail.item.dataset.dirid;
             console.log('add dir ' + dir);
@@ -332,7 +332,7 @@ return {
             } else {
                 this.addDir(dir, newIndex, true);
             }
-        } else if ($(e.detail.item).hasClass('album')) {
+        } else if ($(e.detail.item)[0].classList.contains('album')) {
             artist = e.detail.item.dataset.artist;
             album  = e.detail.item.dataset.album;
 
@@ -341,7 +341,7 @@ return {
                     mpcp.playlist.addSong(files[i].file, newIndex, true);
                 }
             });
-        } else if ($(e.detail.item).hasClass('artist')) {
+        } else if ($(e.detail.item)[0].classList.contains('artist')) {
             artist = e.detail.item.dataset.artist;
 
             mpcp.library.getSongsFromAlbum(
@@ -841,7 +841,7 @@ return {
 
             if ($.isEmptyObject(response[0])) {
                 var html = '<tr class="gen"><td><em class="text-muted">No songs found</em></td></tr>';
-                $(mpcp.playlist.table).append(html);
+                $(mpcp.playlist.tbody)[0].innerHTML = html;
                 // fix for removing the last song that's
                 // playling from the playlist
                 mpcp.playlist.doUpdate = true;
@@ -888,7 +888,7 @@ return {
     // save playlist from stored element
     saveFromStored: function (callback) {
         console.log('confirm save playlist');
-        var file = $('#playlist-save-input').val();
+        var file = document.getElementById('playlist-save-input').value;
         mpcp.stored.save(file, callback);
     },
 
@@ -971,16 +971,16 @@ return {
         });
 
         $('#playlist-search-toggle').click(function () {
-            if ($('#playlist-search-toggle').hasClass('active')) {
-                $('#playlist-search-toggle').removeClass('active');
-                $('#playlist-search').hide();
+            if (document.getElementById('playlist-search-toggle').classList.contains('active')) {
+                document.getElementById('playlist-search-toggle').classList.remove('active');
+                document.getElementById('playlist-search').style.display = 'none';
                 mpcp.playlist.isSearching = false;
-                $('#search-playlist').val('');
+                document.getElementById('search-playlist').value = '';
                 mpcp.playlist.searchTerm = '';
                 mpcp.playlist.updateAll();
             } else {
-                $('#playlist-search-toggle').addClass('active');
-                $('#playlist-search').show();
+                document.getElementById('playlist-search-toggle').classList.add('active');
+                document.getElementById('playlist-search').style.display = 'block';
                 $('#search-playlist').focus();
                 mpcp.playlist.isSearching = true;
             }

@@ -18,8 +18,8 @@ return {
             html += '<li class="gen"><a class="no-hover">' + hostnames[ip] +
                 '</a></li>';
         }
-
-        $('#user-list').append(html);
+        
+        document.getElementById('user-list').innerHTML = html;
     },
 
     // returns the hostname (or ip)

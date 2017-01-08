@@ -48,7 +48,7 @@ return {
             if (!files.length || files[0].Album === '') {
                 html = '<tr class="gen"><td colspan="6">' +
                     '<em class="text-muted">No albums</em></td></tr>';
-                $(mpcp.libraryAlbums.tbody).append(html);
+                $(mpcp.libraryAlbums.tbody)[0].innerHTML = html;
                 console.log('No albums found');
                 mpcp.librarySongs.update(
                         artist, albumUse, poppedState, callback);
@@ -65,7 +65,7 @@ return {
                 addClass = '';
             }
 
-            $(mpcp.libraryAlbums.tbody).append(html);
+            $(mpcp.libraryAlbums.tbody)[0].innerHTML = html;
 
             mpcp.sortHelper.reloadSortable(mpcp.libraryAlbums);
 

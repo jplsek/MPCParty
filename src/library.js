@@ -39,7 +39,7 @@ return {
         if (!this.hidden) return;
 
         this.hidden = false;
-        $('#library').show();
+        document.getElementById('library').style.display = 'flex';
         mpcp.utils.buttonSelect("#open-library", "#browser-selection");
         $(mpcp.libraryArtists.table + '.table').trigger('reflow');
         $(mpcp.libraryAlbums.table + '.table').trigger('reflow');
@@ -50,7 +50,7 @@ return {
 
     hide: function () {
         this.hidden = true;
-        $('#library').hide();
+        document.getElementById('library').style.display = 'none';
         mpcp.utils.saveSelected(mpcp.libraryArtists);
         mpcp.utils.clearSelected(mpcp.libraryArtists);
         mpcp.utils.saveSelected(mpcp.libraryAlbums);
