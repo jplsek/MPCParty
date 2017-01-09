@@ -4,6 +4,7 @@ module.exports = function (mpcp) {
 return {
     selected: [],
     saved: [],
+    tableid: 'library-artists-list',
     table: '#library-artists-list',
     tbody: '#library-artists-list .append',
 
@@ -36,6 +37,7 @@ return {
                     '<em class="text-muted">No artists</em></td></tr>';
                 $(mpcp.libraryArtists.tbody)[0].innerHTML = html;
                 console.log('No artists found');
+                window.dispatchEvent(new CustomEvent('MPCPLibraryArtistsChanged'));
                 if (callback) callback();
                 return;
             }
@@ -56,6 +58,7 @@ return {
             $(mpcp.libraryArtists.tbody)[0].innerHTML = html;
 
             mpcp.sortHelper.reloadSortable(mpcp.libraryArtists);
+            window.dispatchEvent(new CustomEvent('MPCPLibraryArtistsChanged'));
 
             if (callback) callback();
         });
@@ -82,7 +85,7 @@ return {
             mpcp.library.addExternal(mpcp.libraryArtists, artist);
         });
 
-        mpcp.utils.floatTable(this.table, '#library-artists-wrap');
+        mpcp.tableHeader.init(this.tableid, 'MPCPLibraryArtistsChanged');
 
         mpcp.utils.tableSort(this.table, '#library-col-artists', 1, 'string');
 

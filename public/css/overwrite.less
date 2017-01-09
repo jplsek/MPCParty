@@ -383,6 +383,12 @@ table.floatThead-table {
 .glyphicon.spinning {
     animation: spin 1s infinite linear;
 }
+// having an odd issue where a table cell was very small in ff..
+@-moz-document url-prefix() {
+    .width100 {
+        width: 100%;
+    }
+}
 @keyframes spin {
     from { transform: scale(1) rotate(0deg) }
     to { transform: scale(1) rotate(360deg) }

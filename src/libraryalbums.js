@@ -4,6 +4,7 @@ module.exports = function (mpcp) {
 return {
     selected: [],
     saved: [],
+    tableid: 'library-albums-list',
     table: '#library-albums-list',
     tbody: '#library-albums-list .append',
 
@@ -46,10 +47,11 @@ return {
             //console.log(files);
 
             if (!files.length || files[0].Album === '') {
-                html = '<tr class="gen"><td colspan="6">' +
+                html = '<tr class="gen"><td colspan="2">' +
                     '<em class="text-muted">No albums</em></td></tr>';
                 $(mpcp.libraryAlbums.tbody)[0].innerHTML = html;
                 console.log('No albums found');
+                window.dispatchEvent(new CustomEvent('MPCPLibraryAlbumsChanged'));
                 mpcp.librarySongs.update(
                         artist, albumUse, poppedState, callback);
                 return;
@@ -68,6 +70,7 @@ return {
             $(mpcp.libraryAlbums.tbody)[0].innerHTML = html;
 
             mpcp.sortHelper.reloadSortable(mpcp.libraryAlbums);
+            window.dispatchEvent(new CustomEvent('MPCPLibraryAlbumsChanged'));
 
             // show all songs initially
             mpcp.librarySongs.update(artist, albumUse, poppedState, callback);
@@ -98,7 +101,7 @@ return {
                 mpcp.library.addExternal(mpcp.libraryAlbums, artist, album);
         });
 
-        mpcp.utils.floatTable(this.table, '#library-albums-wrap');
+        mpcp.tableHeader.init(this.tableid, 'MPCPLibraryAlbumsChanged');
 
         mpcp.utils.tableSort(this.table, '#library-col-albums', 1, 'string');
 

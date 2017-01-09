@@ -3,6 +3,7 @@ module.exports = function (mpcp) {
 // the file browser
 return {
     isDragging: false,
+    tableid: 'file-browser-song-list',
     table: '#file-browser-song-list',
     tbody: '#file-browser-song-list .append',
     // current directory the user is in
@@ -105,7 +106,7 @@ return {
             if (!files.length) {
                 html = '<tr class="directory gen"><td colspan="6">' +
                     '<em class="text-muted">Empty directory</em></td></tr>';
-                document.getElementById(mpcp.browser.table).innerHTML = html;
+                document.getElementById(mpcp.browser.tableid).innerHTML = html;
                 mpcp.pages.update('browser');
                 console.log('Empty directory');
                 if (callback) callback();
@@ -207,8 +208,10 @@ return {
                     '<em class="text-muted">No songs found</em></td></tr>';
                 $(mpcp.browser.tbody)[0].innerHTML = html;
                 mpcp.pages.update('browser');
+                console.log('No songs found');
+                window.dispatchEvent(new CustomEvent("MPCPBrowserChanged"));
                 if (callback) callback(0);
-                return console.log('No songs found');
+                return;
             }
 
             html = '';
@@ -246,7 +249,7 @@ return {
 
             strippedDir = mpcp.utils.stripSlash(value.directory);
 
-            html = '<tr class="context-menu directory gen" data-dirid="' + value.directory + '"><td class="song-list-icons"><span class="text-warning glyphicon glyphicon-folder-open"></span> <span class="folder-open faded glyphicon glyphicon-share-alt" title="Open directory. Note: You can double click the directory to open"></span></a></td><td colspan="3" title="' + strippedDir + '">' + tableStart + strippedDir + tableEnd + '</td><td colspan="2" class="song-list-icons text-right"><span class="dir-add faded text-success glyphicon glyphicon-plus" title="Add whole directory of songs to the bottom of the playlist"></span></td></tr>';
+            html = '<tr class="context-menu directory gen" data-dirid="' + value.directory + '"><td class="song-list-icons"><span class="text-warning glyphicon glyphicon-folder-open"></span> <span class="folder-open faded glyphicon glyphicon-share-alt" title="Open directory. Note: You can double click the directory to open"></span></a></td><td colspan="3" class="width100" title="' + strippedDir + '">' + tableStart + strippedDir + tableEnd + '</td><td colspan="2" class="song-list-icons text-right"><span class="dir-add faded text-success glyphicon glyphicon-plus" title="Add whole directory of songs to the bottom of the playlist"></span></td></tr>';
         }
 
         return html;
@@ -277,7 +280,7 @@ return {
     // update the song positions, instead of reloading the whole browser
     updatePosition: function () {
         console.log('updatePosition');
-        var tr = $('.song-list tbody').children();
+        var tr = $('.song-list tbody').children('.gen');
 
         komponist.currentsong(function (err, song) {
             if (err) return console.log(err);
@@ -381,6 +384,7 @@ return {
         mpcp.sortHelper.reloadSortable(mpcp.browser);
         this.updatePosition();
         mpcp.pages.update('browser');
+        window.dispatchEvent(new CustomEvent("MPCPBrowserChanged"));
 
         if (callback) callback();
     },
@@ -553,7 +557,6 @@ return {
     // used when the user manually opens the browser
     open: function (callback) {
         mpcp.settings.saveBrowser('browser');
-        $(this.table + '.table').trigger('reflow');
         this.addToHistory();
         this.update(null, false, callback);
     },
@@ -743,7 +746,7 @@ return {
             mpcp.browser.open();
         });
 
-        mpcp.utils.floatTable(this.table + '.table');
+        mpcp.tableHeader.init(this.tableid, 'MPCPBrowserChanged');
 
         // this cannot be part of .song-list because of a bug with sortColumn
         // (overwrites contens from one tabe to other tables).

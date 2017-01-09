@@ -25,7 +25,6 @@
   "dependencies": {
     "bootstrap": "^3.3.6",
     "toastr": "^2.1.2",
-    "jquery.floatThead": "floatThead#^1.4.0",
     "jQuery-contextMenu": "^2.1.1",
     "html.sortable": "^0.4.0"
   }

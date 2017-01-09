@@ -437,13 +437,6 @@ return {
         $(ele)[0].classList.add('active');
     },
 
-    reflowAll: function () {
-        $(mpcp.browser.table + '.table').trigger('reflow');
-        $(mpcp.libraryArtists.table + '.table').trigger('reflow');
-        $(mpcp.libraryAlbums.table + '.table').trigger('reflow');
-        $(mpcp.librarySongs.table + '.table').trigger('reflow');
-    },
-
     // creates a search input setup (input, search callback [returns searchVal],
     // reset callback, input clear button, time it takes to search
     createSearch: function (input, callSearch, callReset, inputClear, time) {

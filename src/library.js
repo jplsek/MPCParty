@@ -41,9 +41,6 @@ return {
         this.hidden = false;
         document.getElementById('library').style.display = 'flex';
         mpcp.utils.buttonSelect("#open-library", "#browser-selection");
-        $(mpcp.libraryArtists.table + '.table').trigger('reflow');
-        $(mpcp.libraryAlbums.table + '.table').trigger('reflow');
-        $(this.table + '.table').trigger('reflow');
         //mpcp.utils.restoreSelected(mpcp.libraryArtists);
         //mpcp.utils.restoreSelected(mpcp.libraryAlbums);
     },

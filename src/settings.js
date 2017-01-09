@@ -37,11 +37,15 @@ return {
 
         document.getElementById('themes').value = this.theme;
 
-        $('#theme').load(function () {
-            console.log('theme loaded');
-            // reflow header on theme change
-            mpcp.utils.reflowAll();
-        }).attr('href', '/css/themes/' + this.theme + '/main.css');
+        var url = '/css/themes/' + this.theme + '/main.css';
+
+        $.get(url, function () {
+            $('#theme').attr('href', url);
+            // I'm hoping it will only take Xms to load all the css...
+            setTimeout(function () {
+                window.dispatchEvent(new CustomEvent("MPCPReflow"));
+            }, 500);
+        });
     },
 
     saveTheme: function (theme) {

@@ -5,6 +5,7 @@ return {
     selected: [],
     // used for saving selected temporarily
     saved: [],
+    tableid: 'library-songs-list',
     table: '#library-songs-list',
     tbody: '#library-songs-list .append',
     // used for dragging while selected
@@ -54,7 +55,9 @@ return {
                 html = '<tr class="gen"><td colspan="6">' +
                     '<em class="text-muted">No songs found</em></td></tr>';
                 $(mpcp.librarySongs.tbody)[0].innerHTML = html;
-                return console.log('No songs found');
+                window.dispatchEvent(new CustomEvent('MPCPLibrarySongsChanged'));
+                console.log('No songs found');
+                if (callback) callback();
             }
 
             var tableStart = '<table class="fixed-table"><tr><td>',
@@ -68,6 +71,8 @@ return {
 
             mpcp.sortHelper.reloadSortable(mpcp.librarySongs);
             mpcp.browser.updatePosition();
+            window.dispatchEvent(new CustomEvent('MPCPLibrarySongsChanged'));
+
             if (callback) callback();
         }
     },
@@ -135,7 +140,7 @@ return {
             '#search-songs-clear',
             1000);
 
-        mpcp.utils.floatTable(this.table, '#library-songs-wrap');
+        mpcp.tableHeader.init(this.tableid, 'MPCPLibrarySongsChanged');
 
         // this cannot be part of .song-list because of a bug with sortColumn
         // (overwrites contens from one tabe to other tables).
