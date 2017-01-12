@@ -62,9 +62,6 @@ html
                             a(href='https://github.com/bighoho123/jQuery-sortColumn', target='_blank') jQuery-sortColumn
                             |  (modified) - Table column sorting
                         p
-                            a(href='https://mkoryak.github.io/floatThead/', target='_blank') floatThead
-                            |  - Fixed position table headers
-                        p
                             a(href='https://github.com/CodeSeven/toastr', target='_blank') toastr
                             |  - Notification system
                         p
@@ -318,9 +315,8 @@ html
                                 button#search-clear.btn.btn-default(type='button')
                                     span.glyphicon.glyphicon-remove
 
-
-            mixin songList(id)
-                table.song-list.table.table-hover(id=id)
+            mixin songListHeader(id)
+                table.table-header.table(id=id+'-header')
                     thead: tr
                         th(id=id+'-col-number') #
                         th(id=id+'-col-title') Title
@@ -328,6 +324,9 @@ html
                         th(id=id+'-col-album') Album
                         th(id=id+'-col-time') Time
                         th
+
+            mixin songList(id)
+                table.song-list.table.table-hover(id=id)
                     tbody.append.connected
 
             mixin libraryAA(id, title, search)
@@ -339,11 +338,12 @@ html
                                 span.input-group-btn
                                     button(id='search-'+id+'-clear', class='btn btn-default', type='button')
                                         span.glyphicon.glyphicon-remove
+                    table.table-header-fixed.table(id='library-'+id+'-list-header')
+                        thead: tr
+                            th(id='library-col-'+id) #{title}
+                            th
                     div(id='library-'+id+'-wrap')
                         table(id='library-'+id+'-list', class='table table-hover library-list-context')
-                            thead: tr
-                                th(id='library-col-'+id) #{title}
-                                th
                             tbody.append.connected
 
             main
@@ -369,6 +369,7 @@ html
                                     span.input-group-btn
                                         button#search-songs-clear.btn.btn-default(type='button')
                                             span.glyphicon.glyphicon-remove
+                        +songListHeader('library-songs-list')
                         #library-songs-wrap
                             +songList('library-songs-list')
 
@@ -384,6 +385,7 @@ html
                                 .btn-group
                                     button#add-all.btn.btn-default(title='Add all songs from the current page')
                                         | Add All
+                    +songListHeader('file-browser-song-list')
                     #slwrap
                         +songList('file-browser-song-list')
                     #browser-pages.pages.navbar.navbar-default

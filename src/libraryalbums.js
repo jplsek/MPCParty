@@ -51,7 +51,6 @@ return {
                     '<em class="text-muted">No albums</em></td></tr>';
                 $(mpcp.libraryAlbums.tbody)[0].innerHTML = html;
                 console.log('No albums found');
-                window.dispatchEvent(new CustomEvent('MPCPLibraryAlbumsChanged'));
                 mpcp.librarySongs.update(
                         artist, albumUse, poppedState, callback);
                 return;
@@ -70,7 +69,6 @@ return {
             $(mpcp.libraryAlbums.tbody)[0].innerHTML = html;
 
             mpcp.sortHelper.reloadSortable(mpcp.libraryAlbums);
-            window.dispatchEvent(new CustomEvent('MPCPLibraryAlbumsChanged'));
 
             // show all songs initially
             mpcp.librarySongs.update(artist, albumUse, poppedState, callback);
@@ -100,8 +98,6 @@ return {
                 album  = $(this).parent().parent().data().album;
                 mpcp.library.addExternal(mpcp.libraryAlbums, artist, album);
         });
-
-        mpcp.tableHeader.init(this.tableid, 'MPCPLibraryAlbumsChanged');
 
         mpcp.utils.tableSort(this.table, '#library-col-albums', 1, 'string');
 

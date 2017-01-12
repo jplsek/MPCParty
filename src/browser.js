@@ -278,12 +278,18 @@ return {
     },
 
     // update the song positions, instead of reloading the whole browser
-    updatePosition: function () {
+    updatePosition: function (callback) {
         console.log('updatePosition');
-        var tr = $('.song-list tbody').children('.gen');
+        var tr = $('.song-list tbody').children('.file');
 
         komponist.currentsong(function (err, song) {
-            if (err) return console.log(err);
+            if (err) {
+                window.dispatchEvent(new CustomEvent("MPCPBrowserChanged"));
+
+                if (callback) callback();
+
+                return console.log(err);
+            }
 
             if ($.isEmptyObject(song))
                 mpcp.player.setCurrent(null);
@@ -301,8 +307,6 @@ return {
         for (var i = 0; i < tr.length; ++i) {
             element = tr[i];
 
-            if (!$(element)[0].classList.contains('file')) return true;
-
             fileid = $(element).data().fileid;
             icon   = '';
             index  = mpcp.playlist.list.files.indexOf(fileid);
@@ -317,6 +321,10 @@ return {
                 element.firstChild.innerHTML = icon;
             }
         }
+
+        window.dispatchEvent(new CustomEvent("MPCPBrowserChanged"));
+
+        if (callback) callback();
     },
 
     updateLocal: function (callback) {
@@ -382,11 +390,8 @@ return {
         //console.log(current);
 
         mpcp.sortHelper.reloadSortable(mpcp.browser);
-        this.updatePosition();
         mpcp.pages.update('browser');
-        window.dispatchEvent(new CustomEvent("MPCPBrowserChanged"));
-
-        if (callback) callback();
+        this.updatePosition(callback);
     },
 
     createSortable: function (obj) {
@@ -746,7 +751,7 @@ return {
             mpcp.browser.open();
         });
 
-        mpcp.tableHeader.init(this.tableid, 'MPCPBrowserChanged');
+        mpcp.tableHeader(this.tableid, 'MPCPBrowserChanged');
 
         // this cannot be part of .song-list because of a bug with sortColumn
         // (overwrites contens from one tabe to other tables).

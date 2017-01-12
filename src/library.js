@@ -33,6 +33,11 @@ return {
         mpcp.settings.saveBrowser('library');
         this.addToHistory();
         mpcp.libraryArtists.update(mpcp.library.artist, callback);
+
+        if (!mpcp.library.artist) {
+            // force an update so header is not squashed together
+            mpcp.librarySongs.fixedThead.update();
+        }
     },
 
     show: function () {

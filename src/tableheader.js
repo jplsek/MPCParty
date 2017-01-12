@@ -1,95 +1,75 @@
 module.exports = function (mpcp) {
 
 // custom floating (fixed) table header
-return {
-    // table to update the thead. Event to update the widths.
-    init: (function (table, event) {
-        table = document.getElementById(table);
-        var thead = table.tHead;
+// ARGS: id of table to used to update the thead, event to update the widths.
+// This assumes that a table called id-header exists!
+// The reason for two headers is for speed. The js doesn't need to do any
+// cloning of headers or keep track of the position of the header
+// I don't care that much for portability of this functionality, especially since
+// so many plugins like this exist already.
+return (function (tableid, event) {
+    var table = document.getElementById(tableid),
+        thead = document.getElementById(tableid + '-header').tHead;
 
-        // apply specific styles
-        thead.style.position = 'fixed';
-        thead.style.zIndex = '1';
+    updateWidth();
 
-        updateSize();
-
-        if (event) {
-            window.addEventListener(event, function () {
-                updateSize();
-            });
-        }
-
-        window.addEventListener('MPCPReflow', function () {
-            updateSize();
-            updateOffset();
-        });
-
-        window.addEventListener('resize', function () {
+    if (event) {
+        window.addEventListener(event, function () {
             updateWidth();
-            updateOffset();
         });
+    }
 
-        window.addEventListener('scroll', function () {
-            updateOffset();
-        });
+    window.addEventListener('MPCPReflow', function () {
+        updateWidth();
+    });
 
-        // anything that has to do with "top" is due to scrolling in the window.
-        // in my case, this happens in mobile. Otherwise, I wouldn't need to
-        // use "top" anywhere.
-        // another way of addressing this is to create a table based on the thead
-        // (like other plugins) and just put that on top of the main table.
-        // That way, there is no fixed possitons. Hmmm... might try that. TODO
-        function updateOffset() {
-            if (window.pageYOffset !== 0) {
-                var offset = table.getBoundingClientRect().top;
-                thead.style.top = offset + 'px';
-            } else {
-                // let browser handle it, because it handles it like I would
-                // expect it to.
-                thead.style.top = '';
+    window.addEventListener('resize', function () {
+        updateWidth();
+    });
+
+    function updateWidth() {
+        // update cell width
+        var row = table.tBodies[0].rows[0],
+            i = 0,
+            width = 0,
+            tHeadCell;
+
+        if (!row) {
+            console.log('test ' + tableid);
+            width = thead.clientWidth;
+
+            for (i = 0; i < thead.rows[0].cells.length; ++i) {
+                tHeadCell = thead.rows[0].cells[i];
+                tHeadCell.style.width = width + 'px';
             }
+
+            return;
         }
 
-        function updateSize() {
-            updateHeight();
-            updateWidth();
-        }
-
-        function updateHeight() {
-            var height = thead.clientHeight;
-            table.style.marginTop = height + 'px';
-            thead.style.marginTop = -height + 'px';
-        }
-
-        function updateWidth() {
-            // update thead width
-            var width = table.clientWidth;
-            thead.style.width = width + 'px';
-
-            // update cell width
-            var row = table.tBodies[0].rows[0];
-
-            if (!row) return;
-
-            var cells = row.cells;
+        var cells = row.cells,
             // check for colSpan
-            var column = 0;
+            column = 0;
 
-            for (var i = 0; i < cells.length; ++i) {
-                width = cells[i].clientWidth;
-                var colSpan = cells[i].colSpan;
+        for (i = 0; i < cells.length; ++i) {
+            width = cells[i].clientWidth;
+            var colSpan = cells[i].colSpan;
 
-                if (colSpan != 1)
-                     width = width / colSpan;
+            if (colSpan != 1)
+                 width = width / colSpan;
 
-                 for (var j = 0; j < colSpan; ++j) {
-                    var tHeadCell = table.tHead.rows[0].cells[column];
-                    tHeadCell.style.width = width + 'px';
-                    ++column;
-                 }
-            }
+             for (var j = 0; j < colSpan; ++j) {
+                tHeadCell = thead.rows[0].cells[column];
+                tHeadCell.style.width = width + 'px';
+                ++column;
+             }
         }
-    })
-};
+    }
+
+    return {
+        update: function() {
+            updateWidth();
+        }
+    };
+});
 
 };

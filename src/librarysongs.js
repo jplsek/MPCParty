@@ -10,6 +10,7 @@ return {
     tbody: '#library-songs-list .append',
     // used for dragging while selected
     clone: null,
+    fixedThead: null,
 
     // put songs in table
     update: function (artist, album, poppedState, callback) {
@@ -140,7 +141,8 @@ return {
             '#search-songs-clear',
             1000);
 
-        mpcp.tableHeader.init(this.tableid, 'MPCPLibrarySongsChanged');
+        this.fixedThead = mpcp.tableHeader(this.tableid, 'MPCPLibrarySongsChanged');
+        mpcp.librarySongs.fixedThead.update();
 
         // this cannot be part of .song-list because of a bug with sortColumn
         // (overwrites contens from one tabe to other tables).

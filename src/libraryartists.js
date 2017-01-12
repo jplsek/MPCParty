@@ -37,7 +37,6 @@ return {
                     '<em class="text-muted">No artists</em></td></tr>';
                 $(mpcp.libraryArtists.tbody)[0].innerHTML = html;
                 console.log('No artists found');
-                window.dispatchEvent(new CustomEvent('MPCPLibraryArtistsChanged'));
                 if (callback) callback();
                 return;
             }
@@ -58,7 +57,6 @@ return {
             $(mpcp.libraryArtists.tbody)[0].innerHTML = html;
 
             mpcp.sortHelper.reloadSortable(mpcp.libraryArtists);
-            window.dispatchEvent(new CustomEvent('MPCPLibraryArtistsChanged'));
 
             if (callback) callback();
         });
@@ -84,8 +82,6 @@ return {
             var artist = $(this).parent().parent().data().artist;
             mpcp.library.addExternal(mpcp.libraryArtists, artist);
         });
-
-        mpcp.tableHeader.init(this.tableid, 'MPCPLibraryArtistsChanged');
 
         mpcp.utils.tableSort(this.table, '#library-col-artists', 1, 'string');
 

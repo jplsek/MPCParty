@@ -389,6 +389,21 @@ table.floatThead-table {
         width: 100%;
     }
 }
+table.table-header {
+    // set display to break the table layout on purpose. It's so the js can
+    // set the width properly and keep the style of how a table header should
+    // look like from bootstrap (which is why we aren't using a plain div)
+    // I could probably inherit the stlye from bootstrap by including it in
+    // this css...
+    display: block;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+table.table-header-fixed {
+    table-layout: fixed;
+    margin-bottom: 0;
+    cursor: pointer;
+}
 @keyframes spin {
     from { transform: scale(1) rotate(0deg) }
     to { transform: scale(1) rotate(360deg) }
