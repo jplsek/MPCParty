@@ -125,7 +125,7 @@ socket.onmessage = function (event) {
             // don't show notification if only 1 person is using the client
             if (mpcp.users.total <= 1) return;
 
-            lazyToast.info(msg.info, 'Song Skipped', 10000);
+            mpcp.lazyToast.info(msg.info, 'Song Skipped', 10000);
             break;
 
         case 'song-previous':
@@ -135,7 +135,7 @@ socket.onmessage = function (event) {
             // don't show notification if only 1 person is using the client
             if (mpcp.users.total <= 1) return;
 
-            lazyToast.info(msg.info, 'Song Skipped', 10000);
+            mpcp.lazyToast.info(msg.info, 'Song Skipped', 10000);
             break;
 
             // stored
@@ -172,7 +172,7 @@ socket.onmessage = function (event) {
 
             if (mpcp.users.total > 1) {
                 str += 'skipped: ' + mpcp.player.title + '.';
-                lazyToast.info(str, 'Song Skip');
+                mpcp.lazyToast.info(str, 'Song Skip');
                 mpcp.history.add(str, 'info');
             } else
                 mpcp.history.add('Skipped: ' + mpcp.player.title, 'info');

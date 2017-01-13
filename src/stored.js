@@ -55,7 +55,7 @@ return {
             //console.log(playlists);
             if (err) {
                 if (err.message == 'No such file or directory [52@0] {listplaylists}') {
-                    mpcp.mpcp.lazyToast.error('Is there a playlist directory and correct write permissions?', 'Cannot read playlist directory!');
+                    mpcp.lazyToast.error('Is there a playlist directory and correct write permissions?', 'Cannot read playlist directory!');
                 }
 
                 html = '<em class="gen text-muted">No saved playlists</em>';

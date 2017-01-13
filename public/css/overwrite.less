@@ -22,6 +22,9 @@ header {
         display: flex;
         -webkit-align-items: center;
         align-items: stretch;
+        margin: 0;
+        box-shadow: none;
+        border: none;
 
         #volume {
             width: 30px; // width set for webkit
@@ -435,6 +438,7 @@ table.table-header-fixed {
     main {
         flex-direction: column;
         height: auto;
+        align-items: center;
     }
     #album-art {
         display: none;
@@ -451,5 +455,38 @@ table.table-header-fixed {
         border-left: 1px solid #DDD;
         border-right: 1px solid #DDD;
         border-bottom: 1px solid #DDD;
+    }
+    header {
+        display: flex;
+        flex-direction: column;
+
+        #header-left {
+            position: fixed;
+            bottom:0;
+            z-index: 2;
+            width: 100%;
+            min-width: .minimumWidth;
+            #media-buttons {
+                flex-direction: row;
+                width: 90%;
+            }
+        }
+        #header-right {
+            width: 100%;
+        }
+        #music-time {
+            position: fixed;
+            bottom: 5px;
+            z-index: 3;
+            left: 40px;
+            width: 80%;
+        }
+    }
+    .space-between {
+        display: block;
+    }
+    #browser-selection {
+        display: flex;
+        width: 80%;
     }
 }

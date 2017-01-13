@@ -158,7 +158,7 @@ return {
             document.getElementById('volume').value = status.volume;
 
             if (status.error) {
-                lazyToast.error(status.error);
+                mpcp.lazyToast.error(status.error);
             }
         });
     },
