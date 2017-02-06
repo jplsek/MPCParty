@@ -7,6 +7,7 @@ return {
     tableid: 'library-albums-list',
     table: '#library-albums-list',
     tbody: '#library-albums-list .append',
+    tbodyid: 'library-albums-list-tbody',
 
     // put albums in table
     // albumUse: highlight in table
@@ -49,7 +50,7 @@ return {
             if (!files.length || files[0].Album === '') {
                 html = '<tr class="gen"><td colspan="2">' +
                     '<em class="text-muted">No albums</em></td></tr>';
-                $(mpcp.libraryAlbums.tbody)[0].innerHTML = html;
+                document.getElementById(mpcp.libraryAlbums.tbodyid).innerHTML = html;
                 console.log('No albums found');
                 mpcp.librarySongs.update(
                         artist, albumUse, poppedState, callback);
@@ -66,9 +67,7 @@ return {
                 addClass = '';
             }
 
-            $(mpcp.libraryAlbums.tbody)[0].innerHTML = html;
-
-            mpcp.sortHelper.reloadSortable(mpcp.libraryAlbums);
+            document.getElementById(mpcp.libraryAlbums.tbodyid).innerHTML = html;
 
             // show all songs initially
             mpcp.librarySongs.update(artist, albumUse, poppedState, callback);
@@ -78,8 +77,6 @@ return {
     initEvents: function () {
         mpcp.utils.lazySearch('#search-albums', this.table, 'album',
             '#search-albums-clear');
-
-        mpcp.browser.createSortable(this);
 
         $(document).on('click', this.table + ' .gen', function () {
             var artist = $(this).data().artist,

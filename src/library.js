@@ -60,7 +60,7 @@ return {
     },
 
     // obj, libraryArtist or libraryAlbum
-    addMulti: function (obj, to, dontScroll) {
+    addMulti: function (obj, to, dontScroll, dragging) {
         mpcp.utils.toArraySelected(obj);
         var i, tr, artist, album;
 
@@ -83,7 +83,8 @@ return {
 
         obj.selected.reverse();
 
-        if (mpcp.pb.current) {
+        // context menu check
+        if (mpcp.pb.current && !dragging) {
             for (i = 0; i < obj.selected.length; ++i) {
                 tr     = obj.selected[i];
                 artist = $(tr).data().artist;

@@ -150,47 +150,32 @@ $.contextMenu({
     // above pb
     zIndex: 1003,
     build: function ($trigger, e) {
-        // check if selected before continuing.
-        // If right click is outside selected, clear selection (like in all
-        // file managers).
-        var inside = false,
-            i;
-
-        function checkInside(obj) {
-            for (i = 0; i < obj.selected.length; ++i) {
-                //console.log(mpcp.playlist.selected[i]);
-                if (obj.selected[i].isEqualNode(e.currentTarget)) {
-                    console.log('setting inside to true');
-                    inside = true;
-                    break;
-                }
-            }
-        }
-
-        checkInside(mpcp.playlist);
-        checkInside(mpcp.browser);
-        checkInside(mpcp.pb);
-        checkInside(mpcp.libraryArtists);
-        checkInside(mpcp.libraryAlbums);
-
-        // if its not in .selected, update it.
-        if (!inside) {
-            //console.log('updating .selected');
-            mpcp.utils.clearSelected(mpcp.playlist);
-            mpcp.utils.clearSelected(mpcp.pb);
-            mpcp.utils.clearSelected(mpcp.browser);
-
-            mpcp.utils.saveSelected(mpcp.libraryArtists);
-            mpcp.utils.clearSelected(mpcp.libraryArtists);
-            mpcp.utils.saveSelected(mpcp.libraryAlbums);
-            mpcp.utils.clearSelected(mpcp.libraryAlbums);
-        }
-
         var table = $trigger.parent().parent(),
             items = {},
             // can't get the title of contextmenu to work, so I'm using a menu
             // item as a title.
             title = $trigger.attr('title');
+
+        switch(table.attr('id')) {
+            case mpcp.playlist.tableid:
+                mpcp.utils.checkSelected(e.currentTarget, mpcp.playlist);
+                break;
+            case mpcp.browser.tableid:
+                mpcp.utils.checkSelected(e.currentTarget, mpcp.browser);
+                break;
+            case mpcp.pb.tableid:
+                mpcp.utils.checkSelected(e.currentTarget, mpcp.pb);
+                break;
+            case mpcp.libraryArtists.tableid:
+                mpcp.utils.checkSelected(e.currentTarget, mpcp.libraryArtists);
+                break;
+            case mpcp.libraryAlbums.tableid:
+                mpcp.utils.checkSelected(e.currentTarget, mpcp.libraryAlbums);
+                break;
+            case mpcp.librarySongs.tableid:
+                mpcp.utils.checkSelected(e.currentTarget, mpcp.librarySongs);
+                break;
+        }
 
         if (table[0].classList.contains('song-list'))
             title = $trigger.children('td:nth-child(2)').attr('title');
@@ -313,16 +298,6 @@ $.contextMenu({
             },
             items: items
         };
-    },
-    events: {
-        hide: function (options) {
-            if (mpcp.libraryArtists.saved.length) {
-                mpcp.utils.restoreSelected(mpcp.libraryArtists);
-            }
-            if (mpcp.libraryAlbums.saved.length) {
-                mpcp.utils.restoreSelected(mpcp.libraryAlbums);
-            }
-        }
     }
 });
 

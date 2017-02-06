@@ -2,10 +2,10 @@ module.exports = function (mpcp) {
 
 // the file browser
 return {
-    isDragging: false,
     tableid: 'file-browser-song-list',
     table: '#file-browser-song-list',
     tbody: '#file-browser-song-list .append',
+    tbodyid: 'file-browser-song-list-tbody',
     // current directory the user is in
     current: '/',
     previous: '/',
@@ -98,7 +98,7 @@ return {
             //console.log(files);
             if (err) return console.log(err);
 
-            $(mpcp.browser.tbody)[0].innerHTML = '';
+            document.getElementById(mpcp.browser.tbodyid).innerHTML = '';
             mpcp.browser.localFolders = [];
             mpcp.browser.localFiles = [];
             files = mpcp.utils.toArray(files);
@@ -194,7 +194,7 @@ return {
             }
 
             // do this after (in case of error)
-            $(mpcp.browser.tbody)[0].innerHTML = '';
+            document.getElementById(mpcp.browser.tbodyid).innerHTML = '';
             mpcp.browser.searching = true;
             mpcp.browser.searchTerm = name;
             mpcp.browser.localFolders = [];
@@ -206,7 +206,7 @@ return {
                 // history
                 html = '<tr class="directory gen"><td colspan="6">' +
                     '<em class="text-muted">No songs found</em></td></tr>';
-                $(mpcp.browser.tbody)[0].innerHTML = html;
+                document.getElementById(mpcp.browser.tbodyid).innerHTML = html;
                 mpcp.pages.update('browser');
                 console.log('No songs found');
                 window.dispatchEvent(new CustomEvent("MPCPBrowserChanged"));
@@ -347,7 +347,7 @@ return {
             }
         }
 
-        $(this.tbody)[0].innerHTML = '';
+        document.getElementById(this.tbodyid).innerHTML = '';
 
         var start = 0,
             end   = this.localFolders.length + this.localFiles.length,
@@ -385,97 +385,10 @@ return {
             current++;
         }
 
-        $(this.tbody)[0].innerHTML = html;
-
+        document.getElementById(this.tbodyid).innerHTML = html;
         //console.log(current);
-
-        mpcp.sortHelper.reloadSortable(mpcp.browser);
         mpcp.pages.update('browser');
         this.updatePosition(callback);
-    },
-
-    createSortable: function (obj) {
-        console.log('creating sortable for: ' + obj.tbody);
-        var sort = sortable(obj.tbody, {
-            connectWith: 'connected'
-        })[0];
-
-        sort.addEventListener('sortstart', function (e) {
-            //console.log(e);
-            if (mpcp.sortHelper.check(e, obj))
-                return;
-
-            mpcp.browser.isDragging = true;
-
-            console.log('start ' + obj.tbody);
-
-            mpcp.sortHelper.clone(e, obj);
-
-            //console.log(e);
-            // check is things are selected before continuing.
-            // If right click is outside selected, clear selection
-            // (like in all file managers).
-            var inside = false;
-            for (var i = 0; i < obj.selected.length; ++i) {
-                // compare titles because of generated tr's after drag
-                if (obj.tbody == mpcp.libraryArtists.tbody ||
-                        obj.tbody == mpcp.libraryAlbums.tbody) {
-                    if ($(obj.selected[i]).attr('title') ==
-                            $(e.detail.item).attr('title')) {
-                        console.log('setting inside to true (dup)');
-                        inside = true;
-                        break;
-                    }
-                } else {
-                    if (obj.selected[i].isEqualNode(e.detail.item)) {
-                        console.log('setting inside to true');
-                        inside = true;
-                        break;
-                    }
-                }
-            }
-
-            // if its not in *.selected, update it.
-            if (!inside) {
-                if (mpcp.libraryArtists.selected.length) {
-                    mpcp.utils.saveSelected(mpcp.libraryArtists);
-                }
-                if (mpcp.libraryAlbums.selected.length) {
-                    mpcp.utils.saveSelected(mpcp.libraryAlbums);
-                }
-
-                console.log('clearing ' + obj.tbody + ' selected');
-                mpcp.utils.clearSelected(obj);
-            }
-        });
-
-        sort.addEventListener('sortstop', function (e) {
-            if (mpcp.sortHelper.check(e, obj))
-                return;
-
-            console.log('sort stop for ' + obj.tbody);
-
-            if (mpcp.libraryArtists.saved.length) {
-                mpcp.utils.restoreSelected(mpcp.libraryArtists);
-            }
-
-            if (mpcp.libraryAlbums.saved.length) {
-                mpcp.utils.restoreSelected(mpcp.libraryAlbums);
-            }
-        });
-
-        sort.addEventListener('sortupdate', function (e) {
-            if (mpcp.sortHelper.check(e, obj))
-                return;
-
-            mpcp.browser.isDragging = false;
-
-            console.log('sort update for ' + obj.tbody);
-
-            // just delete the dropped item, because we don't want the
-            // browser to change
-            mpcp.sortHelper.removeItem(e);
-        });
     },
 
     // show song information to the user
@@ -579,7 +492,7 @@ return {
         mpcp.utils.clearSelected(mpcp.browser);
     },
 
-    addMulti: function (to, callback) {
+    addMulti: function (to, callback, dragging) {
         console.log('browser add multi');
         mpcp.utils.toArraySelected(mpcp.browser);
         var i, tr, dir, file, j = 0;
@@ -598,17 +511,18 @@ return {
             });
         }
 
-        if (mpcp.pb.current) {
+        // used for the context menu
+        if (mpcp.pb.current && !dragging) {
             var arr = [];
 
             for (i = 0; i < this.selected.length; ++i) {
                 tr = this.selected[i];
-                if ($(tr)[0].classList.contains('file')) {
-                    file = $(tr).data().fileid;
-                    console.log('adding ----- ' + file);
+                if (tr.classList.contains('file')) {
+                    file = tr.dataset.fileid;
+                    //console.log('adding ----- ' + file);
                     arr.push(['id', file]);
-                } else if ($(tr)[0].classList.contains('directory')) {
-                    dir = $(tr).data().dirid;
+                } else if (tr.classList.contains('directory')) {
+                    dir = tr.dataset.dirid;
                     arr.push(['dir', dir]);
                 }
             }
@@ -625,11 +539,11 @@ return {
             this.selected.reverse();
             for (i = 0; i < this.selected.length; ++i) {
                 tr = this.selected[i];
-                if ($(tr)[0].classList.contains('file')) {
-                    file = $(tr).data().fileid;
+                if (tr.classList.contains('file')) {
+                    file = tr.dataset.fileid;
                     addFile(file);
-                } else if ($(tr)[0].classList.contains('directory')) {
-                    dir = $(tr).data().dirid;
+                } else if (tr.classList.contains('directory')) {
+                    dir = tr.dataset.dirid;
                     addDir(dir);
                 } else {
                     if (++j == this.selected.length && callback)
@@ -767,8 +681,6 @@ return {
             5, '00:00');
 
         mpcp.utils.multiSelect(mpcp.browser, ['song-add', 'dir-add']);
-
-        this.createSortable(mpcp.browser);
     }
 };
 

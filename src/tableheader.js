@@ -35,7 +35,7 @@ return (function (tableid, event) {
             tHeadCell;
 
         if (!row) {
-            console.log('test ' + tableid);
+            //console.log('test ' + tableid);
             width = thead.clientWidth;
 
             for (i = 0; i < thead.rows[0].cells.length; ++i) {

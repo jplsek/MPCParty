@@ -25,9 +25,9 @@ mpcp.pages          = require('./pages.js')(mpcp);
 mpcp.settings       = require('./settings.js')(mpcp);
 mpcp.downloader     = require('./downloader.js')(mpcp);
 mpcp.lazyToast      = require('./lazytoast.js')(mpcp);
-mpcp.sortHelper     = require('./sorthelper.js')(mpcp);
 mpcp.tableHeader    = require('./tableheader.js')(mpcp);
 require('./contextmenu.js')(mpcp);
+require('./draganddrop.js')(mpcp);
 
 komponist.on('changed', function (system) {
     console.log('changed: ' + system);

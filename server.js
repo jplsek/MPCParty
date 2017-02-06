@@ -289,8 +289,8 @@ app.use('/toastr',
     express.static(__dirname + '/bower_components/toastr/'));
 app.use('/jquery-contextmenu',
     express.static(__dirname + '/bower_components/jQuery-contextMenu/dist/'));
-app.use('/html5sortable',
-    express.static(__dirname + '/bower_components/html.sortable/dist/'));
+app.use('/dragula',
+    express.static(__dirname + '/bower_components/dragula.js/dist/'));
 
 // 404 requests
 // currently disabled until we can get dynamic urls to not 404 with this

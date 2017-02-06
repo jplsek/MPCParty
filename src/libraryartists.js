@@ -7,6 +7,7 @@ return {
     tableid: 'library-artists-list',
     table: '#library-artists-list',
     tbody: '#library-artists-list .append',
+    tbodyid: 'library-artists-list-tbody',
 
     // put artists in table
     // artistUse: highlight in table
@@ -35,7 +36,7 @@ return {
             if (!files.length || files[0].Artist === '') {
                 html = '<tr class="gen"><td colspan="2">' +
                     '<em class="text-muted">No artists</em></td></tr>';
-                $(mpcp.libraryArtists.tbody)[0].innerHTML = html;
+                document.getElementById(mpcp.libraryArtists.tbodyid).innerHTML = html;
                 console.log('No artists found');
                 if (callback) callback();
                 return;
@@ -54,9 +55,7 @@ return {
                 addClass = '';
             }
 
-            $(mpcp.libraryArtists.tbody)[0].innerHTML = html;
-
-            mpcp.sortHelper.reloadSortable(mpcp.libraryArtists);
+            document.getElementById(mpcp.libraryArtists.tbodyid).innerHTML = html;
 
             if (callback) callback();
         });
@@ -65,8 +64,6 @@ return {
     initEvents: function () {
         mpcp.utils.lazySearch('#search-artists', this.table, 'artist',
             '#search-artists-clear');
-
-        mpcp.browser.createSortable(this);
 
         $(document).on('click', this.table + ' .gen', function () {
             var artist = $(this).data().artist;

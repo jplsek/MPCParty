@@ -95,7 +95,7 @@ Edit config.cfg
 
 ## Long term goals
 * I plan on a 1.0 release in Summer 2017 and when I feel certain feature are implemented and basic issues are fixed.
-* 2.0, if I get around to it, will be a rewrite to use TypeScript (maybe with P/React?), an attempt to decouple things, and to be able to choose whether to run the process intensive things on the client (which is done right now) or choose to run it on the server. (Lan party = beefy desktops usually, and for our setup we had an old server. But what about phones and non-beefy pc's? Then we would want it to run it on the server.) It will also use a lighter / more "low level" mpd js library.
+* 2.0, if I get around to it, will be a rewrite to use TypeScript (maybe with P/React/Vue/Angular/InsertViewFrameworkHere?), an attempt to decouple things, and to be able to choose whether to run the process intensive things on the client (which is done right now) or choose to run it on the server. (Lan party = beefy desktops usually, and for our setup we had an old server. But what about phones and non-beefy pc's? Then we would want it to run it on the server.) It will also use a lighter / more "low level" mpd js library.
 
 ## License
 GNU Lesser General Public License v3 (LGPL-3.0)

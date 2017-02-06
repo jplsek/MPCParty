@@ -8,6 +8,7 @@ return {
     tableid: 'library-songs-list',
     table: '#library-songs-list',
     tbody: '#library-songs-list .append',
+    tbodyid: 'library-songs-list-tbody',
     // used for dragging while selected
     clone: null,
     fixedThead: null,
@@ -55,7 +56,7 @@ return {
                         !files[0].Artist)) {
                 html = '<tr class="gen"><td colspan="6">' +
                     '<em class="text-muted">No songs found</em></td></tr>';
-                $(mpcp.librarySongs.tbody)[0].innerHTML = html;
+                document.getElementById(mpcp.librarySongs.tbodyid).innerHTML = html;
                 window.dispatchEvent(new CustomEvent('MPCPLibrarySongsChanged'));
                 console.log('No songs found');
                 if (callback) callback();
@@ -68,9 +69,8 @@ return {
                 html += mpcp.browser.getHtmlFiles(files[i]);
             }
 
-            $(mpcp.librarySongs.tbody)[0].innerHTML = html;
+            document.getElementById(mpcp.librarySongs.tbodyid).innerHTML = html;
 
-            mpcp.sortHelper.reloadSortable(mpcp.librarySongs);
             mpcp.browser.updatePosition();
             window.dispatchEvent(new CustomEvent('MPCPLibrarySongsChanged'));
 
@@ -78,11 +78,10 @@ return {
         }
     },
 
-    addMulti: function (to) {
+    addMulti: function (to, dragging) {
         mpcp.browser.selected = this.selected;
-        mpcp.browser.addMulti(to);
+        mpcp.browser.addMulti(to, null, dragging);
         mpcp.utils.clearSelected(mpcp.librarySongs);
-        $(mpcp.librarySongs.clone)[0].classList.remove('info');
         return;
     },
 
@@ -128,8 +127,6 @@ return {
     },
 
     initEvents: function () {
-        mpcp.browser.createSortable(this);
-
         // we only really care about the title (hopefully, only exception is
         // when in the 'all' album)
         mpcp.utils.createSearch(

@@ -2,9 +2,10 @@ module.exports = function (mpcp) {
 
 // the playlist
 return {
-    isDragging: false,
     table: '#playlist-song-list',
+    tableid: 'playlist-song-list',
     tbody: '#playlist-song-list .append',
+    tbodyid: 'playlist-song-list-tbody',
     // scroll down to bottom of playlist
     scrollDown: false,
     // current playlist title
@@ -62,18 +63,17 @@ return {
                         return;
                     }
 
-                    $(mpcp.playlist.tbody)[0].innerHTML = '';
+                    document.getElementById(mpcp.playlist.tbodyid).innerHTML = '';
                     mpcp.playlist.local = playlistLoad;
 
                     if ($.isEmptyObject(playlistLoad[0])) {
                         var html = '<tr class="rem gen"><td><em class="text-muted">The playlist is empty! Songs can be added from the browser or by opening a playlist.</em></td></tr>';
-                        $(mpcp.playlist.tbody)[0].innerHTML = html;
+                        document.getElementById(mpcp.playlist.tbodyid).innerHTML = html;
                         // fix for removing the last song that's
                         // playling from the playlist
                         mpcp.playlist.doUpdate = true;
                         mpcp.player.updateAll();
                         mpcp.pages.update('playlist');
-                        mpcp.sortHelper.reloadSortable(mpcp.playlist);
                         mpcp.browser.updatePosition();
                         console.log('Empty playlist');
                         mpcp.playlist.callbackUpdate();
@@ -175,9 +175,8 @@ return {
 
         this.toPulse = [];
 
-        $(this.tbody)[0].innerHTML = html;
+        document.getElementById(this.tbodyid).innerHTML = html;
 
-        mpcp.sortHelper.reloadSortable(this);
         mpcp.browser.updatePosition();
         mpcp.pages.update('playlist');
 
@@ -192,121 +191,27 @@ return {
         if (callback) callback();
     },
 
-    initSortable: function () {
-        var sort = sortable(this.tbody, {
-            connectWith: 'connected'
-        })[0];
-
-        sort.addEventListener('sortstart', function (e) {
-            if (mpcp.sortHelper.check(e, mpcp.playlist))
-                return;
-
-            mpcp.playlist.isDragging = true;
-
-            mpcp.sortHelper.clone(e, mpcp.playlist);
-
-            //console.log($(e.srcElement).parent());
-            //console.log(e);
-            // check is things are selected before continuing.
-            // If right click is outside selected, clear selection
-            // (like in all file managers).
-            var inside = false;
-            for (var i = 0; i < mpcp.playlist.selected.length; ++i) {
-                //console.log(mpcp.playlist.selected[i]);
-                if (mpcp.playlist.selected[i].isEqualNode(
-                            e.detail.item)) {
-                    console.log('setting inside to true');
-                    inside = true;
-                    break;
-                }
-            }
-
-            // if its not in mpcp.playlist.selected, update it.
-            if (!inside) {
-                console.log('updating mpcp.playlist.selected');
-                mpcp.utils.clearSelected(mpcp.playlist);
-            }
-        });
-
-        sort.addEventListener('sortstop', function (e) {
-            //console.log(e);
-            if (mpcp.sortHelper.check(e, mpcp.playlist))
-                return;
-        });
-
-        sort.addEventListener('sortupdate', function (e) {
-            if (mpcp.sortHelper.check(e, mpcp.playlist))
-                return;
-
-            mpcp.playlist.isDragging = false;
-
-            if (mpcp.pb.isDragging) {
-                mpcp.pb.isDragging = false;
-                mpcp.sortHelper.removeItem(e);
-                return;
-            }
-
-            //console.log(e);
-            console.log('sort update for playlist');
-
-            var index = e.detail.index;
-
-            //console.log(mpcp.pages.currentPlaylist);
-            // check if nothing is in playlist
-            if (index == 1 &&
-                    $($(mpcp.playlist.tbody).children()[0])[0].classList.contains(
-                        'rem')) {
-                mpcp.playlist.fromSortableSender(e, 0);
-                return;
-            } else if (index + 1 ==
-                    $(mpcp.playlist.tbody).children().length) {
-                // last item in playlist
-                mpcp.playlist.fromSortableSender(e, index);
-                return;
-            }
-
-            // grabs the item that used to be in that position.
-            // grabs the pos as newIndex
-            var newPos = $(mpcp.playlist.table + ' .gen').
-                eq(index + 1).data().pos;
-
-            var oldPos = $(mpcp.playlist.table + ' .gen').
-                eq(index).data().pos;
-
-            if (oldPos < newPos)
-                newPos--;
-
-            // dragged from browser
-            if (mpcp.browser.isDragging) {
-                mpcp.browser.isDragging = false;
-                mpcp.playlist.fromSortableSender(e, newPos);
-            } else {
-                mpcp.playlist.fromSortableSelf(e, newPos);
-            }
-
-            $(e.detail.item)[0].remove();
-        });
-    },
-
     // drag and drop came from a different table
-    fromSortableSender: function (e, newIndex) {
-        //console.log(e.detail.item);
+    fromSortableSender: function (el, newIndex) {
         console.log('from sortable sender (playlist)');
-        $(mpcp.browser.clone)[0].classList.remove('info');
+
+        // check if "playlist is empty" is showing
+        if (newIndex == 1 && document.getElementById(this.tbodyid).children[0].classList.contains('rem'))
+            newIndex = 0;
 
         if (mpcp.browser.selected.length) {
-            mpcp.browser.addMulti(newIndex);
+            mpcp.browser.addMulti(newIndex, null, true);
             return;
         } else if (mpcp.librarySongs.selected.length) {
-            mpcp.librarySongs.addMulti(newIndex);
+            mpcp.librarySongs.addMulti(newIndex, true);
             return;
-        } else if ($(e.detail.item)[0].classList.contains('artist') &&
+        } else if (el.classList.contains('artist') &&
                 mpcp.libraryArtists.selected.length) {
-            mpcp.library.addMulti(mpcp.libraryArtists, newIndex, true);
+            mpcp.library.addMulti(mpcp.libraryArtists, newIndex, true, true);
             return;
-        } else if ($(e.detail.item)[0].classList.contains('album') &&
+        } else if (el.classList.contains('album') &&
                 mpcp.libraryAlbums.selected.length) {
-            mpcp.library.addMulti(mpcp.libraryAlbums, newIndex, true);
+            mpcp.library.addMulti(mpcp.libraryAlbums, newIndex, true, true);
             return;
         }
 
@@ -314,17 +219,17 @@ return {
 
         // file
         // note: multiselect is checked in addDir and addSong!
-        if ($(e.detail.item)[0].classList.contains('file')) {
-            var file = e.detail.item.dataset.fileid;
+        if (el.classList.contains('file')) {
+            var file = el.dataset.fileid;
             // check if nothing in playlist
             if (this.local.length <= 1) {
                 this.addid(file, undefined, true);
             } else {
                 this.addSong(file, newIndex, true);
             }
-        } else if ($(e.detail.item)[0].classList.contains('directory')) {
+        } else if (el.classList.contains('directory')) {
             // directory
-            var dir = e.detail.item.dataset.dirid;
+            var dir = el.dataset.dirid;
             console.log('add dir ' + dir);
 
             if (this.local.length <= 1) {
@@ -332,17 +237,17 @@ return {
             } else {
                 this.addDir(dir, newIndex, true);
             }
-        } else if ($(e.detail.item)[0].classList.contains('album')) {
-            artist = e.detail.item.dataset.artist;
-            album  = e.detail.item.dataset.album;
+        } else if (el.classList.contains('album')) {
+            artist = el.dataset.artist;
+            album  = el.dataset.album;
 
             mpcp.library.getSongsFromAlbum(artist, album, function (files) {
                 for (i = 0; i < files.length; ++i) {
                     mpcp.playlist.addSong(files[i].file, newIndex, true);
                 }
             });
-        } else if ($(e.detail.item)[0].classList.contains('artist')) {
-            artist = e.detail.item.dataset.artist;
+        } else if (el.classList.contains('artist')) {
+            artist = el.dataset.artist;
 
             mpcp.library.getSongsFromAlbum(
                     artist, undefined, function (files) {
@@ -351,13 +256,13 @@ return {
                         }
                     });
         } else {
-            console.log('not supported drag for: ' + $(e.detail.item).attr('class'));
+            console.log('not supported drag for: ' + el.classList);
             mpcp.sortHelper.removeItem(e);
         }
     },
 
     // drag and drop came from the same table
-    fromSortableSelf: function (e, newIndex) {
+    fromSortableSelf: function (el, newIndex) {
         console.log('from sortable self (playlist)');
 
         var file;
@@ -394,7 +299,7 @@ return {
 
             mpcp.utils.clearSelected(this);
         } else {
-            file = e.detail.item.dataset.fileid;
+            file = el.dataset.fileid;
             this.toPulse.push(file);
             //console.log('dragged playlist: ' + file + ' to ' + newIndex);
 
@@ -841,7 +746,7 @@ return {
 
             if ($.isEmptyObject(response[0])) {
                 var html = '<tr class="gen"><td><em class="text-muted">No songs found</em></td></tr>';
-                $(mpcp.playlist.tbody)[0].innerHTML = html;
+                document.getElementById(mpcp.playlist.tbodyid).innerHTML = html;
                 // fix for removing the last song that's
                 // playling from the playlist
                 mpcp.playlist.doUpdate = true;
@@ -1005,8 +910,6 @@ return {
         });
 
         mpcp.utils.multiSelect(this, ['song-remove']);
-
-        this.initSortable();
     }
 };
 

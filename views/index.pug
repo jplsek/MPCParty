@@ -9,6 +9,7 @@ html
         link(rel='stylesheet', href='/bootstrap/css/bootstrap.min.css')
         link(rel='stylesheet', href='/toastr/toastr.css')
         link(rel='stylesheet', href='/jquery-contextmenu/jquery.contextMenu.min.css')
+        link(rel='stylesheet', href='/dragula/dragula.min.css')
         link(rel='stylesheet', href='/css/jquery-ui.min.css')
         link(rel='stylesheet', href='/css/overwrite.css')
         link#theme(rel='stylesheet')
@@ -18,7 +19,7 @@ html
         // for debugging
         script(src='/js/komponist.build.js')
         script(src='/toastr/toastr.min.js')
-        script(src='/html5sortable/html.sortable.min.js')
+        script(src='/dragula/dragula.min.js')
         script(src='/js/jQuery_sortColumn.min.js')
         // for debugging
         //-script(src='/js/jQuery_sortColumn.js')
@@ -65,8 +66,8 @@ html
                             a(href='https://github.com/CodeSeven/toastr', target='_blank') toastr
                             |  - Notification system
                         p
-                            a(href='https://lukasoppermann.github.io/html5sortable/examples/index.html', target='_blank') HTML5 Sortable
-                            |  - Sortable (drag and drop) framework
+                            a(href='https://github.com/bevacqua/dragula', target='_blank') Dragula
+                            |  - Drag and drop framework
                         p
                             a(href='https://github.com/swisnl/jQuery-contextMenu', target='_blank') jquery-contextmenu
                             |  - Context menus on right click
@@ -327,7 +328,7 @@ html
 
             mixin songList(id)
                 table.song-list.table.table-hover(id=id)
-                    tbody.append.connected
+                    tbody.append.connected(id=id+'-tbody')
 
             mixin libraryAA(id, title, search)
                 div(id='library-'+id)
@@ -344,7 +345,7 @@ html
                             th
                     div(id='library-'+id+'-wrap')
                         table(id='library-'+id+'-list', class='table table-hover library-list-context')
-                            tbody.append.connected
+                            tbody.append.connected(id='library-'+id+'-list-tbody')
 
             main
                 #browser-selection
@@ -437,7 +438,7 @@ html
                                         span.glyphicon.glyphicon-remove
                     #pslwrap
                         table#playlist-song-list.table.table-hover
-                            tbody.append.connected
+                            tbody#playlist-song-list-tbody.append.connected
                     #playlist-pages.pages.navbar.navbar-default
                         button.btn.btn-default.first(title='Go to first page')
                             span.glyphicon.glyphicon-step-backward
@@ -487,7 +488,7 @@ html
                 #pb-main.panel-body
                     #pbwrap
                         table#pb-song-list.table.table-hover
-                            tbody.append.connected
+                            tbody#pb-song-list-tbody.append.connected
             #pb-tab.none Resume playlist buffer
 
         if (config.testing)

@@ -585,6 +585,7 @@ return {
             except: disable,
             deselect: deselect,
             cancel: cancel,
+            statics: [':hidden'],
             callback: function (items, e) {
                 if (!items.length) return;
                 obj.selected = items;
@@ -614,6 +615,31 @@ return {
         }
 
         obj.selected = [];
+    },
+
+    // check if selection is actually selected (right click non selected item
+    // will clear the selection)
+    checkSelected: function(el, obj, save) {
+        var inside = false;
+        for (var i = 0; i < obj.selected.length; ++i) {
+            if (obj.selected[i].isEqualNode(el)) {
+                inside = true;
+                break;
+            }
+        }
+
+        //console.log(el);
+        //console.log(obj.tableid);
+        //console.log(inside);
+
+        // if el is not in obj.selected, clear it
+        if (!inside) {
+            if (save) {
+                mpcp.utils.saveSelected(obj);
+            }
+
+            mpcp.utils.clearSelected(obj);
+        }
     },
 
     setCurrentAlbumArt: function (url) {
