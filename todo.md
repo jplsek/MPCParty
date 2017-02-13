@@ -56,5 +56,4 @@ TODO
 ---
 
 # Making Releases:
-* Set to false: app.locals.pretty in server.js
-* Minify public/js/komponist.js and make sure index.jade uses the minified version
+* Set "release" to true in server.js

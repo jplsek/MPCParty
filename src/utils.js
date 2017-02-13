@@ -557,17 +557,6 @@ return {
         });
     },
 
-    // thead floating
-    floatTable: function (table, par) {
-        $(table).floatThead({
-            position: 'fixed',
-            scrollContainer: function ($table) {
-                return $table.closest(par);
-            },
-            autoReflow: true
-        });
-    },
-
     // MultiSelect. Multiselections handled by respective object.
     // Events handled in callback and contextMenu.
     // table for multislection, obj used for multiselection (must contain selected

@@ -31,7 +31,9 @@ var express         = require('express'),
     // checks if the song changed to clear user votes
     currentSong = null,
     // currently playing song's album art url
-    currentArt = null;
+    currentArt = null,
+    // set to true when making a release
+    release = false;
 
 io.broadcast = function(data) {
     io.clients.forEach(function each(client) {
@@ -214,6 +216,22 @@ var skip = {
     }
 };
 
+if (release) {
+    var minify = require('express-minify');
+    // must be above express.static
+    app.use(minify());
+    app.use(function(req, res, next) {
+        if (/mpcparty\.js/.test(req.url)) {
+            res._uglifyCompress = {
+                drop_console: true
+            };
+        }
+        next();
+    });
+} else {
+    app.locals.pretty = true;
+}
+
 app.disable('x-powered-by');
 // less config
 app.use(less(__dirname + '/public'));
@@ -225,8 +243,6 @@ app.use(express.static(__dirname + '/public'));
 // use pug with express
 app.set('views', __dirname + '/views');
 app.set('view engine', 'pug');
-// used mostly for debugging
-app.locals.pretty = true;
 
 fs.readFile(__dirname + '/package.json', function (err, data) {
     if (err) return console.log(err);
