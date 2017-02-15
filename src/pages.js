@@ -55,7 +55,7 @@ return {
     },
 
     // type: browser or playlist, page: the page to go
-    go: function (type, page) {
+    go: function (type, page, scrollDown) {
         page = Math.floor(page);
         console.log('go to page ' + page + ' on ' + type);
 
@@ -65,14 +65,22 @@ return {
             this.currentPlaylist = parseInt(page);
             $('#playlist-pages input')[0].value = this.currentPlaylist;
             mpcp.playlist.updateLocal();
-            $('#pslwrap').scrollTop($(mpcp.playlist.table));
+
+            if (!scrollDown)
+                $('#pslwrap').scrollTop($(mpcp.playlist.table));
+            else
+                $('#pslwrap').scrollTop($(mpcp.playlist.table)[0].scrollHeight);
         } else if (type == 'browser' && this.enabledBrowser) {
             if (page < 1 || page > this.totalBrowser) return;
 
             this.currentBrowser = parseInt(page);
             $('#browser-pages input')[0].value = this.currentBrowser;
             mpcp.browser.updateLocal();
-            $('#slwrap').scrollTop($(mpcp.browser.table));
+
+            if (!scrollDown)
+                $('#slwrap').scrollTop($(mpcp.browser.table));
+            else
+                $('#slwrap').scrollTop($(mpcp.browser.table)[0].scrollHeight);
         }
     },
 

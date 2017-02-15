@@ -6,11 +6,9 @@ return {
     tableid: 'playlist-song-list',
     tbody: '#playlist-song-list .append',
     tbodyid: 'playlist-song-list-tbody',
-    // scroll down to bottom of playlist
-    scrollDown: false,
     // current playlist title
     current: '',
-    // force a playlist update
+    // set to false when we don't want an update to happen
     doUpdate: true,
     // list used for other functions
     list: {files: [], positions: []},
@@ -34,18 +32,18 @@ return {
     // used to update the current playlist
     updateAll: function () {
         // do not use 'this'. Can be used in a callback.
-        if (!this.doUpdate) {
-            this.doUpdate = true;
+        if (!mpcp.playlist.doUpdate) {
+            mpcp.playlist.doUpdate = true;
             return;
         }
 
         console.log('updating playlist');
 
         // reset list
-        this.list = {files: [], positions: []};
+        mpcp.playlist.list = {files: [], positions: []};
 
-        if (this.isSearching) {
-            this.search();
+        if (mpcp.playlist.isSearching) {
+            mpcp.playlist.search();
         } else {
             // we update the player first to update the current song positison
             // which is used for 'movetocurrent', the 'remove last song' bug
@@ -179,14 +177,6 @@ return {
 
         mpcp.browser.updatePosition();
         mpcp.pages.update('playlist');
-
-        // scroll down after adding a song
-        if (this.scrollDown) {
-            console.log('scroll');
-            this.scrollDown = false;
-            $('#pslwrap').scrollTop($(this.table)[0].scrollHeight);
-        }
-
         this.callbackUpdate();
         if (callback) callback();
     },
@@ -377,15 +367,19 @@ return {
         console.log('adding song to playlist');
 
         if (!dontScroll) {
-            this.doUpdate = false;
             if (to === undefined || isNaN(to)) {
-                mpcp.pages.go('playlist', mpcp.pages.totalPlaylist);
-                this.scrollDown = true;
+                this.addCallbackUpdate(function () {
+                    mpcp.pages.go('playlist', mpcp.pages.totalPlaylist, true);
+                });
             } else if (mpcp.player.current &&
                     to == mpcp.player.current.Pos + 1) {
-                this.goToCurrent();
+                this.addCallbackUpdate(function () {
+                    mpcp.playlist.goToCurrent();
+                });
             } else {
-                this.goToPos(to);
+                this.addCallbackUpdate(function () {
+                    mpcp.playlist.goToPos(to);
+                });
             }
         }
 
@@ -397,12 +391,14 @@ return {
         console.log('adding dir to playlist');
 
         if (!dontScroll) {
-            this.doUpdate = false;
             if (to === undefined || isNaN(to)) {
-                mpcp.pages.go('playlist', mpcp.pages.totalPlaylist);
-                this.scrollDown = true;
+                this.addCallbackUpdate(function () {
+                    mpcp.pages.go('playlist', mpcp.pages.totalPlaylist, true);
+                });
             } else {
-                this.goToPos(to);
+                this.addCallbackUpdate(function () {
+                    mpcp.playlist.goToPos(to);
+                });
             }
         }
 
@@ -426,9 +422,9 @@ return {
             if (err) console.log(err);
             // no files in response
 
-            mpcp.playlist.doUpdate = false;
-            mpcp.pages.go('playlist', mpcp.pages.totalPlaylist);
-            mpcp.playlist.scrollDown = true;
+            mpcp.playlist.addCallbackUpdate(function () {
+                mpcp.pages.go('playlist', mpcp.pages.totalPlaylist, true);
+            });
         }
     },
 
