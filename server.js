@@ -694,6 +694,7 @@ io.on('connection', function (socket) {
     socket.send(JSON.stringify({
             'type': 'init', 'playlist-title': playlisttitle,
             'song-vote': skip.voting,
+            'downloader-enabled': downloader.enabled,
             'downloader-location': downloader.directory,
             'album-art': currentArt,
             }),
