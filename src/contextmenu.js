@@ -21,15 +21,15 @@ function contextResponse(key, table, tr) {
         case 'play':
             mpcp.playlist.play(tr);
             break;
-            // pb
-        case 'mttPb':
-            mpcp.pb.moveToTop(tr);
+        // playlist editor
+        case 'mttpe':
+            mpcp.pe.moveToTop(tr);
             break;
-        case 'mtbPb':
-            mpcp.pb.moveToBottom(tr);
+        case 'mtbpe':
+            mpcp.pe.moveToBottom(tr);
             break;
-        case 'remPb':
-            mpcp.pb.removeSong(tr);
+        case 'rempe':
+            mpcp.pe.removeSong(tr);
             break;
         case 'infoBrowser':
             mpcp.browser.getSongInfo(tr.data().fileid);
@@ -52,11 +52,11 @@ function contextResponse(key, table, tr) {
                     mpcp.playlist.addDir(dirid, 0);
                 }
                 break;
-            case 'attPb':
+            case 'attpe':
                 if (mpcp.browser.selected.length) {
                     mpcp.browser.addMulti(0);
                 } else {
-                    mpcp.pb.add(dirid, 0);
+                    mpcp.pe.add(dirid, 0);
                 }
                 break;
             case 'atbPlaylist':
@@ -66,11 +66,11 @@ function contextResponse(key, table, tr) {
                     mpcp.playlist.addDir(dirid);
                 }
                 break;
-            case 'atbPb':
+            case 'atbpe':
                 if (mpcp.browser.selected.length) {
                     mpcp.browser.addMulti();
                 } else {
-                    mpcp.pb.add(dirid);
+                    mpcp.pe.add(dirid);
                 }
                 break;
             case 'atc':
@@ -85,11 +85,11 @@ function contextResponse(key, table, tr) {
 
         switch(key) {
             case 'attPlaylist':
-            case 'attPb':
+            case 'attpe':
                 mpcp.browser.addExternal(fileid, 0);
                 break;
             case 'atbPlaylist':
-            case 'atbPb':
+            case 'atbpe':
                 mpcp.browser.addExternal(fileid);
                 break;
             case 'atc':
@@ -105,7 +105,7 @@ function contextResponse(key, table, tr) {
 
         switch(key) {
             case 'attPlaylist':
-            case 'attPb':
+            case 'attpe':
                 if ($(tr)[0].classList.contains('artist'))
                     mpcp.library.addExternal(
                             mpcp.libraryArtists, artist, album, 0, false);
@@ -114,7 +114,7 @@ function contextResponse(key, table, tr) {
                             mpcp.libraryAlbums, artist, album, 0, false);
                 break;
             case 'atbPlaylist':
-            case 'atbPb':
+            case 'atbpe':
                 if ($(tr)[0].classList.contains('artist'))
                     mpcp.library.addExternal(
                         mpcp.libraryArtists, artist, album, undefined, false);
@@ -147,7 +147,7 @@ function contextResponse(key, table, tr) {
 // enable the custom context menu
 $.contextMenu({
     selector: '.context-menu',
-    // above pb
+    // above pe
     zIndex: 1003,
     build: function ($trigger, e) {
         var table = $trigger.parent().parent(),
@@ -163,8 +163,8 @@ $.contextMenu({
             case mpcp.browser.tableid:
                 mpcp.utils.checkSelected(e.currentTarget, mpcp.browser);
                 break;
-            case mpcp.pb.tableid:
-                mpcp.utils.checkSelected(e.currentTarget, mpcp.pb);
+            case mpcp.pe.tableid:
+                mpcp.utils.checkSelected(e.currentTarget, mpcp.pe);
                 break;
             case mpcp.libraryArtists.tableid:
                 mpcp.utils.checkSelected(e.currentTarget, mpcp.libraryArtists);
@@ -183,37 +183,37 @@ $.contextMenu({
         //console.log($trigger);
         //console.log(title);
 
-        // only apply when playlist buffer is active and not right clicking
+        // only apply when playlist editor is active and not right clicking
         // the playlist
-        if (mpcp.pb.current && table.attr('id') != 'playlist-song-list') {
+        if (mpcp.pe.current && table.attr('id') != 'playlist-song-list') {
             // browser
             if (table[0].classList.contains('song-list')) {
                 items = {
                     'title': {name: title},
-                    'attPb': {name: 'Add to top of playlist buffer'},
-                    'atbPb': {name: 'Add to bottom of playlist buffer'}
+                    'attpe': {name: 'Add to top of playlist editor'},
+                    'atbpe': {name: 'Add to bottom of playlist editor'}
                 };
 
                 if (!$($trigger)[0].classList.contains('directory'))
                     items.infoBrowser = {name: 'Song information'};
-                // only on pb
-            } else if (table.attr('id') == 'pb-song-list') {
+                // only on pe
+            } else if (table.attr('id') == 'pe-song-list') {
                 items = {
                     'title':       {name: title},
-                    'mttPb':       {name: 'Move to top of playlist buffer'},
-                    'mtbPb':       {name: 'Move to bottom of playlist buffer'},
-                    'remPb':       {name: 'Remove'},
+                    'mttpe':       {name: 'Move to top of playlist editor'},
+                    'mtbpe':       {name: 'Move to bottom of playlist editor'},
+                    'rempe':       {name: 'Remove'},
                     'infoBrowser': {name: 'Song information'}
                 };
             } else if (table[0].classList.contains('library-list-context')) {
                 items = {
                     'title': {name: title},
-                    'attPb': {name: 'Add to top of playlist buffer'},
-                    'atbPb': {name: 'Add to bottom of playlist buffer'}
+                    'attpe': {name: 'Add to top of playlist editor'},
+                    'atbpe': {name: 'Add to bottom of playlist editor'}
                 };
             } else {
                 items = {
-                    'temp': {name: 'Context menu not implemented yet for pb'}
+                    'temp': {name: 'Context menu not implemented yet for pe'}
                 };
             }
         }

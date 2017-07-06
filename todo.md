@@ -9,8 +9,8 @@ TODO
 
 ## To implement
 * More error handling notifications
-* Playlist buffer:
-    * Save pb on refresh with storage api?
+* Playlist editor:
+    * Save pe on refresh with storage api?
     * Sharing with other users? (utilize users object?)
     * Page support
 * Browser:

@@ -4,32 +4,32 @@ module.exports = function (mpcp) {
 var drake = dragula([
     document.getElementById(mpcp.browser.tbodyid),
     document.getElementById(mpcp.playlist.tbodyid),
-    document.getElementById(mpcp.pb.tbodyid),
+    document.getElementById(mpcp.pe.tbodyid),
     document.getElementById(mpcp.libraryAlbums.tbodyid),
     document.getElementById(mpcp.libraryArtists.tbodyid),
     document.getElementById(mpcp.librarySongs.tbodyid),
 ], {
     copy: function (el, source) {
-        // clone everything but the playlist and playlist buffer
+        // clone everything but the playlist and playlist editor
         return (
             source.parentElement.id != mpcp.playlist.tableid &&
-            source.parentElement.id != mpcp.pb.tableid
+            source.parentElement.id != mpcp.pe.tableid
         );
     },
     accepts: function (el, target, source, sibling) {
         var tp = target.parentElement.id,
             sp = source.parentElement.id;
 
-        // only accept the playlist and playlist buffer but
-        // make sure pl and pb don't accept eachother
+        // only accept the playlist and playlist editor but
+        // make sure pl and pe don't accept eachother
         return (
             (
-                (tp != mpcp.pb.tableid || sp != mpcp.playlist.tableid) &&
-                (tp != mpcp.playlist.tableid || sp != mpcp.pb.tableid)
+                (tp != mpcp.pe.tableid || sp != mpcp.playlist.tableid) &&
+                (tp != mpcp.playlist.tableid || sp != mpcp.pe.tableid)
             ) &&
             (
                 tp == mpcp.playlist.tableid ||
-                tp == mpcp.pb.tableid
+                tp == mpcp.pe.tableid
             )
         );
     }
@@ -58,8 +58,8 @@ drake.on("drag", function (el, source) {
         case mpcp.playlist.tableid:
             mpcp.utils.checkSelected(el, mpcp.playlist);
             break;
-        case mpcp.pb.tableid:
-            mpcp.utils.checkSelected(el, mpcp.pb);
+        case mpcp.pe.tableid:
+            mpcp.utils.checkSelected(el, mpcp.pe);
     }
 });
 
@@ -71,7 +71,7 @@ drake.on("drop", function (el, target, source, sibling) {
         index = getIndex(sibling, target),
         pageIndex = 0;
 
-    // TODO figure out how to make the pb and pl scroll?
+    // TODO figure out how to make the pe and pl scroll?
 
     if (
         sp == mpcp.browser.tableid && tp == mpcp.playlist.tableid ||
@@ -90,19 +90,19 @@ drake.on("drop", function (el, target, source, sibling) {
         pageIndex = (mpcp.pages.currentPlaylist - 1) * mpcp.pages.maxPlaylist;
         mpcp.playlist.fromSortableSelf(el, index + pageIndex);
     } else if (
-        sp == mpcp.browser.tableid && tp == mpcp.pb.tableid ||
-        sp == mpcp.libraryArtists.tableid && tp == mpcp.pb.tableid ||
-        sp == mpcp.libraryAlbums.tableid && tp == mpcp.pb.tableid ||
-        sp == mpcp.librarySongs.tableid && tp == mpcp.pb.tableid
+        sp == mpcp.browser.tableid && tp == mpcp.pe.tableid ||
+        sp == mpcp.libraryArtists.tableid && tp == mpcp.pe.tableid ||
+        sp == mpcp.libraryAlbums.tableid && tp == mpcp.pe.tableid ||
+        sp == mpcp.librarySongs.tableid && tp == mpcp.pe.tableid
     ) {
-        // browser -> playlist buffer
-        // library artists -> playlist buffer
-        // library albums -> playlist buffer
-        // library songs -> playlist buffer
-        mpcp.pb.fromSortableSender(el, index);
-    } else if (sp == mpcp.pb.tableid && tp == mpcp.pb.tableid) {
-        // playlist buffer -> playlist buffer
-        mpcp.pb.fromSortableSelf(el);
+        // browser -> playlist editor
+        // library artists -> playlist editor
+        // library albums -> playlist editor
+        // library songs -> playlist editor
+        mpcp.pe.fromSortableSender(el, index);
+    } else if (sp == mpcp.pe.tableid && tp == mpcp.pe.tableid) {
+        // playlist editor -> playlist editor
+        mpcp.pe.fromSortableSelf(el);
     }
 });
 

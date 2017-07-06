@@ -1,7 +1,7 @@
 module.exports = function (mpcp) {
 
 // may utilize in the future for logging users who has voted and for
-// sharing pb's with other users
+// sharing pe's with other users
 return {
     //ip:hostname
     hostnames: {},
@@ -18,7 +18,7 @@ return {
             html += '<li class="gen"><a class="no-hover">' + hostnames[ip] +
                 '</a></li>';
         }
-        
+
         document.getElementById('user-list').innerHTML = html;
     },
 

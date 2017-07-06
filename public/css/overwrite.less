@@ -172,7 +172,7 @@ main {
         }
     }
 }
-#pb { // playlist buffer
+#pe { // playlist editor
     width: 400px;
     height: 300px;
     position: fixed;
@@ -196,14 +196,14 @@ main {
         }
     }
 
-    #pb-main {
+    #pe-main {
         padding: 0;
         overflow: auto;
         display: flex;
         flex: 1;
     }
 
-    #pbwrap {
+    #pewrap {
         display: flex;
         flex: 1;
 
@@ -212,7 +212,7 @@ main {
         }
     }
 
-    #pb-song-list {
+    #pe-song-list {
         margin-bottom: 0;
         display: flex;
         flex: 1;
@@ -224,7 +224,7 @@ main {
         }
     }
 }
-#pb-tab {
+#pe-tab {
     position: fixed;
     margin-bottom: 0;
     bottom: 0;
@@ -334,7 +334,7 @@ table.floatThead-table {
     bottom: 0px;
     z-index: 9999;
 }
-.playlists, #pb-main, #downloader-folder-list {
+.playlists, #pe-main, #downloader-folder-list {
     user-select: none; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
 }
 .none { // like .hidden, except without !important
@@ -348,14 +348,14 @@ table.floatThead-table {
     min-width: @minimumWidth;
 }
 .dropdown-menu {
-    z-index: 1003 !important; // above pb and floathead
+    z-index: 1003 !important; // above pe and floathead
 }
 // disables sorting for dragged item
 .song-list .no-placeholder {
     display: none;
 }
 // enables sorting for dragged item
-#playlist-song-list .no-placeholder, #pb-song-list .no-placeholder {
+#playlist-song-list .no-placeholder, #pe-song-list .no-placeholder {
     display: block;
 }
 // context menu customizations
@@ -443,7 +443,8 @@ table.table-header-fixed {
     #album-art {
         display: none;
     }
-    #pb, #pb-tab { // playlist buffer
+    // playlist editor
+    #pe, #pe-tab {
         width: 100%;
     }
     #browser, #playlist, #library {

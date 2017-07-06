@@ -18,7 +18,7 @@ mpcp.librarySongs   = require('./librarysongs.js')(mpcp);
 mpcp.library        = require('./library.js')(mpcp);
 mpcp.stored         = require('./stored.js')(mpcp);
 mpcp.progressbar    = require('./progressbar.js')(mpcp);
-mpcp.pb             = require('./playlistbuffer.js')(mpcp);
+mpcp.pe             = require('./playlisteditor.js')(mpcp);
 mpcp.vote           = require('./vote.js')(mpcp);
 mpcp.users          = require('./users.js')(mpcp);
 mpcp.pages          = require('./pages.js')(mpcp);
@@ -126,20 +126,20 @@ $('form').submit(function (e) {
     return false;
 });
 
-// enables resizable playlist buffer
-$('#pb').resizable({
+// enables resizable playlist editor
+$('#pe').resizable({
     handles: 'n, w, s, e, nw, ne, sw, se',
     minHeight: 140,
     minWidth: 160
 });
 
-// make pb draggable because why not
-$('#pb').draggable({
+// make pe draggable because why not
+$('#pe').draggable({
     containment: 'body',
-    handle: '#pb-header'
+    handle: '#pe-header'
 });
 
-$('#pb-tab').draggable({
+$('#pe-tab').draggable({
     axis: 'x',
     containment: 'body'
 });
@@ -167,7 +167,7 @@ mpcp.playlist   .initEvents();
 //mpcp.browser   .initEvents();
 mpcp.settings   .initEvents();
 mpcp.pages      .initEvents();
-mpcp.pb         .initEvents();
+mpcp.pe         .initEvents();
 mpcp.history    .initEvents();
 mpcp.stored     .initEvents();
 mpcp.downloader .initEvents();

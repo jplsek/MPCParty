@@ -1,13 +1,13 @@
 module.exports = function (mpcp) {
 
-// the playlist buffer
+// the playlist editor
 return {
     current: null,
-    selector: '#pb',
-    table: '#pb-song-list',
-    tableid: 'pb-song-list',
-    tbody: '#pb-song-list .append',
-    tbodyid: 'pb-song-list-tbody',
+    selector: '#pe',
+    table: '#pe-song-list',
+    tableid: 'pe-song-list',
+    tbody: '#pe-song-list .append',
+    tbodyid: 'pe-song-list-tbody',
     minimized: false,
     // selected items from multiSelect
     selected: [],
@@ -19,7 +19,7 @@ return {
             this.resume();
         } else if (!this.current) {
             this.current = 'local';
-            document.getElementById('pb').style.display = 'flex';
+            document.getElementById('pe').style.display = 'flex';
             this.clear();
         }
     },
@@ -28,13 +28,13 @@ return {
         var extra = '';
         if (mpcp.settings.pulse) extra += 'pulse';
 
-        return '<tr class="gen context-menu ' + extra + '" title="' + title + '" data-title="' + title + '" data-fileid="' + file + '"><td class="playlist-song-list-icons"></td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><span class="pb-song-remove faded text-danger glyphicon glyphicon-remove" title="Remove song from playlist"></span></td></tr>';
+        return '<tr class="gen context-menu ' + extra + '" title="' + title + '" data-title="' + title + '" data-fileid="' + file + '"><td class="playlist-song-list-icons"></td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><span class="pe-song-remove faded text-danger glyphicon glyphicon-remove" title="Remove song from playlist"></span></td></tr>';
     },
 
     // file object, position to put song
     // file can be an array of 'file' objects
     addSong: function (file, pos, callback) {
-        //console.log('adding song to pb: ' + this.current);
+        //console.log('adding song to pe: ' + this.current);
         //console.log(file);
         this.removeNothingMessage();
 
@@ -54,7 +54,7 @@ return {
         if (pos >= 0) {
             if (!pos) {
                 $(this.tbody).prepend(html);
-                $('#pb-main').scrollTop($(this.table));
+                $('#pe-main').scrollTop($(this.table));
             } else {
                 //console.log('add to ' + pos);
                 $(this.tbody + ' > .gen:nth-child(' + (pos) + ')').after(html);
@@ -62,7 +62,7 @@ return {
         } else {
             //console.log('add to bottom');
             document.getElementById(this.tbodyid).innerHTML += html;
-            $('#pb-main').scrollTop($(this.table)[0].scrollHeight);
+            $('#pe-main').scrollTop($(this.table)[0].scrollHeight);
         }
 
         this.move();
@@ -71,11 +71,11 @@ return {
     },
 
     fromSortableSelf: function (el) {
-        if (mpcp.pb.selected.length) {
+        if (mpcp.pe.selected.length) {
             var last,
-                index = mpcp.pb.selected.index(el);
+                index = mpcp.pe.selected.index(el);
 
-            $(mpcp.pb.selected).each(function (item, tr) {
+            $(mpcp.pe.selected).each(function (item, tr) {
                 //var file = $(tr).data().fileid;
 
                 // if dropped item is further down than the current tr
@@ -96,7 +96,7 @@ return {
                 // (the item that was dropped)
             });
 
-            mpcp.utils.clearSelected(mpcp.pb);
+            mpcp.utils.clearSelected(mpcp.pe);
         }
 
         this.move();
@@ -107,7 +107,7 @@ return {
     fromSortableSender: function (el, index) {
         var rem = 1;
 
-        // check if "playlist buffer is empty" is showing
+        // check if "playlist editor is empty" is showing
         if (index == 1 && document.getElementById(this.tbodyid).children[0].classList.contains('rem')) {
             index = 0;
             ++rem;
@@ -147,13 +147,13 @@ return {
             album  = el.dataset.album;
 
             mpcp.library.getSongsFromAlbum(artist, album, function (files) {
-                mpcp.pb.addSong(files, index);
+                mpcp.pe.addSong(files, index);
             });
         } else if (el.classList.contains('artist')) {
             artist = el.dataset.artist;
 
             mpcp.library.getSongsFromAlbum(artist, null, function (files) {
-                mpcp.pb.addSong(files, index);
+                mpcp.pe.addSong(files, index);
             });
         } else {
             console.log('not supported drag for: ' + $(el).attr('class'));
@@ -174,7 +174,7 @@ return {
             value = value[0];
 
             if (value.file && !value.directory) {
-                mpcp.pb.addSong(value, pos, callback);
+                mpcp.pe.addSong(value, pos, callback);
             }
         });
     },
@@ -187,7 +187,7 @@ return {
             j      = 0;
 
         function callback() {
-            mpcp.pb.addSong(newArr, pos, rootCallback);
+            mpcp.pe.addSong(newArr, pos, rootCallback);
         }
 
         function setFile(fileid) {
@@ -248,11 +248,11 @@ return {
         // server can respond per directory (so it can look random)
         mpcp.utils.getAllInfo(dir, function (files) {
             //console.log(files);
-            mpcp.pb.addSong(files, pos, callback);
+            mpcp.pe.addSong(files, pos, callback);
         });
     },
 
-    // remove song from the pb
+    // remove song from the pe
     removeSong: function (element) {
         // multiselect check (any left clicks)
         if (this.selected.length) {
@@ -273,16 +273,16 @@ return {
     // just updates the numbers column in the table
     move: function () {
         var pos = 0,
-            tr = document.getElementById(mpcp.pb.tbodyid).children;
+            tr = document.getElementById(mpcp.pe.tbodyid).children;
 
         for(var i = 0; i < tr.length; ++i) {
             tr[i].firstChild.innerHTML = ++pos + '.';
         }
 
-        if (!pos) mpcp.pb.showNothingMessage();
+        if (!pos) mpcp.pe.showNothingMessage();
     },
 
-    // open the playlist to the pb
+    // open the playlist to the pe
     open: function (file, callback) {
         komponist.listplaylistinfo(file, function (err, val) {
             if (err) {
@@ -291,48 +291,48 @@ return {
                 return;
             }
 
-            mpcp.pb.clear();
-            mpcp.pb.addSong(val, null, callback);
+            mpcp.pe.clear();
+            mpcp.pe.addSong(val, null, callback);
         });
     },
 
-    // clear the pb
+    // clear the pe
     clear: function () {
         $(this.table + ' .gen').remove();
         this.showNothingMessage();
     },
 
-    // close the pb (and clear)
+    // close the pe (and clear)
     close: function () {
         this.current = null;
         $(this.selector)[0].style.display = 'none';
         this.clear();
     },
 
-    // minimize the pb (dont clear)
+    // minimize the pe (dont clear)
     minimize: function () {
         this.current = null;
         this.minimized = true;
         $(this.selector)[0].style.display = 'none';
-        document.getElementById('pb-tab').style.display = 'block';
+        document.getElementById('pe-tab').style.display = 'block';
     },
 
     // resume after minimize
     resume: function () {
         this.minimized = false;
         this.current = 'local';
-        document.getElementById('pb-tab').style.display = 'none';
+        document.getElementById('pe-tab').style.display = 'none';
         $(this.selector)[0].style.display = 'flex';
     },
 
-    // scramble the pb
+    // scramble the pe
     scramble: function (callback) {
-        $(mpcp.pb.tbody).randomize('.gen');
-        mpcp.pb.move();
+        $(mpcp.pe.tbody).randomize('.gen');
+        mpcp.pe.move();
         if (callback) callback();
     },
 
-    // remove duplicate songs in the pb
+    // remove duplicate songs in the pe
     removeDuplicates: function (callback) {
         console.log('remove duplicates');
         var duplicate = {};
@@ -341,7 +341,7 @@ return {
             var title = $(this).attr('title');
 
             if (duplicate[title])
-                mpcp.pb.removeSong(this);
+                mpcp.pe.removeSong(this);
             else
                 duplicate[title] = true;
         });
@@ -349,11 +349,11 @@ return {
         if (callback) callback();
     },
 
-    // move rows to top of pb
+    // move rows to top of pe
     moveToTop: function (tr) {
         if (this.selected.length) {
             $(this.selected).each(function (item, tr) {
-                $(tr).prependTo(mpcp.pb.tbody);
+                $(tr).prependTo(mpcp.pe.tbody);
             });
 
             mpcp.utils.clearSelected(this);
@@ -361,11 +361,11 @@ return {
             $(tr).prependTo(this.tbody);
         }
 
-        $('#pb-main').scrollTop($(this.table));
+        $('#pe-main').scrollTop($(this.table));
         this.move();
     },
 
-    // move rows to bottom of pb
+    // move rows to bottom of pe
     moveToBottom: function (tr) {
         if (this.selected.length) {
             $(this.selected).each(function (item, tr) {
@@ -377,12 +377,12 @@ return {
             $(tr).appendTo(this.tbody);
         }
 
-        $('#pb-main').scrollTop(document.getElementById(this.tableid).scrollHeight);
+        $('#pe-main').scrollTop(document.getElementById(this.tableid).scrollHeight);
         this.move();
     },
 
     showNothingMessage: function () {
-        var html = '<tr class="rem gen"><td><em class="text-muted">The playlist buffer is empty! Songs can be added from the browser or by opening a playlist.</em></td></tr>';
+        var html = '<tr class="rem gen"><td><em class="text-muted">The playlist editor is empty! Songs can be added from the browser or by opening a playlist.</em></td></tr>';
         document.getElementById(this.tbodyid).innerHTML = html;
     },
 
@@ -391,53 +391,53 @@ return {
     },
 
     initEvents: function () {
-        $(document).on('click', '.pb-song-remove', function () {
+        $(document).on('click', '.pe-song-remove', function () {
             var file = $(this).parent().parent();
-            mpcp.pb.removeSong(file);
+            mpcp.pe.removeSong(file);
         });
 
-        $(document).on('click', '#pb-clear', function () { mpcp.pb.clear(); });
+        $(document).on('click', '#pe-clear', function () { mpcp.pe.clear(); });
 
-        $(document).on('click', '#pb-close', function () { mpcp.pb.close(); });
+        $(document).on('click', '#pe-close', function () { mpcp.pe.close(); });
 
-        $(document).on('click', '#pb-save', function () {
+        $(document).on('click', '#pe-save', function () {
             mpcp.stored.externalSave();
         });
 
-        $(document).on('click', '#pb-minimize', function () {
-            mpcp.pb.minimize();
+        $(document).on('click', '#pe-minimize', function () {
+            mpcp.pe.minimize();
         });
 
-        $(document).on('click', '#pb-tab', function () { mpcp.pb.resume(); });
+        $(document).on('click', '#pe-tab', function () { mpcp.pe.resume(); });
 
-        $(document).on('click', '#pb-open', function () {
-            mpcp.stored.updatePlaylists('#playlist-open-modal', mpcp.pb.open);
+        $(document).on('click', '#pe-open', function () {
+            mpcp.stored.updatePlaylists('#playlist-open-modal', mpcp.pe.open);
         });
 
-        $(document).on('click', '#pb-scramble', function () {
-            mpcp.pb.scramble();
+        $(document).on('click', '#pe-scramble', function () {
+            mpcp.pe.scramble();
         });
 
-        $(document).on('click', '#pb-remove-duplicates', function () {
-            mpcp.pb.removeDuplicates();
+        $(document).on('click', '#pe-remove-duplicates', function () {
+            mpcp.pe.removeDuplicates();
         });
 
-         mpcp.utils.multiSelect(this, ['pb-song-remove']);
+         mpcp.utils.multiSelect(this, ['pe-song-remove']);
 
-        $('#pb-search-toggle').click(function () {
-            if (document.getElementById('pb-search-toggle').classList.contains('active')) {
-                document.getElementById('pb-search-toggle').classList.remove('active');
-                document.getElementById('pb-search').style.display = 'none';
-                document.getElementById('search-pb').value = '';
-                $(mpcp.pb.tbody).children().show();
+        $('#pe-search-toggle').click(function () {
+            if (document.getElementById('pe-search-toggle').classList.contains('active')) {
+                document.getElementById('pe-search-toggle').classList.remove('active');
+                document.getElementById('pe-search').style.display = 'none';
+                document.getElementById('search-pe').value = '';
+                $(mpcp.pe.tbody).children().show();
             } else {
-                document.getElementById('pb-search-toggle').classList.add('active');
-                document.getElementById('pb-search').style.display = 'block';
-                $('#search-pb').focus();
+                document.getElementById('pe-search-toggle').classList.add('active');
+                document.getElementById('pe-search').style.display = 'block';
+                $('#search-pe').focus();
             }
         });
 
-        mpcp.utils.lazySearch('#search-pb', this.table, 'title', '#search-pb-clear');
+        mpcp.utils.lazySearch('#search-pe', this.table, 'title', '#search-pe-clear');
     }
 };
 

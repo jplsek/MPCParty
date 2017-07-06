@@ -64,9 +64,9 @@ return {
         mpcp.utils.toArraySelected(obj);
         var i, tr, artist, album;
 
-        function sendToPb(art, alb) {
+        function sendTope(art, alb) {
             mpcp.library.getSongsFromAlbum(art, alb, function (files) {
-                mpcp.pb.addSong(files, to);
+                mpcp.pe.addSong(files, to);
             });
         }
 
@@ -84,12 +84,12 @@ return {
         obj.selected.reverse();
 
         // context menu check
-        if (mpcp.pb.current && !dragging) {
+        if (mpcp.pe.current && !dragging) {
             for (i = 0; i < obj.selected.length; ++i) {
                 tr     = obj.selected[i];
                 artist = $(tr).data().artist;
                 album  = $(tr).data().album;
-                sendToPb(artist, album);
+                sendTope(artist, album);
             }
         } else {
             for (i = 0; i < obj.selected.length; ++i) {
@@ -135,9 +135,9 @@ return {
     addExternal: function (obj, artist, album, to, dontScroll) {
         if (obj.selected.length)
             this.addMulti(obj, to, dontScroll);
-        else if (mpcp.pb.current)
+        else if (mpcp.pe.current)
             this.getSongsFromAlbum(artist, album, function (files) {
-                mpcp.pb.addSong(files, to, dontScroll);
+                mpcp.pe.addSong(files, to, dontScroll);
             });
         else
             this.getSongsFromAlbum(artist, album, function (files) {

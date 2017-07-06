@@ -177,11 +177,11 @@ return {
         console.log('changed pulse');
         this.pulse = use;
 
-        if (mpcp.pb.current) {
+        if (mpcp.pe.current) {
             if (use)
-                $(mpcp.pb.tbody).children().addClass('pulse');
+                $(mpcp.pe.tbody).children().addClass('pulse');
             else
-                $(mpcp.pb.tbody).children().removeClass('pulse');
+                $(mpcp.pe.tbody).children().removeClass('pulse');
         }
 
         localStorage.setItem('mpcp-use-pulse', use);

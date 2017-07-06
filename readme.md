@@ -11,7 +11,7 @@ Showing the Default theme, and file browser view
 
 ![Screenshot2](screenshot2.png)
 
-Showing the Materialish theme, library view, and playlist buffer
+Showing the Materialish theme, library view, and playlist editor
 
 ## Features
 * No need to have a separate web server running!
@@ -42,7 +42,7 @@ Showing the Materialish theme, library view, and playlist buffer
     * Playlist position indication for songs
     * Library url linking
     * Drag and drop, multiselection, context menus, column sorting, search filtering
-* Playlist buffer
+* Playlist editor
     * Create and edit playlists without interrupting the current playlist
     * Multiselection (ctrl, shift: remove, drag and drop; right click: add to top, bottom)
     * Right click to remove or move songs to the top or bottom of the playlist
@@ -58,7 +58,7 @@ Showing the Materialish theme, library view, and playlist buffer
 ### Multi-user features
 * Vote to skip songs (This can be easily bypassed. Might create a strict mode in the future)
 * Synchronization between all users (such as playlist modification and player updates)
-* Playlist buffer: Create and edit playlists without interrupting the current playlist
+* Playlist editor: Create and edit playlists without interrupting the current playlist
 * User lists (optional)
 
 ## Installation

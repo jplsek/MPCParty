@@ -452,40 +452,40 @@ html
                             span.glyphicon.glyphicon-step-forward
 
         footer
-            #pb.panel.panel-default.none
-                #pb-header.panel-heading
+            #pe.panel.panel-default.none
+                #pe-header.panel-heading
                     .panel-default-shown
                         .btn-group
-                            button#pb-clear.btn.btn-default(title='Clear the playlist')
+                            button#pe-clear.btn.btn-default(title='Clear the playlist')
                                 span.glyphicon.glyphicon-remove
-                            button#pb-open.btn.btn-default(title='Open a playlist' data-toggle='modal', data-target='#playlist-open-modal')
+                            button#pe-open.btn.btn-default(title='Open a playlist' data-toggle='modal', data-target='#playlist-open-modal')
                                 span.glyphicon.glyphicon-folder-open
-                            button#pb-save.btn.btn-default(title='Save the playlist', data-toggle='modal', data-target='#playlist-save-modal')
+                            button#pe-save.btn.btn-default(title='Save the playlist', data-toggle='modal', data-target='#playlist-save-modal')
                                 span.glyphicon.glyphicon-floppy-save
-                            button#pb-scramble.btn.btn-default(title='Scramble the playlist')
+                            button#pe-scramble.btn.btn-default(title='Scramble the playlist')
                                 span.glyphicon.glyphicon-random
-                            button#pb-remove-duplicates.btn.btn-default(title='Remove duplicate songs from the playlist based on the title')
+                            button#pe-remove-duplicates.btn.btn-default(title='Remove duplicate songs from the playlist based on the title')
                                 span.glyphicon.glyphicon-fire
-                            button#pb-search-toggle.btn.btn-default(type='button')
+                            button#pe-search-toggle.btn.btn-default(type='button')
                                 span.glyphicon.glyphicon-search
-                        span.panel-title Playlist Buffer
+                        span.panel-title Playlist Editor
                         .btn-group.pull-right
-                            button#pb-minimize.btn.btn-default
+                            button#pe-minimize.btn.btn-default
                                 span.glyphicon.glyphicon-minus
-                            button#pb-close.btn.btn-default
+                            button#pe-close.btn.btn-default
                                 span.glyphicon.glyphicon-remove
-                    #pb-search.none
+                    #pe-search.none
                         form(autocomplete='off')
                             .input-group
-                                input#search-pb.form-control(type='text', placeholder='Search playlist buffer...')
+                                input#search-pe.form-control(type='text', placeholder='Search playlist editor...')
                                 span.input-group-btn
-                                    button#search-pb-clear.btn.btn-default(type='button')
+                                    button#search-pe-clear.btn.btn-default(type='button')
                                         span.glyphicon.glyphicon-remove
-                #pb-main.panel-body
-                    #pbwrap
-                        table#pb-song-list.table.table-hover
-                            tbody#pb-song-list-tbody.append.connected
-            #pb-tab.none Resume playlist buffer
+                #pe-main.panel-body
+                    #pewrap
+                        table#pe-song-list.table.table-hover
+                            tbody#pe-song-list-tbody.append.connected
+            #pe-tab.none Resume playlist editor
 
         if (config.testing)
             #testing.panel.panel-default

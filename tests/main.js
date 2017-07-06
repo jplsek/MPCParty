@@ -54,7 +54,7 @@ utils = require('./utils.js')(utils);
 require('./browser.js')(utils);
 require('./library.js')(utils);
 require('./playlist.js')(utils);
-require('./playlistbuffer.js')(utils);
+require('./playlisteditor.js')(utils);
 require('./stored.js')(utils);
 require('./settings.js')(utils);
 

@@ -2,7 +2,7 @@ module.exports = function () {
 
 var utils = {
     fb:           '#file-browser-song-list tbody',
-    pb:           '#pb-song-list tbody',
+    pe:           '#pe-song-list tbody',
     libArt:       '#library-artists-list tbody',
     libAlb:       '#library-albums-list tbody',
     libSon:       '#library-songs-list tbody',
@@ -93,35 +93,35 @@ var utils = {
         });
     },
 
-    // pb functions
-    openPb: function (assert) {
-        assert.notOk($('#pb').is(':visible'), 'check if pb is not visible');
+    // pe functions
+    openpe: function (assert) {
+        assert.notOk($('#pe').is(':visible'), 'check if pe is not visible');
         $('#new-playlist').click();
-        assert.ok($('#pb').is(':visible'), 'check if pb is visible');
+        assert.ok($('#pe').is(':visible'), 'check if pe is visible');
     },
 
-    closePb: function (assert) {
-        $('#pb-close').click();
-        assert.notOk($('#pb').is(':visible'), 'check if pb is not visible');
+    closepe: function (assert) {
+        $('#pe-close').click();
+        assert.notOk($('#pe').is(':visible'), 'check if pe is not visible');
     },
 
-    minimizePb: function (assert) {
-        $('#pb-minimize').click();
-        assert.notOk($('#pb').is(':visible'), 'check if pb is not visible');
-        assert.ok($('#pb-tab').is(':visible'), 'check if pb tab is visible');
+    minimizepe: function (assert) {
+        $('#pe-minimize').click();
+        assert.notOk($('#pe').is(':visible'), 'check if pe is not visible');
+        assert.ok($('#pe-tab').is(':visible'), 'check if pe tab is visible');
     },
 
-    resumePb: function (assert) {
-        $('#pb-tab').click();
-        assert.notOk($('#pb-tab').is(':visible'), 'check if pb tab is not visible');
-        assert.ok($('#pb').is(':visible'), 'check if pb is visible');
+    resumepe: function (assert) {
+        $('#pe-tab').click();
+        assert.notOk($('#pe-tab').is(':visible'), 'check if pe tab is not visible');
+        assert.ok($('#pe').is(':visible'), 'check if pe is visible');
     },
 
-    addDirToPb: function (assert, callback) {
+    addDirTope: function (assert, callback) {
         var title = $($(utils.fb).find('tr')[0]).data().dirid;
         mpcp.browser.addExternalDir(title, null, function() {
-            var children = $(utils.pb).children('.gen');
-            assert.ok(children.length > 1, 'check if anything is in the pb');
+            var children = $(utils.pe).children('.gen');
+            assert.ok(children.length > 1, 'check if anything is in the pe');
             callback(children);
         });
     },
@@ -151,18 +151,18 @@ var utils = {
     },
 
     // add two songs for other tests
-    addSongToPb: function (assert, callback) {
+    addSongTope: function (assert, callback) {
         utils.addSong(2, true, function() {
-            var children = $(utils.pb).children('.gen').not('.rem');
-            assert.ok(children.length > 1, 'check if anything is in the pb');
+            var children = $(utils.pe).children('.gen').not('.rem');
+            assert.ok(children.length > 1, 'check if anything is in the pe');
             callback(children);
         });
     },
 
-    clearPb: function (assert) {
-        $('#pb-clear').click();
-        childrenClear = $(utils.pb).children('.gen').not('.rem');
-        assert.equal(childrenClear.length, 0, 'check if cleared pb');
+    clearpe: function (assert) {
+        $('#pe-clear').click();
+        childrenClear = $(utils.pe).children('.gen').not('.rem');
+        assert.equal(childrenClear.length, 0, 'check if cleared pe');
     },
 
     // library functions

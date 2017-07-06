@@ -3,9 +3,9 @@ module.exports = function (utils) {
 // I'm hoping not all of them contain this keyword...
 var keyword = 'e';
 
-QUnit.test('open and close pb', function (assert) {
-    utils.openPb(assert);
-    utils.closePb(assert);
+QUnit.test('open and close pe', function (assert) {
+    utils.openpe(assert);
+    utils.closepe(assert);
 });
 
 // contextmenu plugin triggers dont work (tried mouseenter, then enter key also)
@@ -16,127 +16,127 @@ QUnit.test('open and close pb', function (assert) {
 //    $(infoOpen).click();
 //});
 
-QUnit.test('open and minimize pb', function (assert) {
-    utils.openPb(assert);
-    utils.minimizePb(assert);
-    utils.resumePb(assert);
-    utils.closePb(assert);
+QUnit.test('open and minimize pe', function (assert) {
+    utils.openpe(assert);
+    utils.minimizepe(assert);
+    utils.resumepe(assert);
+    utils.closepe(assert);
 });
 
-QUnit.test('browser to pb: folder', function (assert) {
-    utils.openPb(assert);
+QUnit.test('browser to pe: folder', function (assert) {
+    utils.openpe(assert);
     var done = assert.async();
 
-    utils.addDirToPb(assert, function () {
-        utils.closePb(assert);
+    utils.addDirTope(assert, function () {
+        utils.closepe(assert);
         done();
     });
 });
 
-QUnit.test('browser to pb: folder + close', function (assert) {
-    utils.openPb(assert);
+QUnit.test('browser to pe: folder + close', function (assert) {
+    utils.openpe(assert);
     var done = assert.async();
 
-    utils.addDirToPb(assert, function () {
-        utils.closePb(assert);
-        utils.openPb(assert);
-        var children = $(utils.pb).children('.gen').not('.rem');
-        assert.equal(children.length, 0, 'check if pb is empty');
-        utils.closePb(assert);
+    utils.addDirTope(assert, function () {
+        utils.closepe(assert);
+        utils.openpe(assert);
+        var children = $(utils.pe).children('.gen').not('.rem');
+        assert.equal(children.length, 0, 'check if pe is empty');
+        utils.closepe(assert);
         done();
     });
 });
 
-QUnit.test('browser to pb: folder + minimze', function (assert) {
-    utils.openPb(assert);
+QUnit.test('browser to pe: folder + minimze', function (assert) {
+    utils.openpe(assert);
     var done = assert.async();
 
-    utils.addDirToPb(assert, function (childrenBefore) {
-        utils.minimizePb(assert);
-        utils.resumePb(assert);
-        var children = $(utils.pb).children('.gen');
-        assert.equal(children.length, childrenBefore.length, 'check if pb is the same');
-        utils.closePb(assert);
+    utils.addDirTope(assert, function (childrenBefore) {
+        utils.minimizepe(assert);
+        utils.resumepe(assert);
+        var children = $(utils.pe).children('.gen');
+        assert.equal(children.length, childrenBefore.length, 'check if pe is the same');
+        utils.closepe(assert);
         done();
     });
 });
 
-QUnit.test('browser to pb: folder + remove', function (assert) {
-    utils.openPb(assert);
+QUnit.test('browser to pe: folder + remove', function (assert) {
+    utils.openpe(assert);
     var done = assert.async();
 
-    utils.addDirToPb(assert, function (children) {
-        var songRemove = $(utils.pb).find('.pb-song-remove')[0];
+    utils.addDirTope(assert, function (children) {
+        var songRemove = $(utils.pe).find('.pe-song-remove')[0];
         $(songRemove).click();
 
-        var childrenRem = $(utils.pb).children('.gen');
+        var childrenRem = $(utils.pe).children('.gen');
         assert.ok(childrenRem.length < children.length, 'check if removed a song');
 
-        utils.closePb(assert);
+        utils.closepe(assert);
         done();
     });
 });
 
-QUnit.test('browser to pb: folder + clear', function (assert) {
-    utils.openPb(assert);
+QUnit.test('browser to pe: folder + clear', function (assert) {
+    utils.openpe(assert);
     var done = assert.async();
 
-    utils.addDirToPb(assert, function (children) {
-        utils.clearPb(assert);
-        utils.closePb(assert);
+    utils.addDirTope(assert, function (children) {
+        utils.clearpe(assert);
+        utils.closepe(assert);
         done();
     });
 });
 
-QUnit.test('browser to pb: file + remove', function (assert) {
-    utils.openPb(assert);
+QUnit.test('browser to pe: file + remove', function (assert) {
+    utils.openpe(assert);
     var done = assert.async();
 
-    utils.addSongToPb(assert, function (children) {
-        var songRemove = $(utils.pb).find('.pb-song-remove')[0];
+    utils.addSongTope(assert, function (children) {
+        var songRemove = $(utils.pe).find('.pe-song-remove')[0];
         $(songRemove).click();
 
-        var childrenRem = $(utils.pb).children('.gen');
+        var childrenRem = $(utils.pe).children('.gen');
         assert.ok(childrenRem.length < children.length, 'check if removed a song');
 
-        utils.closePb(assert);
+        utils.closepe(assert);
         done();
     });
 });
 
-QUnit.test('browser to pb: add all', function (assert) {
-    utils.openPb(assert);
+QUnit.test('browser to pe: add all', function (assert) {
+    utils.openpe(assert);
     var done = assert.async();
 
     utils.openFolder(assert, function (finish, childrenFb) {
         // execute
         mpcp.browser.addAll(function() {
-            var childrenPb = $(utils.pb).children('.gen');
-            assert.equal(childrenPb.length, childrenFb.length, 'check if fb is same as pb');
+            var childrenpe = $(utils.pe).children('.gen');
+            assert.equal(childrenpe.length, childrenFb.length, 'check if fb is same as pe');
             finish();
         });
     },
     function () {
         // callback
-        utils.closePb(assert);
+        utils.closepe(assert);
         done();
     });
 });
 
-QUnit.test('browser to pb: folder + save + open + delete', function (assert) {
-    utils.openPb(assert);
+QUnit.test('browser to pe: folder + save + open + delete', function (assert) {
+    utils.openpe(assert);
     var done = assert.async();
 
-    utils.addDirToPb(assert, function (childrenBefore) {
+    utils.addDirTope(assert, function (childrenBefore) {
         // save the playlist
         mpcp.stored.externalSave(function () {
             $('#playlist-save-input').val(utils.plSave);
 
             mpcp.playlist.saveFromStored(function () {
-                utils.clearPb(assert);
+                utils.clearpe(assert);
 
                 // open the playlists
-                mpcp.stored.updatePlaylists(utils.plOpenModal, mpcp.pb.open, function () {
+                mpcp.stored.updatePlaylists(utils.plOpenModal, mpcp.pe.open, function () {
                     var ele = utils.plOpenModal + ' tr:contains("' + utils.plSave + '")';
                     var num = parseInt($(ele + ' td:nth-child(2)').html());
                     assert.ok($(ele).length, 'check if pl is visible');
@@ -145,9 +145,9 @@ QUnit.test('browser to pb: folder + save + open + delete', function (assert) {
 
                     // open the playlist
                     mpcp.playlist.openFromStored(function () {
-                        children = $(utils.pb).children('.gen');
+                        children = $(utils.pe).children('.gen');
                         assert.equal(children.length, childrenBefore.length, 'check if same playlist');
-                        utils.closePb(assert);
+                        utils.closepe(assert);
 
                         // open the playlists
                         mpcp.stored.updatePlaylists(utils.plOpenModal, null, function () {
@@ -169,17 +169,17 @@ QUnit.test('browser to pb: folder + save + open + delete', function (assert) {
 });
 
 // this test seems to no longer work..?
-//QUnit.test('browser to pb: folder + save odd title + open + delete', function (assert) {
-//    utils.openPb(assert);
+//QUnit.test('browser to pe: folder + save odd title + open + delete', function (assert) {
+//    utils.openpe(assert);
 //    var done = assert.async();
 //
-//    utils.addDirToPb(assert, function (childrenBefore) {
+//    utils.addDirTope(assert, function (childrenBefore) {
 //        // save the playlist
 //        mpcp.stored.externalSave(function () {
 //            $('#playlist-save-input').val(utils.plSaveOdd);
 //
 //            mpcp.playlist.saveFromStored(function () {
-//                utils.clearPb(assert);
+//                utils.clearpe(assert);
 //
 //                // open the playlist
 //                mpcp.playlist.openFromStored(function () {
@@ -191,9 +191,9 @@ QUnit.test('browser to pb: folder + save + open + delete', function (assert) {
 //
 //                    // open the playlist
 //                    mpcp.playlist.openFromStored(function () {
-//                        children = $(utils.pb).children('.gen');
+//                        children = $(utils.pe).children('.gen');
 //                        assert.equal(children.length, childrenBefore.length, 'check if same playlist');
-//                        utils.closePb(assert);
+//                        utils.closepe(assert);
 //
 //                        // open the playlists
 //                        mpcp.stored.updatePlaylists(utils.plOpenModal, null, function () {
@@ -215,87 +215,87 @@ QUnit.test('browser to pb: folder + save + open + delete', function (assert) {
 //    });
 //});
 
-QUnit.test('pb scramble check', function (assert) {
+QUnit.test('pe scramble check', function (assert) {
     var done = assert.async();
-    utils.openPb(assert);
+    utils.openpe(assert);
     utils.addSong(5, true, function () {
-        var children = $(utils.pb).children('.gen');
+        var children = $(utils.pe).children('.gen');
         assert.equal($(children).length, 5, 'check if 5 songs added');
 
-        mpcp.pb.scramble(function () {
-            var childrenNow = $(utils.pb).children('.gen');
+        mpcp.pe.scramble(function () {
+            var childrenNow = $(utils.pe).children('.gen');
             assert.ok($(children[0]).text() != $(childrenNow[0]).text() || $(children[1]).text() != $(childrenNow[1]).text() || $(children[2]).text() != $(childrenNow[2]).text(), 'check if scramble works');
 
-            utils.closePb(assert);
+            utils.closepe(assert);
             done();
         });
     });
 });
 
-QUnit.test('pb duplicate check', function (assert) {
+QUnit.test('pe duplicate check', function (assert) {
     var done = assert.async();
-    utils.openPb(assert);
+    utils.openpe(assert);
     utils.addSong(2, true, function() {
         utils.addSong(5, false, function () {
-            var children = $(utils.pb).children('.gen');
+            var children = $(utils.pe).children('.gen');
             assert.equal($(children).length, 7, 'check if 8 songs added');
 
-            mpcp.pb.removeDuplicates(function () {
-                var childrenNow = $(utils.pb).children('.gen');
+            mpcp.pe.removeDuplicates(function () {
+                var childrenNow = $(utils.pe).children('.gen');
                 assert.equal($(childrenNow).length, 2, 'check if 2 songs left');
 
-                utils.closePb(assert);
+                utils.closepe(assert);
                 done();
             });
         });
     });
 });
 
-QUnit.test('pb search check with clear', function (assert) {
+QUnit.test('pe search check with clear', function (assert) {
     var done = assert.async();
-    utils.openPb(assert);
+    utils.openpe(assert);
     utils.addSong(5, true, function () {
-        var children = $(utils.pb).children('.gen');
+        var children = $(utils.pe).children('.gen');
         assert.equal($(children).length, 5, 'check if 5 songs added');
-        assert.ok(!$('#search-pb').is(':visible'), 'check if search is not visible');
-        $('#pb-search-toggle').click();
-        assert.ok($('#search-pb').is(':visible'), 'check if search is visible');
-        $('#search-pb').val(keyword);
+        assert.ok(!$('#search-pe').is(':visible'), 'check if search is not visible');
+        $('#pe-search-toggle').click();
+        assert.ok($('#search-pe').is(':visible'), 'check if search is visible');
+        $('#search-pe').val(keyword);
 
         setTimeout(function () {
-            var childrenNow = $(utils.pb).children('.gen:visible');
+            var childrenNow = $(utils.pe).children('.gen:visible');
             assert.notEqual($(childrenNow).length, $(children).length, 'check if less songs');
-            $('#search-pb-clear').click();
-            childrenNow = $(utils.pb).children('.gen:visible');
+            $('#search-pe-clear').click();
+            childrenNow = $(utils.pe).children('.gen:visible');
             assert.equal($(childrenNow).length, $(children).length, 'check if same songs');
-            $('#pb-search-toggle').click();
-            assert.ok(!$('#search-pb').is(':visible'), 'check if search is not visible');
-            utils.closePb(assert);
+            $('#pe-search-toggle').click();
+            assert.ok(!$('#search-pe').is(':visible'), 'check if search is not visible');
+            utils.closepe(assert);
             done();
         }, 2000);
     });
 });
 
-QUnit.test('pb search check with cancel', function (assert) {
+QUnit.test('pe search check with cancel', function (assert) {
     var done = assert.async();
-    utils.openPb(assert);
+    utils.openpe(assert);
     utils.addSong(5, true, function () {
-        var children = $(utils.pb).children('.gen');
+        var children = $(utils.pe).children('.gen');
         assert.equal($(children).length, 5, 'check if 5 songs added');
-        assert.ok(!$('#search-pb').is(':visible'), 'check if search is not visible');
-        $('#pb-search-toggle').click();
-        assert.ok($('#search-pb').is(':visible'), 'check if search is visible');
-        $('#search-pb').val(keyword);
+        assert.ok(!$('#search-pe').is(':visible'), 'check if search is not visible');
+        $('#pe-search-toggle').click();
+        assert.ok($('#search-pe').is(':visible'), 'check if search is visible');
+        $('#search-pe').val(keyword);
 
         setTimeout(function () {
-            var childrenNow = $(utils.pb).children('.gen:visible');
+            var childrenNow = $(utils.pe).children('.gen:visible');
             console.log($(childrenNow).length);
             assert.notEqual($(childrenNow).length, $(children).length, 'check if less songs');
-            $('#pb-search-toggle').click();
-            assert.ok(!$('#search-pb').is(':visible'), 'check if search is not visible');
-            childrenNow = $(utils.pb).children('.gen:visible');
+            $('#pe-search-toggle').click();
+            assert.ok(!$('#search-pe').is(':visible'), 'check if search is not visible');
+            childrenNow = $(utils.pe).children('.gen:visible');
             assert.equal($(childrenNow).length, $(children).length, 'check if same songs');
-            utils.closePb(assert);
+            utils.closepe(assert);
             done();
         }, 2000);
     });

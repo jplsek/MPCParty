@@ -112,7 +112,7 @@ return {
     // save the playlist. Wrapper for komponist.save()
     save: function (file, callback) {
         // When titles are "", it updates the current playlist, kind of.
-        // It works via playlist buffer, but not the playlist.
+        // It works via playlist editor, but not the playlist.
         // So I'd rather disable the feature in case people get confused.
         if (!file || file === "") {
             mpcp.lazyToast.warning('You must provide a title!', 'Playlist');
@@ -304,7 +304,7 @@ return {
     },
 
     externalSave: function (callback) {
-        var trs = $(mpcp.pb.tbody).children('.gen').not('.rem'),
+        var trs = $(mpcp.pe.tbody).children('.gen').not('.rem'),
             fileIds = [];
 
         for (var i = 0; i < trs.length; ++i)

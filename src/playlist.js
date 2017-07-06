@@ -839,7 +839,7 @@ return {
     },
 
     initEvents: function () {
-        $('#new-playlist').click(function () { mpcp.pb.newLocal(); });
+        $('#new-playlist').click(function () { mpcp.pe.newLocal(); });
 
         $('#scramble').click(function () {
             mpcp.playlist.scramble();

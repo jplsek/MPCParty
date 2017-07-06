@@ -209,7 +209,7 @@ return {
                 document.getElementById(mpcp.browser.tbodyid).innerHTML = html;
                 mpcp.pages.update('browser');
                 console.log('No songs found');
-                window.dispatchEvent(new CustomEvent("MPCPBrowserChanged"));
+                window.dispatchEvent(new CustomEvent("MPCperowserChanged"));
                 if (callback) callback(0);
                 return;
             }
@@ -284,7 +284,7 @@ return {
 
         komponist.currentsong(function (err, song) {
             if (err) {
-                window.dispatchEvent(new CustomEvent("MPCPBrowserChanged"));
+                window.dispatchEvent(new CustomEvent("MPCperowserChanged"));
 
                 if (callback) callback();
 
@@ -322,7 +322,7 @@ return {
             }
         }
 
-        window.dispatchEvent(new CustomEvent("MPCPBrowserChanged"));
+        window.dispatchEvent(new CustomEvent("MPCperowserChanged"));
 
         if (callback) callback();
     },
@@ -417,8 +417,8 @@ return {
                     return;
                 }
 
-                if (mpcp.pb.current !== null)
-                    mpcp.pb.addSong(files, null, callback);
+                if (mpcp.pe.current !== null)
+                    mpcp.pe.addSong(files, null, callback);
                 else {
                     mpcp.playlist.addCallbackUpdate(callback);
 
@@ -430,9 +430,9 @@ return {
                 }
             });
         } else {
-            if (mpcp.pb.current) {
+            if (mpcp.pe.current) {
                 mpcp.utils.getAllInfo(this.current, function (files) {
-                    mpcp.pb.addSong(files, null, callback);
+                    mpcp.pe.addSong(files, null, callback);
                 });
             } else {
                 komponist.lsinfo(this.current, function (err, files) {
@@ -512,7 +512,7 @@ return {
         }
 
         // used for the context menu
-        if (mpcp.pb.current && !dragging) {
+        if (mpcp.pe.current && !dragging) {
             var arr = [];
 
             for (i = 0; i < this.selected.length; ++i) {
@@ -527,7 +527,7 @@ return {
                 }
             }
 
-            mpcp.pb.addArr(arr, to, callback);
+            mpcp.pe.addArr(arr, to, callback);
         } else {
             var dontScroll = false;
             // dont scroll if drag and drop ("to" would not be null)
@@ -558,8 +558,8 @@ return {
     addExternal: function (file, to, callback) {
         if (this.selected.length)
             this.addMulti(to, callback);
-        else if (mpcp.pb.current)
-            mpcp.pb.addid(file, to, callback);
+        else if (mpcp.pe.current)
+            mpcp.pe.addid(file, to, callback);
         else
             mpcp.playlist.addSong(file, to, false, callback);
     },
@@ -567,8 +567,8 @@ return {
     addExternalDir: function (dir, to, callback) {
         if (this.selected.length)
             this.addMulti(to, callback);
-        else if (mpcp.pb.current)
-            mpcp.pb.add(dir, null, callback);
+        else if (mpcp.pe.current)
+            mpcp.pe.add(dir, null, callback);
         else
             mpcp.playlist.add(dir, to, callback);
     },
@@ -665,7 +665,7 @@ return {
             mpcp.browser.open();
         });
 
-        mpcp.tableHeader(this.tableid, 'MPCPBrowserChanged');
+        mpcp.tableHeader(this.tableid, 'MPCperowserChanged');
 
         // this cannot be part of .song-list because of a bug with sortColumn
         // (overwrites contens from one tabe to other tables).
