@@ -9,7 +9,7 @@ return {
 
     // send a message to the client (using setTitle as the message)
     message: function (current, id) {
-        mpcp.lazyToast.info(vote.setTitles(current, id), 'Song Skip');
+        mpcp.lazyToast.info(setTitles(current, id), 'Song Skip');
     },
 
     // create a title for the next and previous buttons
