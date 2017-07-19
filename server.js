@@ -483,7 +483,9 @@ function getImage(song) {
         var imageLocation = tilde(folder + path.sep + files[0]);
         //console.log(imageLocation);
 
-        currentArt = encodeURI('/album-art/' + subFolder + '/' + files[0]);
+        currentArt = encodeURI('/album-art/' + subFolder + '/' + files[0])
+            // *sigh* https://stackoverflow.com/a/8143232
+            .replace(/\(/g, "%28").replace(/\)/g, "%29");
 
         console.log('Creating art URL: ' + currentArt);
 

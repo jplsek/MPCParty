@@ -113,6 +113,9 @@ return {
         // length is always 1 for this.local, this fixes the empty
         // object
         if (this.local.length <= 1) {
+            // remove album-art if playlist was cleared
+            mpcp.utils.setCurrentAlbumArt();
+
             if ((this.local[0] && Object.getOwnPropertyNames(
                             this.local[0]).length <= 0) ||
                     this.local.length <= 0) {
