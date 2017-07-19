@@ -72,13 +72,22 @@ function getHostname(ip, callback) {
 }
 
 var downloader = {
-    // some of these settings get set in config.json
+    // some of these settings get set in config.cfg
     enabled: true,
     directory: 'Downloads',
     keepVideo: false,
 
     // TODO check if file already exists
     download: function (url, location, address, socket) {
+        if (location.includes('..')) {
+            console.log(address + " tried to access " + location + "!");
+            socket.send(JSON.stringify({
+                'type': 'downloader-status',
+                'info': 'You cannot have ".." in the location!'
+            }));
+            return;
+        }
+
         location = downloader.getLocation(location);
 
         socket.send(JSON.stringify({

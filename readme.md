@@ -50,6 +50,7 @@ Showing the Materialish theme, library view, and playlist editor
 * Download Player
     * Download videos, such as from YouTube, straight to the music library
 * Update music database
+* Basic album art detection (setting "library" in config.cfg)
 * Basic mobile support
 * Basic theming support
 * Library searching

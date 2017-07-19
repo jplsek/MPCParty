@@ -86,7 +86,7 @@ socket.onmessage = function (event) {
         case 'init':
             mpcp.playlist.updateTitle(msg['playlist-title']);
             mpcp.vote.enabled = msg['song-vote'];
-            if (msg['downloader-enabled'] == 'true')
+            if (msg['downloader-enabled'])
                 mpcp.downloader.init(msg['downloader-location']);
             mpcp.utils.setCurrentAlbumArt(msg['album-art']);
             initAfterConnection();
