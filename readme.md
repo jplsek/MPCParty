@@ -94,9 +94,9 @@ Edit config.cfg
 * The project itself is stored in src/. The js, css, and html is automatically compiled when the page is loaded.
 * I recommend using [jshint](http://jshint.com/install/) before sending something.
 
-## Long term goals
-* I plan on a 1.0 release in Summer 2017 and when I feel certain feature are implemented and basic issues are fixed.
-* 2.0, if I get around to it, will be a rewrite to use TypeScript (maybe with P/React/Vue/Angular/InsertViewFrameworkHere?), an attempt to decouple things, and to be able to choose whether to run the process intensive things on the client (which is done right now) or choose to run it on the server. (Lan party = beefy desktops usually, and for our setup we had an old server. But what about phones and non-beefy pc's? Then we would want it to run it on the server.) It will also use a lighter / more "low level" mpd js library.
+## Other Notes
+* Updates may be slow for now on. This repo will be updated if someone notices some annoying bug, or if I feel the need to add a "must have" feature. Some bugs are related to the library I use to interact with mpd. Such as the bad json bug which is hackishly fixed (`utils.getAllInfo()`), and the not fixed sometimes occurring "a single song in a directory won't show up".
+* 2.0, if I get around to it, will be a rewrite to use TypeScript (maybe with some view framework?), an attempt to decouple things, and to be able to choose whether to run the process intensive things on the client (which is done right now) or choose to run it on the server. (Lan party = beefy desktops usually, and for our setup we had an old server. But what about phones and non-beefy pc's? Then we would want it to run it on the server.) It will also use a lighter / more "low level" mpd js library.
 
 ## License
 GNU Lesser General Public License v3 (LGPL-3.0)

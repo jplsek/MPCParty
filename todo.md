@@ -39,6 +39,8 @@ TODO
 
 ## Bugs
 * It seems crashing is due to refreshing too many times?
+* Playlists:
+    * The playlist scrolls down / goes to the next page before the server updates the playlist
 
 ---
 
