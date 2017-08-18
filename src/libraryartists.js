@@ -51,7 +51,7 @@ return {
 
                 if (artist == artistUse) addClass = 'info';
 
-                html += '<tr class="context-menu gen artist ' + addClass + '" data-artist="' + artist + '" title="' + artist + '"><td>' + tableStart + artist + tableEnd + '</td><td class="song-list-icons text-right"><span class="artist-add faded text-success glyphicon glyphicon-plus" title="Add artist to the bottom of the playlist"></span></td></tr>';
+                html += '<tr class="context-menu gen artist ' + addClass + '" data-artist="' + artist + '" title="' + artist + '"><td>' + tableStart + artist + tableEnd + '</td><td class="song-list-icons text-right"><i class="artist-add faded text-success fa fa-plus" title="Add artist to the bottom of the playlist"></i></td></tr>';
                 addClass = '';
             }
 

@@ -81,7 +81,7 @@ Edit config.cfg
 
 ## Custom Theme Development
 * Copy public/css/themes/default-thin and rename it to anything.
-* Edit the variables as you see fit. You can look at the bootstrap/less folder to see what modules you want to overwrite.
+* Edit the variables as you see fit. You can look at the bootstrap/scss folder to see what modules you want to overwrite.
 * Edit view/index.jade in the configuration section, add your theme file name as the value and a name. (This might be changed to auto-populate the select list, but for now, you have to add them manually.)
 
 ## Issues

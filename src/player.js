@@ -10,6 +10,12 @@ return {
     state: '',
     // callback after dom updates
     callbackUpdates: [],
+    // callbacks for stopping (use for unit testing mostly)
+    stopCallbacks: [],
+    // callbacks for changing the volume (use for unit testing mostly)
+    volumeCallbacks: [],
+    // the volume progressbar
+    volume: document.getElementById('volume'),
 
     updateAll: function (callback) {
         // set song title
@@ -27,6 +33,7 @@ return {
                     '<em class="text-muted" title="No song selected">No song selected</em>';
                 document.title = 'MPCParty';
                 document.getElementById('title-pos').innerHTML = '';
+                document.getElementById('time-current').innerHTML = '';
                 document.getElementById('time-total').innerHTML =
                     '<span class="text-muted">-- / --</span>';
                 mpcp.player.setCurrent(null);
@@ -49,7 +56,7 @@ return {
             document.title =  mpcp.player.title + ' - MPCParty';
             document.getElementById('title-pos').innerHTML =
                 (parseInt(song.Pos) + 1) + '. ';
-            $('#music-time').attr('max', song.Time);
+            mpcp.progressbar.max = song.Time;
             document.getElementById('time-total').innerHTML =
                 ' / ' + mpcp.utils.toMMSS(song.Time);
 
@@ -79,7 +86,8 @@ return {
                 return;
             }
 
-            document.getElementById('music-time').value = status.elapsed;
+            mpcp.progressbar.progress = status.elapsed;
+
             if (mpcp.player.current !== null && status.state == 'stop') {
                 document.getElementById('time-current').innerHTML = '00:00';
             } else if (!status.elapsed) {
@@ -87,8 +95,6 @@ return {
             } else {
                 document.getElementById('time-current').innerHTML = mpcp.utils.toMMSS(status.elapsed);
             }
-
-            mpcp.progressbar.progress = parseInt(status.elapsed);
 
             console.log('state: ' + status.state);
             mpcp.player.state = status.state;
@@ -98,7 +104,12 @@ return {
                     document.getElementById('stop').style.display = 'none';
                     document.getElementById('pause').style.display = 'none';
                     document.getElementById('play').style.display = 'block';
-                    mpcp.progressbar.stopProgress();
+                    mpcp.progressbar.reset();
+
+                    for (var i = 0; i < mpcp.player.stopCallbacks.length; i++) {
+                        mpcp.player.stopCallbacks[i]();
+                    }
+                    mpcp.player.stopCallbacks = [];
                     break;
 
                 case 'play':
@@ -106,13 +117,14 @@ return {
                     document.getElementById('pause').style.display = 'block';
                     document.getElementById('play').style.display = 'none';
                     document.getElementById('pause').classList.remove('active');
-                    mpcp.progressbar.startProgress();
+                    mpcp.progressbar.start();
                     break;
 
                 case 'pause':
                     document.getElementById('play').style.display = 'none';
                     document.getElementById('pause').classList.add('active');
-                    mpcp.progressbar.stopProgress();
+                    mpcp.progressbar.stop();
+                    mpcp.progressbar.update();
                     break;
             }
 
@@ -155,11 +167,32 @@ return {
             //console.log(status);
             if (err) return console.log(err);
 
-            document.getElementById('volume').value = status.volume;
-
             if (status.error) {
                 mpcp.lazyToast.error(status.error);
             }
+
+            mpcp.player.volume.style.height = status.volume + "%";
+
+            var speaker = document.getElementById('volume-speaker');
+            if (parseInt(status.volume) == 0) {
+                if (speaker.classList.contains('fa-volume-up')) {
+                    speaker.classList.remove('fa-volume-up');
+                    speaker.classList.add('fa-volume-off');
+                }
+            } else {
+                if (speaker.classList.contains('fa-volume-off')) {
+                    speaker.classList.remove('fa-volume-off');
+                    speaker.classList.add('fa-volume-up');
+                }
+            }
+
+            console.log('done, start calling');
+            for (var i = 0; i < mpcp.player.volumeCallbacks.length; i++) {
+                console.log('calling!');
+                mpcp.player.volumeCallbacks[i](status.volume);
+            }
+            mpcp.player.volumeCallbacks = [];
+            console.log('done, end calling');
         });
     },
 
@@ -223,8 +256,12 @@ return {
     },
 
     // wrapper for komponist.stop
-    stop: function () {
+    stop: function (callback) {
         console.log('stop');
+
+        if (callback)
+            mpcp.player.stopCallbacks.push(callback);
+
         komponist.stop(function (err) {
             if (err) console.log(err);
         });
@@ -317,6 +354,28 @@ return {
         }
     },
 
+    toggleMute: function (callback) {
+        if (callback)
+            mpcp.player.volumeCallbacks.push(callback);
+
+        socket.send(JSON.stringify({
+            'type': 'toggle-mute',
+        }), function (err) {
+            if (err) console.log(err);
+        });
+    },
+
+    setvol: function (volume, callback) {
+        console.log('set volume to ' + volume);
+
+        if (callback)
+            mpcp.player.volumeCallbacks.push(callback);
+
+        komponist.setvol(volume, function (err) {
+            if (err) console.log(err);
+        });
+    },
+
     initEvents: function () {
         $('#pause').click(function () {
             mpcp.player.toggle();
@@ -342,11 +401,9 @@ return {
             mpcp.playlist.goToCurrent();
         });
 
-        // 'input change' allows arrow keys to work
-        $('#volume').on('input change', function () {
-            komponist.setvol(this.value, function (err) {
-                if (err) console.log(err);
-            });
+        mpcp.utils.customSlider('volume-progress', 'volume', true,
+                function (percent) {
+            mpcp.player.setvol(Math.round(percent * 100));
         });
 
         $('#random').click(function () {
@@ -381,6 +438,10 @@ return {
                     if (err) console.log(err);
                 });
             }
+        });
+
+        $('#volume-speaker').click(function (e) {
+            mpcp.player.toggleMute();
         });
 
         mpcp.utils.createSearch(

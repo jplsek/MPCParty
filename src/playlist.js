@@ -112,7 +112,7 @@ return {
 
         // length is always 1 for this.local, this fixes the empty
         // object
-        if (this.local.length <= 1) {
+        if (this.local.length <= 1 && !this.local[0].file) {
             // remove album-art if playlist was cleared
             mpcp.utils.setCurrentAlbumArt();
 
@@ -171,7 +171,7 @@ return {
 
             //console.log(i + ': start');
 
-            html += '<tr class="drag context-menu ' + current + '" title="' + title + '" data-fileid="' + value.Id + '" data-file="' + value.file + '" data-pos="' + value.Pos +  '"><td class="playlist-song-list-icons"><span class="glyphicon glyphicon-play song-play faded text-success" title="Play song"></span>' + (value.Pos + 1) + '.</td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><span class="song-remove faded text-danger glyphicon glyphicon-remove" title="Remove song from playlist"></span></td></tr>';
+            html += '<tr class="drag context-menu ' + current + '" title="' + title + '" data-fileid="' + value.Id + '" data-file="' + value.file + '" data-pos="' + value.Pos +  '"><td class="playlist-song-list-icons"><i class="fa fa-play song-play faded text-success" title="Play song"></i>' + (value.Pos + 1) + '.</td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><i class="song-remove faded text-danger fa fa-remove" title="Remove song from playlist"></i></td></tr>';
         }
 
         this.toPulse = [];

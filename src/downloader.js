@@ -69,7 +69,7 @@ return {
             }
         }
 
-        $(this.table + ' .gen')[0].remove();
+        $(this.table + ' .gen').remove();
 
         var start = 0,
             end   = this.localFolders.length,
@@ -100,7 +100,7 @@ return {
         // location bar:
         // split directory based on /'s
         // create a list item for each dir split
-        $('#downloader-location-crumb .downloader-loc-dir')[0].remove();
+        $('#downloader-location-crumb .downloader-loc-dir').remove();
         // toString incase of number only directories
         var dirs  = directory.toString().split('/'),
             dirId = dirs[0],
@@ -109,18 +109,18 @@ return {
 
         if (this.current != '/')
             for (i = 0; i < dirs.length; ++i) {
-                html += '<li class="downloader-loc-dir" data-dirid="' + dirId + '">' +
+                html += '<li class="downloader-loc-dir breadcrumb-item" data-dirid="' + dirId + '">' +
                     dirs[i] + '</li>';
                 dirId += '/' + dirs[i+1];
             }
 
-        $('#downloader-location-crumb ol')[0].innerHTML = html;
+        $('#downloader-location-crumb ol')[0].innerHTML += html;
 
         komponist.lsinfo(directory, function (err, files) {
             //console.log(files);
             if (err) return console.log(err);
 
-            $(mpcp.downloader.table + ' .gen')[0].remove();
+            $(mpcp.downloader.table + ' .gen').remove();
             mpcp.downloader.localFolders = [];
             files = mpcp.utils.toArray(files);
 
@@ -157,7 +157,7 @@ return {
 
             strippedDir = mpcp.utils.stripSlash(value.directory);
 
-            html = '<tr class="downloader-directory gen" data-dirid="' + value.directory + '"><td class="song-list-icons"><span class="text-warning glyphicon glyphicon-folder-open"></span> <span class="folder-open faded glyphicon glyphicon-share-alt" title="Open directory. Note: You can double click the directory to open"></span></a></td><td title="' + strippedDir + '">' + tableStart + strippedDir + tableEnd + '</td></tr>';
+            html = '<tr class="downloader-directory gen" data-dirid="' + value.directory + '"><td class="song-list-icons"><i class="text-warning fa fa-folder-open"></i> <i class="folder-open faded fa fa-share" title="Open directory. Note: You can double click the directory to open"></i></a></td><td title="' + strippedDir + '">' + tableStart + strippedDir + tableEnd + '</td></tr>';
         }
 
         return html;
@@ -218,7 +218,7 @@ return {
             mpcp.downloader.update('/');
         });
 
-        $('#downloader-home').click(function () {
+        $(document).on('click', '#downloader-home', function () {
             console.log('home');
             mpcp.downloader.update('/');
         });

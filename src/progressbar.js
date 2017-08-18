@@ -6,39 +6,85 @@ return {
     progress: 0,
     // interval
     musicprogress: null,
+    // the song time. Set to 1 to avoid 0/0
+    max: 1,
 
     progressfn: function () {
         // avoid 'this' as it's in a new scope of setInterval
         ++mpcp.progressbar.progress;
 
+        if (mpcp.player.current === null)
+            mpcp.progressbar.stop();
+
         if (mpcp.progressbar.progress > mpcp.player.current.Time) {
-            mpcp.progressbar.stopProgress();
+            mpcp.progressbar.stop();
             return;
         }
 
-        document.getElementById('music-time').value = mpcp.progressbar.progress;
-        document.getElementById('time-current').innerHTML = mpcp.utils.toMMSS(mpcp.progressbar.progress);
+        mpcp.progressbar.update();
     },
 
-    stopProgress: function () {
+    stop: function () {
         //console.log('stop progressbar');
         clearInterval(this.musicprogress);
     },
 
-    startProgress: function () {
-        this.stopProgress(); // stops in case of duplicates;
+    start: function () {
+        // stops in case of duplicates;
+        this.stop();
         //console.log('start progressbar');
+        this.disableProgressbar = false;
         this.musicprogress = setInterval(this.progressfn, 1000);
     },
 
+    update: function () {
+        document.getElementById('music-time').style.width =
+            mpcp.progressbar.progress / mpcp.progressbar.max * 100 + "%";
+
+        if (mpcp.progressbar.progress == 0 && mpcp.progressbar.max == 1 &&
+                !mpcp.player.current)
+            document.getElementById('time-current').innerHTML = '';
+        else
+            document.getElementById('time-current').innerHTML =
+                mpcp.utils.toMMSS(mpcp.progressbar.progress);
+    },
+
+    reset: function () {
+        mpcp.progressbar.stop();
+        mpcp.progressbar.progress = 0;
+        mpcp.progressbar.max = 1;
+        mpcp.progressbar.update();
+    },
+
     initEvents: function () {
-        $('#music-time').on('change', function () {
+        // only send update to mpd AFTER dragging is done.
+        // it is quite funny when constantly seeking (but annoying to others)
+        // The stlying of dragging itelf is similar to other players, where
+        // the timestamp also updates while dragging the bar
+        mpcp.utils.customSlider('music-time-container', 'music-time', false,
+              function (percent) {
+            var value = parseInt(mpcp.progressbar.max * percent);
+            mpcp.progressbar.progress = value;
+            mpcp.progressbar.update();
+        }, function () {
+            mpcp.progressbar.stop();
+        }, function (percent) {
+            if (!mpcp.player.current) {
+                mpcp.progressbar.reset();
+                return;
+            }
+
+            var value = Math.round(mpcp.progressbar.max * percent);
+
             // DO NOT USE seekcur, it introduces the SKIPPING BUG
             // on SOME systems.
-            komponist.seek(mpcp.player.current.Pos, this.value,
-                    function (err) {
+            komponist.seek(mpcp.player.current.Pos, value, function (err) {
+                if (err) {
+                    console.log('no song playing to seek');
+                    return;
+                }
+
                 console.log('Seeking...');
-                if (err) console.log('no song playing to seek');
             });
         });
     }

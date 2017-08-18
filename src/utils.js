@@ -640,6 +640,85 @@ return {
             $('#album-art').show().attr('src', url);
         }
     },
+
+    // A slider that can be clicked on and draged. Return a percent of
+    // the location when activated.
+    customSlider: function (container, slider, vertical, dragFn, startFn, endFn) {
+        container = document.getElementById(container);
+        slider = document.getElementById(slider);
+        var dragging = false;
+
+        // drag start
+        container.addEventListener("mousedown", function(e) {
+            if (!(e.target.id == container.id || e.target.id == slider.id))
+                return;
+
+            if (startFn)
+                startFn();
+
+            updateSlider(e);
+            dragging = true;
+        });
+
+        // drag during
+        document.addEventListener("mousemove", function(e) {
+            if (!(dragging && (e.target.id == container.id || e.target.id == slider.id)))
+                return;
+
+            updateSlider(e);
+        });
+
+        // drag end
+        document.addEventListener("mouseup", function(e) {
+            if (!(dragging && (e.target.id == container.id || e.target.id == slider.id)))
+                return;
+
+            var percent = updateSlider(e);
+            dragging = false;
+
+            if (endFn)
+                endFn(percent);
+        });
+
+        function updateSlider(e) {
+            var percent = 0;
+
+            if (vertical) {
+                percent = getPercent(e.pageY);
+                slider.style.height = parseInt(percent * 100) + "%";
+            } else {
+                percent = getPercent(e.pageX);
+                slider.style.width = parseInt(percent * 100) + "%";
+            }
+
+            if (dragFn)
+                dragFn(percent);
+
+            return percent;
+        }
+
+        function getPercent(endDrag) {
+            var percent = 0;
+
+            if (vertical) {
+                // cant use container.getBoundingClientRect().bottom because it
+                // changes based on the scoll location
+                var bottomY = $(container).offset().top + $(container).height();
+                percent = (bottomY - endDrag) /
+                    parseFloat(getComputedStyle(container).height);
+            } else {
+                percent = (endDrag - container.getBoundingClientRect().left) /
+                    parseFloat(getComputedStyle(container).width);
+            }
+
+            if (percent > 1)
+              percent = 1;
+            else if (percent < 0)
+              percent = 0;
+
+            return percent;
+        }
+    },
 };
 
 };

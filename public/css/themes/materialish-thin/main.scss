@@ -1,0 +1,15 @@
+// materialish design, variables inspired from http://fezvrasta.github.io/bootstrap-material-design/
+
+// import variables
+@import "../../../../bower_components/bootstrap/scss/_functions.scss";
+@import "../../../../bower_components/bootstrap/scss/_variables.scss";
+@import "../../../../bower_components/bootstrap/scss/_mixins.scss";
+
+// overwrite imported variables
+@import "../thin-vars.scss";
+
+@import "../materialish/vars.scss";
+
+.radio, .checkbox {
+    margin: 5px auto;
+}

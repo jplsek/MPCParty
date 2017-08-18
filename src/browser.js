@@ -87,7 +87,7 @@ return {
 
         if (this.current != '/')
             for (i = 0; i < dirs.length; ++i) {
-                html += '<li class="loc-dir" data-dirid="' + dirId + '">' +
+                html += '<li class="breadcrumb-item loc-dir" data-dirid="' + dirId + '">' +
                     dirs[i] + '</li>';
                 dirId += '/' + dirs[i+1];
             }
@@ -249,7 +249,7 @@ return {
 
             strippedDir = mpcp.utils.stripSlash(value.directory);
 
-            html = '<tr class="context-menu directory gen" data-dirid="' + value.directory + '"><td class="song-list-icons"><span class="text-warning glyphicon glyphicon-folder-open"></span> <span class="folder-open faded glyphicon glyphicon-share-alt" title="Open directory. Note: You can double click the directory to open"></span></a></td><td colspan="3" class="width100" title="' + strippedDir + '">' + tableStart + strippedDir + tableEnd + '</td><td colspan="2" class="song-list-icons text-right"><span class="dir-add faded text-success glyphicon glyphicon-plus" title="Add whole directory of songs to the bottom of the playlist"></span></td></tr>';
+            html = '<tr class="context-menu directory gen" data-dirid="' + value.directory + '"><td class="song-list-icons"><i class="text-warning fa fa-folder-open"></i> <i class="folder-open faded fa fa-share" title="Open directory. Note: You can double click the directory to open"></i></a></td><td colspan="3" class="width100" title="' + strippedDir + '">' + tableStart + strippedDir + tableEnd + '</td><td colspan="2" class="song-list-icons text-right"><i class="dir-add faded text-success fa fa-plus" title="Add whole directory of songs to the bottom of the playlist"></i></td></tr>';
         }
 
         return html;
@@ -271,7 +271,7 @@ return {
             stripFile    = mpcp.utils.stripSlash(value.file);
             value.Title  = (!value.Title ? stripFile : value.Title);
 
-            html = '<tr class="context-menu file gen" data-fileid="' + value.file + '"><td class="song-list-icons pos"><span class="text-primary glyphicon glyphicon-file"></span></td><td title="' + value.Title + '">' + tableStart + value.Title + tableEnd + '</td><td title="' + value.Artist + '">' + tableStart + value.Artist + tableEnd + '</td><td title="' + value.Album + '">' + tableStart + value.Album + tableEnd + '</td><td class="nowrap">' + mpcp.utils.toMMSS(value.Time) + '</td><td class="song-list-icons text-right"><span class="song-add faded text-success glyphicon glyphicon-plus" title="Add song to the bottom of the playlist"></span></td></tr>';
+            html = '<tr class="context-menu file gen" data-fileid="' + value.file + '"><td class="song-list-icons pos"><i class="text-primary fa fa-file"></i></td><td title="' + value.Title + '">' + tableStart + value.Title + tableEnd + '</td><td title="' + value.Artist + '">' + tableStart + value.Artist + tableEnd + '</td><td title="' + value.Album + '">' + tableStart + value.Album + tableEnd + '</td><td class="nowrap">' + mpcp.utils.toMMSS(value.Time) + '</td><td class="song-list-icons text-right"><i class="song-add faded text-success fa fa-plus" title="Add song to the bottom of the playlist"></i></td></tr>';
         }
 
         return html;
@@ -316,8 +316,7 @@ return {
                     '.';
                 element.firstChild.innerHTML = icon;
             } else {
-                icon = '<span class="text-primary glyphicon glyphicon-file">' +
-                    '</span>';
+                icon = '<i class="text-primary fa fa-file"></i>';
                 element.firstChild.innerHTML = icon;
             }
         }
@@ -580,7 +579,7 @@ return {
             // for now, the other clients will still receive multiple updates
             mpcp.browser.doUpdate = false;
 
-            $('#update .glyphicon').addClass('spinning');
+            $('#update .fa').addClass('fa-spin');
 
             komponist.update(function (err) {
                 // check if this is satus.updating_db is undefined
@@ -592,7 +591,7 @@ return {
 
                     komponist.status(function (err, status) {
                         if (err) {
-                            $('#update .glyphicon')[0].classList.remove('spinning');
+                            $('#update .fa')[0].classList.remove('fa-spin');
                             clearInterval(updateInterval);
                             mpcp.lazyToast.error(
                                     'Error getting the status from MPD!');
@@ -605,7 +604,7 @@ return {
                             // stop interval and send update-browser
                             // to everyone
                             clearInterval(updateInterval);
-                            $('#update .glyphicon')[0].classList.remove('spinning');
+                            $('#update .fa')[0].classList.remove('fa-spin');
                             mpcp.lazyToast.info(
                                     'Music library updated!', 'Library');
 

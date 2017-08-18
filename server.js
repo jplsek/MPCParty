@@ -5,7 +5,7 @@ var express         = require('express'),
     io              = new WebSocketServer({ server: http }),
     komponist       = require('komponist'),
     fs              = require('fs'),
-    less            = require('less-middleware'),
+    sass            = require('node-sass-middleware'),
     browserify      = require('browserify-middleware'),
     dns             = require('dns'),
     toml            = require('toml'),
@@ -15,8 +15,10 @@ var express         = require('express'),
     // optional modules
     youtubedl       = null,
 
-    // mpd: komponist mpd connection; pack: package.json;
-    mpd, pack,
+    // komponist mpd connection;
+    mpd, mpdClient,
+    // package.json;
+    pack,
 
     // some of these varaibles are saved so that a new client can quickly get
     // unique information the server knows about.
@@ -33,7 +35,9 @@ var express         = require('express'),
     // currently playing song's album art url
     currentArt = null,
     // set to true when making a release
-    release = false;
+    release = false,
+    // last time the volume was non-zero if not zero to begin with
+    lastVolume = 0;
 
 io.broadcast = function(data) {
     io.clients.forEach(function each(client) {
@@ -242,8 +246,8 @@ if (release) {
 }
 
 app.disable('x-powered-by');
-// less config
-app.use(less(__dirname + '/public'));
+// sass config
+app.use(sass({src: __dirname + '/public'}));
 // compile js client side code
 app.get('/mpcparty.js', browserify(__dirname + '/src/main.js'));
 app.get('/testing.js', browserify(__dirname + '/tests/main.js'));
@@ -303,7 +307,7 @@ app.get('/search/*', function (req, res) {
     });
 });
 
-// browser modules
+// client side modules
 app.use('/bootstrap',
     express.static(__dirname + '/bower_components/bootstrap/dist/'));
 app.use('/jquery',
@@ -316,6 +320,12 @@ app.use('/jquery-contextmenu',
     express.static(__dirname + '/bower_components/jQuery-contextMenu/dist/'));
 app.use('/dragula',
     express.static(__dirname + '/bower_components/dragula.js/dist/'));
+app.use('/popper',
+    express.static(__dirname + '/node_modules/popper.js/dist/'));
+app.use('/font-awesome',
+    express.static(__dirname + '/node_modules/font-awesome/css/'));
+app.use('/fonts',
+    express.static(__dirname + '/node_modules/font-awesome/fonts/'));
 
 // 404 requests
 // currently disabled until we can get dynamic urls to not 404 with this
@@ -440,21 +450,63 @@ fs.readFile(__dirname + '/config.cfg', function (err, data) {
             process.exit(-5);
         }
 
-        console.log('Connected to MPD!');
-        setSong(client);
+        mpdClient = client;
 
-        client.on('changed', function (system) {
+        console.log('Connected to MPD!');
+        setSong();
+        updateMixer();
+
+        mpdClient.on('changed', function (system) {
             //console.log('subsystem changed: ' + system);
-            if (system == 'player') {
-                setSong(client);
-            } else if (system == 'playlist') {
+            switch (system) {
+                case 'player':
                 // running setSong with a playlist change to fix a vote issue
                 // where users could vote after no song was selected
-                setSong(client);
+                case 'playlist':
+                    setSong();
+                    break;
+
+                case 'mixer':
+                    updateMixer();
+                    break;
             }
         });
     });
 });
+
+function toggleMute() {
+    mpd.status(function (err, status) {
+        if (err) console.log(err);
+
+        var volume = 0;
+
+        // if the volume is 0, then use the last volume that was not zero
+        // else mute it
+        if (parseInt(status.volume) == 0) {
+            volume = parseInt(lastVolume);
+
+            // if the volume is still 0 (such as from a server restart)
+            // just set it to an arbitrary value
+            if (volume === 0) {
+                volume = 50;
+            }
+        }
+
+        mpd.setvol(volume, function (err) {
+            if (err) console.log(err);
+        });
+    });
+}
+
+function updateMixer() {
+    mpd.status(function (err, status) {
+        if (err) console.log(err);
+
+        if (status.volume != 0) {
+            lastVolume = status.volume;
+        }
+    });
+}
 
 function sendArtworkMessage() {
     io.broadcast(JSON.stringify({'type': 'album-art', 'url': currentArt}),
@@ -514,8 +566,11 @@ function getImage(song) {
     });
 }
 
-function setSong(client) {
-    client.currentsong(function (err, song) {
+function setSong() {
+    if (!mpdClient)
+        return;
+
+    mpdClient.currentsong(function (err, song) {
         if (err) {
             console.log('Error setting current song');
             return console.log(err);
@@ -747,6 +802,7 @@ io.on('connection', function (socket) {
                     if (err) return console.log(err);
                     playlisttitle = '';
                     io.broadcast(JSON.stringify({'type': 'clear-playlist'}));
+                    setSong();
                 });
                 break;
 
@@ -879,8 +935,8 @@ io.on('connection', function (socket) {
                 });
                 break;
 
-            case 'downloader-download':
-                downloader.download(msg.url, msg.location, address, socket);
+            case 'toggle-mute':
+                toggleMute();
                 break;
         }
 

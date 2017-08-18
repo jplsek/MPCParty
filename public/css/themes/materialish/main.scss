@@ -1,0 +1,10 @@
+// this is a slightly more complex example of theming
+// materialish design, variables inspired from http://fezvrasta.github.io/bootstrap-material-design/
+// and http://materializecss.com/
+
+// import variables
+@import "../../../../bower_components/bootstrap/scss/_functions.scss";
+@import "../../../../bower_components/bootstrap/scss/_variables.scss";
+@import "../../../../bower_components/bootstrap/scss/_mixins.scss";
+
+@import "vars.scss";

@@ -7,6 +7,7 @@ html
         link(rel='icon', href='/img/favicon.png', type='image/x-icon')
         link(rel='shortcut icon', href='/img/favicon.png', type='image/x-icon')
         link(rel='stylesheet', href='/bootstrap/css/bootstrap.min.css')
+        link(rel='stylesheet', href='/font-awesome/font-awesome.min.css')
         link(rel='stylesheet', href='/toastr/toastr.css')
         link(rel='stylesheet', href='/jquery-contextmenu/jquery.contextMenu.min.css')
         link(rel='stylesheet', href='/dragula/dragula.min.css')
@@ -15,6 +16,7 @@ html
         link#theme(rel='stylesheet')
         script(src='/jquery/jquery.min.js')
         script(src='/js/jquery-ui.min.js')
+        script(src='/popper/popper.min.js')
         script(src='/bootstrap/js/bootstrap.min.js')
         script(src='/js/komponist.build.js')
         script(src='/js/jQuery_sortColumn.js')
@@ -33,9 +35,9 @@ html
             .modal-dialog.modal-lg
                 .modal-content
                     .modal-header
-                        button.close(data-dismiss='modal')
-                            span ×
                         h4.modal-title #{pack.name} - v#{pack.version}
+                        button.close(data-dismiss='modal')
+                            <span>&times;</span>
                     .modal-body
                         p
                             = pack.description
@@ -45,55 +47,55 @@ html
                         hr
                         h4 Libraries used in #{pack.name}
                         p
-                            a(href='https://github.com/hughsk/komponist', target='_blank') Komponist
+                            a(href='https://github.com/hughsk/komponist', target='_blank', rel="noopener") Komponist
                             |  - MPD controller
                         p
-                            a(href='https://jquery.com/', target='_blank') jQuery
+                            a(href='https://jquery.com/', target='_blank', rel="noopener") jQuery
                             |  and&nbsp;
-                            a(href='https://jqueryui.com/', target='_blank') jQuery UI Interaction Modules
+                            a(href='https://jqueryui.com/', target='_blank', rel="noopener") jQuery UI Interaction Modules
                             |  - Javascript framework
                         p
-                            a(href='http://getbootstrap.com/', target='_blank') Bootstrap
+                            a(href='http://getbootstrap.com/', target='_blank', rel="noopener") Bootstrap
                             |  - Interface framework
                         p
                             a(href='https://github.com/bighoho123/jQuery-sortColumn', target='_blank') jQuery-sortColumn
                             |  (modified) - Table column sorting
                         p
-                            a(href='https://github.com/CodeSeven/toastr', target='_blank') toastr
+                            a(href='https://github.com/CodeSeven/toastr', target='_blank', rel="noopener") toastr
                             |  - Notification system
                         p
-                            a(href='https://github.com/bevacqua/dragula', target='_blank') Dragula
+                            a(href='https://github.com/bevacqua/dragula', target='_blank', rel="noopener") Dragula
                             |  - Drag and drop framework
                         p
-                            a(href='https://github.com/swisnl/jQuery-contextMenu', target='_blank') jquery-contextmenu
+                            a(href='https://github.com/swisnl/jQuery-contextMenu', target='_blank', rel="noopener") jquery-contextmenu
                             |  - Context menus on right click
                         p
-                            a(href='https://github.com/gkShine/jquery-multiselect', target='_blank') jquery-multiselect
+                            a(href='https://github.com/gkShine/jquery-multiselect', target='_blank', rel="noopener") jquery-multiselect
                             |  (modified) - Allows multiselection in tables
                         p
-                            a(href='https://www.npmjs.com/pack/youtube-dl', target='_blank') youtube-dl
+                            a(href='https://www.npmjs.com/pack/youtube-dl', target='_blank', rel="noopener") youtube-dl
                             |  - Download videos from a wide variety of websites (This is a 'frontend' to&nbsp;
-                            a(href='https://rg3.github.io/youtube-dl/') youtube-dl
+                            a(href='https://rg3.github.io/youtube-dl/', rel="noopener") youtube-dl
                             | )
                         hr
                         h4 Themes
-                        p: a(href='http://getbootstrap.com/', target='_blank') Default Theme
+                        p: a(href='http://getbootstrap.com/', target='_blank', rel="noopener") Default Theme
                         hr
                         h4 License of #{pack.name}
                         p #{pack.license}
                     .modal-footer.space-between
                         button.stop-server.btn.btn-danger(title='Stops the server. Depending on the server admin configuration, the server will restart ASAP.')
-                            span.glyphicon.glyphicon-off
-                        p.main-link: a(href='https://github.com/jplsek/MPCParty', target='_blank') https://github.com/jplsek/MPCParty
-                        button.btn.btn-default(data-dismiss='modal') Close
+                            i.fa.fa-power-off
+                        p.main-link: a(href='https://github.com/jplsek/MPCParty', target='_blank', rel="noopener") https://github.com/jplsek/MPCParty
+                        button.btn.btn-light(data-dismiss='modal') Close
 
         #settings-modal.modal.fade(tabindex='-1')
             .modal-dialog
                 .modal-content
                     .modal-header
-                        button.close(type='button', data-dismiss='modal')
-                            span ×
                         h4.modal-title Settings
+                        button.close(type='button', data-dismiss='modal')
+                            <span>&times;</span>
                     .modal-body
                         form.form-group(autocomplete='off')
                             h3 Client Settings
@@ -105,16 +107,16 @@ html
                                     option(value='materialish') Materialish
                                     option(value='materialish-thin') Materialish (Thin)
                             .form-group
-                                .checkbox
-                                    label(title='Note: This client will be slow with playlists larger than 2000 songs if pagination is disabled.')
-                                        input#use-pages-playlist(type='checkbox')
+                                .form-check
+                                    label.form-check-label(title='Note: This client will be slow with playlists larger than 2000 songs if pagination is disabled.')
+                                        input#use-pages-playlist.form-check-input(type='checkbox')
                                         | Use playlist pagination
                                 label Maximum playlist table rows per page
                                 input#items-max-playlist.form-control(type='number', min='5', max='1000')
                             .form-group
-                                .checkbox
-                                    label(title='Note: This client will be slow with libraries larger than 2000 songs if pagination is disabled.')
-                                        input#use-pages-browser(type='checkbox')
+                                .form-check
+                                    label.form-check-label(title='Note: This client will be slow with libraries larger than 2000 songs if pagination is disabled.')
+                                        input#use-pages-browser.form-check-input(type='checkbox')
                                         | Use browser pagination
                                 label Maximum browser table rows per page
                                 input#items-max-browser.form-control(type='number', min='5', max='1000')
@@ -122,37 +124,37 @@ html
                                 label Maximum notification history table rows
                                 input#history-max.form-control(type='number', min='0', max='1000')
                             .form-group
-                                .checkbox
-                                    label(title='Disabling pulse animations may improve performace')
-                                        input#use-pulse(type='checkbox')
+                                .form-check
+                                    label.form-check-label(title='Disabling pulse animations may improve performace')
+                                        input#use-pulse.form-check-input(type='checkbox')
                                         | Use pulse animation
-                                .checkbox
-                                    label(title='Show or hide "unknown" text in the browser')
-                                        input#use-unknown(type='checkbox')
+                                .form-check
+                                    label.form-check-label(title='Show or hide "unknown" text in the browser')
+                                        input#use-unknown.form-check-input(type='checkbox')
                                         | Use 'unknown' text in the browser (if false, it will show nothing)
-                                .checkbox
-                                    label(title='When enabled, whenever you skip a song, it will be removed from the playlist')
-                                        input#use-skip-to-remove(type='checkbox')
+                                .form-check
+                                    label.form-check-label(title='When enabled, whenever you skip a song, it will be removed from the playlist')
+                                        input#use-skip-to-remove.form-check-input(type='checkbox')
                                         | Use skip to remove feature (only works when voting is disabled)
-                                .checkbox
-                                    label(title='Stops showing the warning icon when consume mode is enabled')
-                                        input#use-consume-warning(type='checkbox')
+                                .form-check
+                                    label.form-check-label(title='Stops showing the warning icon when consume mode is enabled')
+                                        input#use-consume-warning.form-check-input(type='checkbox')
                                         | Show MPD's consume warning
-                                .checkbox
-                                    label(title='Note: some errors you may see are false-positives.')
-                                        input#show-all-errors(type='checkbox')
+                                .form-check
+                                    label.form-check-label(title='Note: some errors you may see are false-positives.')
+                                        input#show-all-errors.form-check-input(type='checkbox')
                                         | Debug: Show all errors
                             h3 Server Settings
                             .form-group
                                 label Track crossfade (0 - 10 seconds)
                                 input#crossfade(type='range', min='0', max='10')
                             .form-group
-                                .checkbox
-                                    label(title='Removes songs when skipping and when the song finishes')
-                                        input#consume(type='checkbox')
+                                .form-check
+                                    label.form-check-label(title='Removes songs when skipping and when the song finishes')
+                                        input#consume.form-check-input(type='checkbox')
                                         | Use consume mode
                     .modal-footer
-                        button.btn.btn-default(type='button', data-dismiss='modal') Close
+                        button.btn.btn-light(type='button', data-dismiss='modal') Close
 
         mixin playlists
             table.playlists.table.table-hover
@@ -167,91 +169,89 @@ html
             .modal-dialog
                 .modal-content
                     .modal-header
-                        button.close(type='button', data-dismiss='modal')
-                            span ×
                         h4.modal-title Open playlist
+                        button.close(type='button', data-dismiss='modal')
+                            <span>&times;</span>
                     .modal-body
                         +playlists
                     .modal-footer
-                        button.btn.btn-default(type='button', data-dismiss='modal') Cancel
+                        button.btn.btn-light(type='button', data-dismiss='modal') Cancel
                         button#playlist-open-confirm.btn.btn-primary(type='button', data-dismiss='modal') Open
 
         #playlist-save-modal.modal.fade(tabindex='-1')
             .modal-dialog
                 .modal-content
                     .modal-header
-                        button.close(type='button', data-dismiss='modal')
-                            span ×
                         h4.modal-title Save playlist
+                        button.close(type='button', data-dismiss='modal')
+                            <span>&times;</span>
                     .modal-body
                         .input-group
                             input#playlist-save-input.form-control(type='text', placeholder='Enter new playlist name')
-                            span.input-group-btn
-                                button#playlist-save-clear.btn.btn-default(type='button')
-                                    span.glyphicon.glyphicon-remove
+                            span.input-group-addon
+                                i#playlist-save-clear.fa.fa-remove
                         br
                         +playlists
                     .modal-footer
-                        button.btn.btn-default(type='button', data-dismiss='modal') Cancel
+                        button.btn.btn-light(type='button', data-dismiss='modal') Cancel
                         button#playlist-save-confirm.btn.btn-primary(type='button', data-dismiss='modal') Save
 
         #song-info-modal.modal.fade(tabindex='-1')
             .modal-dialog
                 .modal-content
                     .modal-header
-                        button.close(type='button', data-dismiss='modal')
-                            span ×
                         h4.modal-title
+                        button.close(type='button', data-dismiss='modal')
+                            <span>&times;</span>
                     .modal-body
                         table#song-info.table: tbody
                     .modal-footer
-                        button.btn.btn-default(type='button', data-dismiss='modal') Close
+                        button.btn.btn-light(type='button', data-dismiss='modal') Close
 
         if (config.downloader)
             #downloader-location-modal.modal.fade(tabindex='-1')
                 .modal-dialog
                     .modal-content
                         .modal-header
-                            button.close(type='button', data-dismiss='modal')
-                                span ×
                             h4.modal-title Select Location
+                            button.close(type='button', data-dismiss='modal')
+                                <span>&times;</span>
                         .modal-body
                             #downloader-location-crumb.flex-full
                                 ol.breadcrumb
-                                    li: span#downloader-home.glyphicon.glyphicon-home(title='Go to the root of the music database.')
+                                    li.breadcrumb-item
+                                        i#downloader-home.fa.fa-home(title='Go to the root of the music database.')
                             #downloader-wrap
                                 table#downloader-folder-list.table.table-hover
                                     tbody.append
                         .modal-footer
-                            button.btn.btn-default(type='button', data-dismiss='modal') Close
+                            button.btn.btn-light(type='button', data-dismiss='modal') Close
                             button#downloader-location-confirm.btn.btn-primary(type='button', data-dismiss='modal') Select
 
         #page-wrapper
-            header.navbar.navbar-default
-                #header-left.navbar.navbar-default
-                    #slider
-                        input#volume(type='range', min='0', max='100', orient='vertical', title='Change the volume')
-                    #media-buttons
+            header.navbar.bg-light
+                #media-buttons
+                    .btn-group
+                        button#previous.btn.btn-outline-dark(title='Play previous song in playlist')
+                            i.fa.fa-step-backward
+                        button#play.btn.btn-outline-dark(title='Play song in playlist')
+                            i.fa.fa-play
+                        button#pause.btn.btn-outline-dark(title='Pause song in playlist')
+                            i.fa.fa-pause
+                        button#stop.btn.btn-outline-dark(title='Stop song in playlist')
+                            i.fa.fa-stop
+                        button#next.btn.btn-outline-dark(title='Play next song in playlist')
+                            i.fa.fa-step-forward
+                    .space-between
+                        button#go-current.btn.btn-outline-dark(title='Go to the current song in the playlist')
+                            i.fa.fa-crosshairs
                         .btn-group
-                            button#previous.btn.btn-default(title='Play previous song in playlist')
-                                span.glyphicon.glyphicon-backward
-                            button#play.btn.btn-default(title='Play song in playlist')
-                                span.glyphicon.glyphicon-play
-                            button#pause.btn.btn-default(title='Pause song in playlist')
-                                span.glyphicon.glyphicon-pause
-                            button#stop.btn.btn-default(title='Stop song in playlist')
-                                span.glyphicon.glyphicon-stop
-                            button#next.btn.btn-default(title='Play next song in playlist')
-                                span.glyphicon.glyphicon-forward
-                        .space-between
-                            button#go-current.btn.btn-default(title='Go to the current song in the playlist')
-                                span.glyphicon.glyphicon-screenshot
-                            .btn-group
-                                button#repeat.btn.btn-default(title='Repeat playlist')
-                                    span.glyphicon.glyphicon-repeat
-                                button#random.btn.btn-default(title='Select random songs in playlist')
-                                    span.glyphicon.glyphicon-random
-                #header-middle
+                            button#repeat.btn.btn-outline-dark(title='Repeat playlist')
+                                i.fa.fa-repeat
+                            button#random.btn.btn-outline-dark(title='Select random songs in playlist')
+                                i.fa.fa-random
+                // set background for mobile
+                #header-middle.bg-light 
                     img#album-art
                     #time-bar.flex-full.text-center
                         table#title.fixed-table
@@ -259,58 +259,72 @@ html
                                 td
                                     span#title-pos
                                     span#title-text
-                        #time-range
-                            input#music-time(type='range', min='0')
+                        #music-time-container.progress
+                            #music-time.progress-bar
                         span#time-current
                         span#time-total
                 #header-right
                     #header-right-top.space-between
                         if (config.downloader)
                             span.dropdown
-                                button#downloader-btn.btn.btn-default.dropdown-toggle(title='Downloader' data-toggle='dropdown')
-                                    span.glyphicon.glyphicon-facetime-video
-                                ul#downloader.dropdown-menu.dropdown-menu-right.stop-click-event
-                                    li.dropdown-header Audio Downloader
-                                    li: a.no-hover
+                                button#downloader-btn.btn.btn-outline-dark.dropdown-toggle(title='Downloader' data-toggle='dropdown')
+                                    i.fa.fa-download
+                                div#downloader.dropdown-menu.dropdown-menu-right.stop-click-event
+                                    div.dropdown-header Audio Downloader
+                                    div.dropdown-item.no-hover
                                         form(autocomplete='off')
                                             label(for='downloader-url') URL
                                             .input-group
                                                 input#downloader-url.form-control(type='text', title='Enter a URL, such as from youtube, and this will download the audio on to the server.', placeholder='Enter a url (Ex: a video from youtube)')
-                                                span.input-group-btn
-                                                    button#downloader-download.btn.btn-default(type='button', title='Download')
-                                                        span.glyphicon.glyphicon-download-alt
+                                                span.input-group-addon
+                                                    i#downloader-download.fa.fa-download
                                             label(for='downloader-location') Location
                                             .input-group
                                                 input#downloader-location.form-control(type='text', title='Location to download the file')
-                                                span.input-group-btn
-                                                    button#downloader-browse.btn.btn-default(type='button', title='Browse to location', data-toggle='modal', data-target='#downloader-location-modal')
-                                                        span.glyphicon.glyphicon-folder-open
+                                                span.input-group-addon
+                                                    i#downloader-browse.fa.fa-folder-open(title='Browse to location', data-toggle='modal', data-target='#downloader-location-modal')
                                         #downloader-title
                                         .space-between
                                             #downloader-status
                         span.dropdown
-                            button.btn.btn-default.dropdown-toggle(title='History' data-toggle='dropdown')
-                                span.glyphicon.glyphicon-time
-                            ul.dropdown-menu.dropdown-menu-right.stop-click-event
-                                li.dropdown-header Notification History
-                                li: a.no-hover: table.table: tbody#history
+                            button.btn.btn-outline-dark.dropdown-toggle(title='History' data-toggle='dropdown')
+                                i.fa.fa-history
+                            div.dropdown-menu.dropdown-menu-right.stop-click-event
+                                div.dropdown-header Notification History
+                                div.dropdown-item.no-hover
+                                    table.table: tbody#history
                         if (config.showUsers)
                             span.dropdown
-                                button.btn.btn-default.dropdown-toggle(title='Users using mpcparty' data-toggle='dropdown')
-                                    span.glyphicon.glyphicon-user
+                                button.btn.btn-outline-dark.dropdown-toggle(title='Users using mpcparty' data-toggle='dropdown')
+                                    i.fa.fa-user
                                 ul#user-list.dropdown-menu.dropdown-menu-right.stop-click-event
                                     li.dropdown-header Users Connected
                         .btn-group
-                            button.btn.btn-default(title='Settings of mpcparty' data-toggle='modal', data-target='#settings-modal')
-                                span.glyphicon.glyphicon-wrench
-                            button.btn.btn-default(title='Information about mpcparty' data-toggle='modal', data-target='#info-modal')
-                                span.glyphicon.glyphicon-info-sign
+                            button.btn.btn-outline-dark(title='Settings of mpcparty' data-toggle='modal', data-target='#settings-modal')
+                                i.fa.fa-wrench
+                            button.btn.btn-outline-dark(title='Information about mpcparty' data-toggle='modal', data-target='#info-modal')
+                                i.fa.fa-info-circle
                     form(autocomplete='off')
                         .input-group
                             input#search-browser.form-control(type='text', placeholder='Search songs...')
-                            span.input-group-btn
-                                button#search-clear.btn.btn-default(type='button')
-                                    span.glyphicon.glyphicon-remove
+                            span.input-group-addon
+                                i#search-clear.fa.fa-remove
+                                  
+            mixin pages(id)
+                .pages.navbar.bg-light(id=id+'-pages')
+                    button.btn.btn-light.first(title='Go to first page')
+                        i.fa.fa-angle-double-left
+                    button.btn.btn-light.previous(title='Go to previous page')
+                        i.fa.fa-angle-left
+                    span Page
+                    form(autocomplete='off')
+                        input.form-control(type='number', min='1', value='1')
+                    span of
+                    span.total-pages 1
+                    button.btn.btn-light.next(title='Go to next page')
+                        i.fa.fa-angle-right
+                    button.btn.btn-light.last(title='Go to last page')
+                        i.fa.fa-angle-double-right
 
             mixin songListHeader(id)
                 table.table-header.table(id=id+'-header')
@@ -331,10 +345,9 @@ html
                     div(id='library-'+id+'-header')
                         form(autocomplete='off')
                             .input-group
-                                input(id='search-'+id, class='form-control', type='text', placeholder='Search '+search+'...')
-                                span.input-group-btn
-                                    button(id='search-'+id+'-clear', class='btn btn-default', type='button')
-                                        span.glyphicon.glyphicon-remove
+                                input.form-control(id='search-'+id, type='text', placeholder='Search '+search+'...')
+                                span.input-group-addon
+                                    i.fa.fa-remove(id='search-'+id+'-clear')
                     table.table-header-fixed.table(id='library-'+id+'-list-header')
                         thead: tr
                             th(id='library-col-'+id) #{title}
@@ -343,18 +356,21 @@ html
                         table(id='library-'+id+'-list', class='table table-hover library-list-context')
                             tbody.append.connected(id='library-'+id+'-list-tbody')
 
-            main
-                #browser-selection
-                    button#update.btn.btn-default(title='Update the music database (after uploading new music to the folder)')
-                        span.glyphicon.glyphicon-refresh
-                    hr
-                    button#open-file-browser.btn.btn-default(title='Show the file browser')
-                        span.glyphicon.glyphicon-folder-open
-                    button#open-library.btn.btn-default(title='Show the library')
-                        span.glyphicon.glyphicon-align-justify
-                    span#warning-consume.text-warning.glyphicon.glyphicon-warning-sign.none(title='MPD\'s consume mode is enabled!')
+            main.row
+                #browser-selection.col-2.col-sm-1.col-md-1
+                    button#update.btn.btn-light(title='Update the music database (after uploading new music to the folder)')
+                        i.fa.fa-refresh
+                    button#open-file-browser.btn.btn-light(title='Show the file browser')
+                        i.fa.fa-folder-open
+                    button#open-library.btn.btn-light(title='Show the library')
+                        i.fa.fa-align-justify
+                    i#warning-consume.text-warning.fa.fa-warning-sign.none(title='MPD\'s consume mode is enabled!')
+                    #volume-progress.progress
+                        #volume.progress-bar
+                    #volume-speaker-container
+                        i#volume-speaker.fa.fa-volume-up
 
-                #library.col-sm-8
+                #library.col-9.col-sm-10.col-md-7
                     #library-top
                         +libraryAA('artists', 'Artist', 'artists')
                         +libraryAA('albums', 'Album', 'albums from artist')
@@ -363,45 +379,31 @@ html
                             form(autocomplete='off')
                                 .input-group
                                     input#search-songs.form-control(type='text', placeholder='Search songs from album...')
-                                    span.input-group-btn
-                                        button#search-songs-clear.btn.btn-default(type='button')
-                                            span.glyphicon.glyphicon-remove
+                                    span.input-group-addon
+                                        i#search-songs-clear.fa.fa-remove
                         +songListHeader('library-songs-list')
                         #library-songs-wrap
                             +songList('library-songs-list')
 
-                #browser.col-sm-8
+                #browser.col-9.col-sm-10.col-md-7
                     noscript: h1 You have Javascript disabled. This does not work without Javascript.
                     // having the block wrapper fixes an issue with webkit not getting the childs height
                     #browser-header-wrap
                         #browser-header
                             #location.flex-full
                                 ol.breadcrumb
-                                    li: span#home.glyphicon.glyphicon-home(title='Go to the root of the music database.')
+                                    li.breadcrumb-item
+                                        i#home.fa.fa-home(title='Go to the root of the music database.')
                             #browser-bottons
                                 .btn-group
-                                    button#add-all.btn.btn-default(title='Add all songs from the current page')
+                                    button#add-all.btn.btn-light(title='Add all songs from the current page')
                                         | Add All
                     +songListHeader('file-browser-song-list')
                     #slwrap
                         +songList('file-browser-song-list')
-                    #browser-pages.pages.navbar.navbar-default
-                        button.btn.btn-default.first(title='Go to first page')
-                            span.glyphicon.glyphicon-step-backward
-                        button.btn.btn-default.previous(title='Go to previous page')
-                            span.glyphicon.glyphicon-chevron-left
-                        .page
-                            span Page
-                            form(autocomplete='off')
-                                input.form-control(type='number', min='1', value='1')
-                            span of
-                            span.total-pages 1
-                        button.btn.btn-default.next(title='Go to next page')
-                            span.glyphicon.glyphicon-chevron-right
-                        button.btn.btn-default.last(title='Go to last page')
-                            span.glyphicon.glyphicon-step-forward
+                    +pages('browser')
 
-                #playlist.col-sm-4
+                #playlist.col-11.col-sm-11.col-md-4
                     // having the block wrapper fixes an issue with webkit not getting the childs height
                     #playlist-header-wrap
                         #playlist-header
@@ -411,86 +413,70 @@ html
                                         td#playlist-title
                                             strong
                             #playlist-buttons.btn-group
-                                button#new-playlist.btn.btn-default(title='Create a new playlist')
-                                    span.glyphicon.glyphicon-plus
-                                button#clear-playlist.btn.btn-default(title='Clear the playlist')
-                                    span.glyphicon.glyphicon-remove
-                                button#open-playlist.btn.btn-default(title='Open a playlist' data-toggle='modal', data-target='#playlist-open-modal')
-                                    span.glyphicon.glyphicon-folder-open
-                                button#save-playlist.btn.btn-default(title='Save the playlist' data-toggle='modal', data-target='#playlist-save-modal')
-                                    span.glyphicon.glyphicon-floppy-save
-                                button#scramble.btn.btn-default(title='Scramble the playlist')
-                                    span.glyphicon.glyphicon-random
-                                button#remove-duplicates.btn.btn-default(title='Remove duplicate songs from the playlist based on the title')
-                                    span.glyphicon.glyphicon-fire
-                                button#playlist-search-toggle.btn.btn-default(type='button')
-                                    span.glyphicon.glyphicon-search
+                                button#new-playlist.btn.btn-light(title='Create a new playlist')
+                                    i.fa.fa-plus
+                                button#clear-playlist.btn.btn-light(title='Clear the playlist')
+                                    i.fa.fa-remove
+                                button#open-playlist.btn.btn-light(title='Open a playlist' data-toggle='modal', data-target='#playlist-open-modal')
+                                    i.fa.fa-folder-open
+                                button#save-playlist.btn.btn-light(title='Save the playlist' data-toggle='modal', data-target='#playlist-save-modal')
+                                    i.fa.fa-floppy-o
+                                button#scramble.btn.btn-light(title='Scramble the playlist')
+                                    i.fa.fa-random
+                                button#remove-duplicates.btn.btn-light(title='Remove duplicate songs from the playlist based on the title')
+                                    i.fa.fa-recycle
+                                button#playlist-search-toggle.btn.btn-light(type='button')
+                                    i.fa.fa-search
                     #playlist-search.none
                         form(autocomplete='off')
                             .input-group
                                 input#search-playlist.form-control(type='text', placeholder='Search playlist...')
-                                span.input-group-btn
-                                    button#search-playlist-clear.btn.btn-default(type='button')
-                                        span.glyphicon.glyphicon-remove
+                                span.input-group-addon
+                                      i#search-playlist-clear.fa.fa-remove
                     #pslwrap
                         table#playlist-song-list.table.table-hover
                             tbody#playlist-song-list-tbody.append.connected
-                    #playlist-pages.pages.navbar.navbar-default
-                        button.btn.btn-default.first(title='Go to first page')
-                            span.glyphicon.glyphicon-step-backward
-                        button.btn.btn-default.previous(title='Go to previous page')
-                            span.glyphicon.glyphicon-chevron-left
-                        .page
-                            span Page
-                            form(autocomplete='off')
-                                input.form-control(type='number', min='1', value='1')
-                            span of
-                            span.total-pages 1
-                        button.btn.btn-default.next(title='Go to next page')
-                            span.glyphicon.glyphicon-chevron-right
-                        button.btn.btn-default.last(title='Go to last page')
-                            span.glyphicon.glyphicon-step-forward
+                    +pages('playlist')
 
         footer
-            #pe.panel.panel-default.none
-                #pe-header.panel-heading
-                    .panel-default-shown
+            #pe.card.card-default.none
+                #pe-header.card-heading
+                    .card-default-shown
                         .btn-group
-                            button#pe-clear.btn.btn-default(title='Clear the playlist')
-                                span.glyphicon.glyphicon-remove
-                            button#pe-open.btn.btn-default(title='Open a playlist' data-toggle='modal', data-target='#playlist-open-modal')
-                                span.glyphicon.glyphicon-folder-open
-                            button#pe-save.btn.btn-default(title='Save the playlist', data-toggle='modal', data-target='#playlist-save-modal')
-                                span.glyphicon.glyphicon-floppy-save
-                            button#pe-scramble.btn.btn-default(title='Scramble the playlist')
-                                span.glyphicon.glyphicon-random
-                            button#pe-remove-duplicates.btn.btn-default(title='Remove duplicate songs from the playlist based on the title')
-                                span.glyphicon.glyphicon-fire
-                            button#pe-search-toggle.btn.btn-default(type='button')
-                                span.glyphicon.glyphicon-search
-                        span.panel-title Playlist Editor
+                            button#pe-clear.btn.btn-light(title='Clear the playlist')
+                                i.fa.fa-remove
+                            button#pe-open.btn.btn-light(title='Open a playlist' data-toggle='modal', data-target='#playlist-open-modal')
+                                i.fa.fa-folder-open
+                            button#pe-save.btn.btn-light(title='Save the playlist', data-toggle='modal', data-target='#playlist-save-modal')
+                                i.fa.fa-floppy-o
+                            button#pe-scramble.btn.btn-light(title='Scramble the playlist')
+                                i.fa.fa-random
+                            button#pe-remove-duplicates.btn.btn-light(title='Remove duplicate songs from the playlist based on the title')
+                                i.fa.fa-recycle
+                            button#pe-search-toggle.btn.btn-light(type='button')
+                                i.fa.fa-search
+                        span.card-title Playlist Editor
                         .btn-group.pull-right
-                            button#pe-minimize.btn.btn-default
-                                span.glyphicon.glyphicon-minus
-                            button#pe-close.btn.btn-default
-                                span.glyphicon.glyphicon-remove
+                            button#pe-minimize.btn.btn-light
+                                i.fa.fa-minus
+                            button#pe-close.btn.btn-light
+                                i.fa.fa-remove
                     #pe-search.none
                         form(autocomplete='off')
                             .input-group
                                 input#search-pe.form-control(type='text', placeholder='Search playlist editor...')
-                                span.input-group-btn
-                                    button#search-pe-clear.btn.btn-default(type='button')
-                                        span.glyphicon.glyphicon-remove
-                #pe-main.panel-body
+                                span.input-group-addon
+                                    i#search-pe-clear.fa.fa-remove
+                #pe-main.card-body
                     #pewrap
                         table#pe-song-list.table.table-hover
                             tbody#pe-song-list-tbody.append.connected
             #pe-tab.none Resume playlist editor
 
         if (config.testing)
-            #testing.panel.panel-default
-                #testing-header.panel-heading
-                    span.panel-title Unit Tests
-                    button#start-testing.pull-right.btn.btn-default(type='button') Start tests
-                #testing-main.panel-body
+            #testing.card.card-default
+                #testing-header.card-heading
+                    span.card-title Unit Tests
+                    button#start-testing.pull-right.btn.btn-light(type='button') Start tests
+                #testing-main.card-body
                     #qunit

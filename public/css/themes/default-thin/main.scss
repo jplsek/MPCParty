@@ -2,16 +2,15 @@
 
 /* This is meant as an example for simple bootstrap theming. This does add more bandwidth to the client. This may change in the future to completely re-compile bootstrap, rather than overwriting bootstrap. */
 
-@package: "../../../../bower_components/bootstrap/less";
-
 // import variables
-@import "@{package}/variables.less";
-@import "@{package}/mixins.less";
+@import "../../../../bower_components/bootstrap/scss/_functions.scss";
+@import "../../../../bower_components/bootstrap/scss/_variables.scss";
+@import "../../../../bower_components/bootstrap/scss/_mixins.scss";
 
 // overwrite imported variables
-@import "../thin-vars.less";
+@import "../thin-vars.scss";
 
-@import "../default/vars.less";
+@import "../default/vars.scss";
 
 .radio, .checkbox {
     margin: 5px auto;

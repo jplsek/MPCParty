@@ -204,6 +204,9 @@ var utils = {
             console.log('after clear');
             assert.equal(children.length, 1, 'check if nothing except 1 item');
             assert.notOk($('#stop').is(':visible'), 'check if stop is not visible');
+            assert.equal($('#music-time').width(), 0, 'progressbar == 0');
+            assert.equal($('#time-current').text(), '', 'current time is none');
+            assert.equal($('#time-total').text(), '-- / --', 'total time is none');
             assert.equal($('#playlist-title').text(), "", 'check if title is nothing');
             callback();
         });
@@ -212,14 +215,30 @@ var utils = {
     play: function (assert, callback) {
         assert.equal($('#title-text').text(), 'No song selected', 'check if title is No song selected');
         assert.notOk($('#stop').is(':visible'), 'check if stop is not visible');
+        assert.equal($('#time-current').text(), '', 'current time is none');
+        assert.equal($('#time-total').text(), '-- / --', 'total time is none');
 
         mpcp.player.play(function () {
             // we wait for progress bar checks
             setTimeout(function () {
-                assert.ok($('#title-text').text() != 'No song selected', 'check if title is not No song selected');
+                assert.ok($('#music-time').width() > 0, 'progressbar > 0');
+                assert.notEqual($('#time-current').text(), '', 'current time is not none');
+                assert.notEqual($('#title-text').text(), 'No song selected', 'check if title is not No song selected');
                 assert.ok($('#stop').is(':visible'), 'check if stop is visible');
                 callback();
             }, 3000);
+        });
+    },
+
+    stop: function (assert, callback) {
+        assert.ok($('#stop').is(':visible'), 'check if stop is visible');
+
+        mpcp.player.stop(function () {
+            assert.notOk($('#stop').is(':visible'), 'check if stop is not visible');
+            assert.equal($('#music-time').width(), 0, 'progressbar == 0');
+            assert.equal($('#time-current').text(), '00:00', 'current time is 00:00');
+            assert.notEqual($('#time-total').text(), '-- / --', 'current time is not none');
+            callback();
         });
     },
 
@@ -243,6 +262,14 @@ var utils = {
                 }
                 callback();
             }, 3000);
+        });
+    },
+
+    mute: function (assert, callback) {
+        mpcp.player.setvol(0, function () {
+            assert.equal($('#volume').height(), 0, 'volume is 0');
+            assert.ok($('#volume-speaker').hasClass('fa-volume-off'), 'speaker is mute icon');
+            callback();
         });
     },
 

@@ -43,14 +43,18 @@ $(function () {
             $('#random').click();
         }
 
+        // workaround some state issues...
         setTimeout(function () {
-            QUnit.start();
+            mpcp.player.setvol(0, function () {
+                QUnit.start();
+            });
         }, 1000);
     });
 });
 
 var utils = {};
 utils = require('./utils.js')(utils);
+require('./player.js')(utils);
 require('./browser.js')(utils);
 require('./library.js')(utils);
 require('./playlist.js')(utils);

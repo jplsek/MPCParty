@@ -1,7 +1,5 @@
-@minimumWidth: 360px;
-
+$fixed-header-height: 4rem;
 html {
-    min-width: @minimumWidth;
     overflow-x: hidden; // fixes an issue with context-menus
     overflow-y: hidden; // fixes random bugs that occur with changing the table widths dynamically
 }
@@ -10,49 +8,32 @@ html {
     flex-direction: column;
     height: 100vh;
 }
-header {
-    display: -webkit-box; /* fallback for apple webkit */
-    display: flex;
-    -webkit-align-items: center;
+header.navbar {
+    -webkit-align-items: stretch;
     align-items: stretch;
-    min-width: @minimumWidth;
-
-    #header-left {
+    #media-buttons {
         display: -webkit-box; /* fallback for apple webkit */
         display: flex;
-        -webkit-align-items: center;
-        align-items: stretch;
-        margin: 0;
-        box-shadow: none;
-        border: none;
-
-        #volume {
-            width: 30px; // width set for webkit
-            height: 60px;
-            -webkit-appearance: slider-vertical;
-        }
-        #media-buttons {
-            display: -webkit-box; /* fallback for apple webkit */
-            display: flex;
-            -webkit-flex-direction: column;
-            flex-direction: column;
-            justify-content: space-around;
-        }
+        -webkit-flex-direction: column;
+        flex-direction: column;
+        justify-content: space-around;
     }
     #header-middle {
         display: -webkit-box; /* fallback for apple webkit */
         display: flex;
         -webkit-align-items: center;
         align-items: center;
-        flex: 2;
+        flex: 3;
 
         // I want the height of the image to depend on the header,
-        // but only ff seems to do what I want atm. Might try to css hack my
-        // way to get it working later...
+        // but I can't seem to get it to work with the mobile layout...
         #album-art {
             flex: 0;
-            height: 60px;
+            height: $fixed-header-height;
             padding: 0 5px;
+        }
+        #music-time {
+            transition: none;
         }
     }
     #header-right {
@@ -61,7 +42,7 @@ header {
         -webkit-flex-direction: column;
         flex-direction: column;
         justify-content: space-around;
-        width: 200px;
+        flex: 1;
 
         #header-right-top {
             display: -webkit-box; /* fallback for apple webkit */
@@ -70,11 +51,13 @@ header {
         }
     }
 }
-main {
-    display: flex;
+main.row {
+    // nowrap so the page height can stay fixed for the songlist and playlist scrollbars
+    flex-wrap: nowrap;
     flex: 2;
     overflow-y: auto;
     overflow-x: hidden; // dragging off screen
+    padding-top: 0.4rem;
 
     #browser {
         display: flex;
@@ -146,7 +129,6 @@ main {
         }
 
         #pslwrap {
-            border-left: 1px solid #DDD;
             overflow: auto;
             display: flex;
             flex-grow: 2;
@@ -183,16 +165,17 @@ main {
     // display: flex; // hidden by css by default, flex added by js
     flex-direction: column;
 
-    .panel-heading {
-        .panel-default-shown {
+    .card-heading {
+        .card-default-shown {
             display: flex;
             align-items: center;
         }
 
-        .panel-title {
+        .card-title {
             flex: 1;
             text-align: center;
             cursor: move;
+            margin-bottom: 0;
         }
     }
 
@@ -206,10 +189,6 @@ main {
     #pewrap {
         display: flex;
         flex: 1;
-
-        > table {
-            cursor: pointer;
-        }
     }
 
     #pe-song-list {
@@ -233,22 +212,33 @@ main {
     background: #404040;
     color: white;
     padding: 8px;
-    cursor: pointer;
+    cursor: default;
+}
+#crossfade {
+    width: 100%;
 }
 #downloader {
-    min-width: 400px;
+    //min-width: 400px;
 
     #downloader-status {
         min-height: 20px;
     }
 }
 #browser-selection {
-    flex: 0;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    align-items: center;
+
+
+    > * {
+        margin: 0.2rem;
+    }
 }
 #downloader-wrap {
     overflow: auto;
-    height: ~"calc(100vh - 300px)";
+    height: calc(100vh - 300px);
     min-height: 100px;
 }
 #testing { // unit testing ouput
@@ -268,28 +258,23 @@ main {
     }
 }
 .navbar.pages {
-    margin-bottom: 0;
-    display: flex;
     align-items: center;
     justify-content: space-around;
+    flex-wrap: nowrap;
 
-    .page {
-        width:200px;
-        display: flex;
-        align-items: center;
-        justify-content: space-around;
-
-        .form-control {
-            max-width: 80px;
-        }
+    form {
+        max-width: 20%;
+        min-width: 60px;
     }
+}
+.append {
+    cursor: default;
 }
 // floatThead
 table.floatThead-table {
     border-top: none;
     border-bottom: none;
     background-color: #FFF;
-    cursor: pointer;
 }
 .floatThead-wrapper {
     flex-grow: 2;
@@ -302,9 +287,6 @@ table.floatThead-table {
 .flex-full {
     -webkit-box-flex: 1; /* fallback for apple webkit */
     flex: 1;
-}
-.song-list, #downloader-folder-list, #playlist-song-list, #home, #downloader-home, .loc-dir, .downloader-loc-dir,  .playlists, .faded, #library-artists-list, #library-albums-list, #downloader-home {
-    cursor: pointer;
 }
 .faded {
     opacity: 0.5;
@@ -329,6 +311,17 @@ table.floatThead-table {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+// bootstrap4 changes
+.table-hover .fixed-table tr:hover {
+  background: inherit;
+}
+.table .fixed-table td {
+    border: none;
+    padding: 0;
+}
+.breadcrumb {
+    cursor: default;
+}
 .notify {
     position: fixed;
     bottom: 0px;
@@ -337,16 +330,16 @@ table.floatThead-table {
 .playlists, #pe-main, #downloader-folder-list {
     user-select: none; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
 }
-.none { // like .hidden, except without !important
+.none, .card.none {
     display: none;
 }
-.dropdown-menu > li > a.no-hover:hover {
-    background: inherit;
+.dropdown-item.no-hover {
+    &:hover, &:active, &:focus {
+        background: inherit;
+        color: inherit;
+    }
 }
 // bootstrap
-.modal-dialog {
-    min-width: @minimumWidth;
-}
 .dropdown-menu {
     z-index: 1003 !important; // above pe and floathead
 }
@@ -380,8 +373,20 @@ table.floatThead-table {
     flex: 1;
     text-align: center;
 }
-.glyphicon.spinning {
-    animation: spin 1s infinite linear;
+#volume-progress {
+    height: 50%;
+    transform: rotate(180deg);
+    width: 1rem;
+
+    #volume {
+        width: 100%;
+        transform: rotate(180deg);
+    }
+}
+// Make it so when transitioning from mute, the icon does not move
+#volume-speaker-container {
+    display: flex;
+    width: 16px;
 }
 // having an odd issue where a table cell was very small in ff..
 @-moz-document url-prefix() {
@@ -397,12 +402,10 @@ table.table-header {
     // this css...
     display: block;
     margin-bottom: 0;
-    cursor: pointer;
 }
 table.table-header-fixed {
     table-layout: fixed;
     margin-bottom: 0;
-    cursor: pointer;
 }
 @keyframes spin {
     from { transform: scale(1) rotate(0deg) }
@@ -425,31 +428,30 @@ table.table-header-fixed {
 
 // "mobile"
 @media (max-width: 768px) {
+    $item-heights: 500px;
     html {
         overflow-y: auto;
         overflow-x: auto;
     }
-    body {
-        padding-bottom: 75px;
-    }
     #page-wrapper {
         height: auto;
+        padding: 90px 0;
     }
-    main {
-        flex-direction: column;
+    main.row {
         height: auto;
-        align-items: center;
-    }
-    #album-art {
-        display: none;
+        flex-wrap: wrap;
+        justify-content: center;
     }
     // playlist editor
-    #pe, #pe-tab {
+    #pe {
+        height: 200px;
         width: 100%;
     }
     #browser, #playlist, #library {
         margin-top: 16px;
-        height: 500px;
+        // had weird issues with just "height: 500px"
+        max-height: $item-heights;
+        min-height: $item-heights;
     }
     // accessibility for scrolling
     #pslwrap, #slwrap {
@@ -457,37 +459,27 @@ table.table-header-fixed {
         border-right: 1px solid #DDD;
         border-bottom: 1px solid #DDD;
     }
-    header {
-        display: flex;
-        flex-direction: column;
+    header.navbar {
+        position: fixed;
+        // higher than search bars
+        z-index: 3;
+        top: 0;
+        width: 100%;
 
-        #header-left {
-            position: fixed;
-            bottom:0;
-            z-index: 2;
-            width: 100%;
-            min-width: .minimumWidth;
-            #media-buttons {
-                flex-direction: row;
-                width: 90%;
-            }
+        #media-buttons {
+            flex: 1;
         }
-        #header-right {
-            width: 100%;
-        }
-        #music-time {
+
+        #header-middle {
             position: fixed;
-            bottom: 5px;
-            z-index: 3;
-            left: 40px;
-            width: 80%;
+            bottom: 0;
         }
     }
     .space-between {
         display: block;
     }
     #browser-selection {
-        display: flex;
-        width: 80%;
+        height: $item-heights/2;
+        align-self: flex-start;
     }
 }

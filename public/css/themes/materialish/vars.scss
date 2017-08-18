@@ -1,0 +1,137 @@
+$font-family-sans-serif:         'Roboto', 'Helvetica', 'Arial', sans-serif;
+
+$headings-font-weight:           400;
+
+//colors
+$theme-colors: (
+  primary: #2196f3,
+  secondary: $gray-600,
+  success: #4caf50,
+  info: #00bcd4,
+  warning: #ff9800,
+  danger: #f44336,
+  light: #ffffff,
+  dark: $gray-800
+);
+
+$body-bg:                        #fafafa;
+
+// border
+$border-radius-base:             0.2rem;
+$border-radius-large:            $border-radius-base;
+
+// modal
+$modal-content-border-color:     transparent;
+$modal-header-border-color:      transparent;
+$modal-backdrop-opacity:         0.2;
+
+// input
+$input-border-radius:            0;
+$input-border:                   transparent;
+
+// import modified parts of the theme
+@import "../../../../bower_components/bootstrap/scss/_type.scss";
+@import "../../../../bower_components/bootstrap/scss/_utilities.scss";
+@import "../../../../bower_components/bootstrap/scss/_tables.scss";
+@import "../../../../bower_components/bootstrap/scss/_buttons.scss";
+@import "../../../../bower_components/bootstrap/scss/_modal.scss";
+@import "../../../../bower_components/bootstrap/scss/_breadcrumb.scss";
+@import "../../../../bower_components/bootstrap/scss/_forms.scss";
+@import "../../../../bower_components/bootstrap/scss/_input-group.scss";
+@import "../../../../bower_components/bootstrap/scss/_card.scss";
+@import "../../../../bower_components/bootstrap/scss/_navbar.scss";
+@import "../../../../bower_components/bootstrap/scss/_dropdown.scss";
+@import "../../../../bower_components/bootstrap/scss/_nav.scss";
+@import "../../../../bower_components/bootstrap/scss/_reboot.scss";
+@import "../../../../bower_components/bootstrap/scss/mixins/_text-emphasis.scss";
+
+// forms
+.form-control {
+    box-shadow: inset 0 -1px 0px rgba(0, 0, 0, 0.3);
+    transition: box-shadow 0.2s ease;
+    border: none;
+    // custom padding
+    padding: 2px 0;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    box-shadow: inset 0 -1px 0px map-get($theme-colors, "primary");
+    border-color: transparent;
+}
+
+label {
+    font-weight: 400;
+}
+
+// modal
+.modal-content {
+    box-shadow: 0 27px 24px 0 rgba(0, 0, 0, 0.2), 0 40px 77px 0 rgba(0, 0, 0, 0.22);
+    border: none;
+}
+
+$material-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+
+// btn
+.btn {
+    margin: 1px;
+    text-transform: uppercase;
+    box-shadow: $material-shadow;
+}
+
+.btn-group {
+    box-shadow: $material-shadow;
+    border-radius: $border-radius-base;
+}
+
+.btn-group .btn {
+    margin-right: 0;
+    box-shadow: none;
+}
+
+.input-group-addon {
+    border: none;
+}
+
+.input-group-btn:last-child > .btn, .input-group-btn:last-child > .btn-group {
+    margin-top: 0;
+}
+
+.btn.active, .btn:active {
+    box-shadow: none;
+}
+
+// breadcrumb
+
+.breadcrumb {
+    box-shadow: $material-shadow;
+}
+
+// dropdown
+.dropdown-menu {
+    border: 0;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+}
+
+.dropdown-menu > li > a {
+    font-weight: 300;
+}
+
+// nav
+.navbar {
+    box-shadow: $material-shadow;
+}
+
+// card
+.card {
+    border: 0;
+    box-shadow: $material-shadow;
+}
+
+.card-heading {
+    border: 0;
+}
+
+thead tr {
+    background: $body-bg;
+}

@@ -23,7 +23,7 @@
     "tests"
   ],
   "dependencies": {
-    "bootstrap": "^3.3.6",
+    "bootstrap": "4.0.0-beta",
     "toastr": "^2.1.2",
     "jQuery-contextMenu": "^2.1.1",
     "dragula.js": "dragula#^3.7.2"

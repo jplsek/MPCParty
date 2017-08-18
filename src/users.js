@@ -15,11 +15,11 @@ return {
         $('#user-list .gen').remove();
 
         for (var ip in hostnames) {
-            html += '<li class="gen"><a class="no-hover">' + hostnames[ip] +
+            html += '<li class="dropdown-item no-hover gen"><a class="no-hover">' + hostnames[ip] +
                 '</a></li>';
         }
 
-        document.getElementById('user-list').innerHTML = html;
+        document.getElementById('user-list').innerHTML += html;
     },
 
     // returns the hostname (or ip)

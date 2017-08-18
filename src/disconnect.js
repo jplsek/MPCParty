@@ -15,7 +15,7 @@ return {
         // timeout to not show if refreshing the page
         setTimeout(function () {
             var msg = 'The page will refresh when it comes back online.';
-            mpcp.lazyToast.error(msg + '<br>Retrying in <span id="count">1</span> second(s)... <button title="Force a retry" class="retry-server btn btn-warning pull-right"><span class="glyphicon glyphicon-repeat"></span></button>', 'Server Disconnected!', 5000, false);
+            mpcp.lazyToast.error(msg + '<br>Retrying in <span id="count">1</span> second(s)... <button title="Force a retry" class="retry-server btn btn-warning pull-right"><i class="fa fa-repeat"></i></button>', 'Server Disconnected!', 5000, false);
         }, 200);
 
         this.retryWebSocket(1);
