@@ -96,7 +96,10 @@
                     self.last = $(this);
                 }
 
-                $.isFunction(callback) && callback($(options.selector + '.' + actcls, scope), e);
+                if ($.isFunction(callback)) {
+                  var split = actcls.split(" ");
+                  callback($(options.selector + '.' + split.join("."), scope), e);
+                }
             });
 
             /**
@@ -109,6 +112,7 @@
                         return;
                     }
                 }
+
                 if (deselect) {
                     scope.find(options.selector).each(function () {
                         if (!self.checkStatics($(this))) {
@@ -116,7 +120,11 @@
                         }
                     });
                 }
-                $.isFunction(callback) && callback($(options.selector + '.' + actcls, scope), e);
+
+                if ($.isFunction(callback)) {
+                    var split = actcls.split(" ");
+                    callback($(options.selector + '.' + split.join("."), scope), e);
+                }
             });
 
             /**

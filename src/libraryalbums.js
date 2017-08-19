@@ -39,7 +39,7 @@ return {
                 addClass   = '';
 
             if (!albumUse)
-                addClass = 'info';
+                addClass = 'bg-info text-light';
 
             // All row
             html += '<tr class="context-menu gen album library-artist-all ' + addClass + '" data-artist="' + artist + '" title="All"><td>' + tableStart + 'All' + tableEnd + '</td><td class="song-list-icons text-right"><i class="album-add faded text-success fa fa-plus" title="Add album to the bottom of the playlist"></i></td></tr>';
@@ -61,7 +61,7 @@ return {
                 var album = files[i].Album;
 
                 if (album == albumUse)
-                    addClass = 'info';
+                    addClass = 'bg-info text-light';
 
                 html += '<tr class="context-menu gen album ' + addClass + '" data-artist="' + artist + '" data-album="' + album + '" title="' + album + '"><td>' + tableStart + album + tableEnd + '</td><td class="song-list-icons text-right"><i class="album-add faded text-success fa fa-plus" title="Add album to the bottom of the playlist"></i></td></tr>';
                 addClass = '';

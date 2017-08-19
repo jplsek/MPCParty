@@ -5,7 +5,7 @@ return {
         if (!title) title = 'Info';
         if (!timeout) timeout = 5000;
 
-        if (addHistory) mpcp.history.add(msg, 'info');
+        if (addHistory) mpcp.history.add(msg, 'bg-info');
 
         toastr.info(msg, title, {
             'closeButton': true,
@@ -18,7 +18,7 @@ return {
     error: function (msg, title, timeout, addHistory) {
         if (!title) title = 'Error';
 
-        if (addHistory) mpcp.history.add(msg, 'danger');
+        if (addHistory) mpcp.history.add(msg, 'bg-danger');
 
         toastr.error(msg, title, {
             'closeButton': true,
@@ -33,7 +33,7 @@ return {
         if (!title) title = 'Warning';
         if (!timeout) timeout = 5000;
 
-        if (addHistory) mpcp.history.add(msg, 'warning');
+        if (addHistory) mpcp.history.add(msg, 'bg-warning');
 
         toastr.warning(msg, title, {
             'closeButton': true,

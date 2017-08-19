@@ -1,4 +1,4 @@
-$fixed-header-height: 4rem;
+$fixed-header-height: 3.8rem;
 html {
     overflow-x: hidden; // fixes an issue with context-menus
     overflow-y: hidden; // fixes random bugs that occur with changing the table widths dynamically
@@ -17,6 +17,8 @@ header.navbar {
         -webkit-flex-direction: column;
         flex-direction: column;
         justify-content: space-around;
+        // remove shadow behind button group
+        align-items: baseline;
     }
     #header-middle {
         display: -webkit-box; /* fallback for apple webkit */
@@ -30,7 +32,7 @@ header.navbar {
         #album-art {
             flex: 0;
             height: $fixed-header-height;
-            padding: 0 5px;
+            padding: 0 0.3rem;
         }
         #music-time {
             transition: none;
@@ -155,8 +157,8 @@ main.row {
     }
 }
 #pe { // playlist editor
-    width: 400px;
-    height: 300px;
+    width: 25rem;
+    height: 20rem;
     position: fixed;
     margin-bottom: 0;
     bottom: 0;
@@ -209,19 +211,17 @@ main.row {
     bottom: 0;
     right: 0;
     z-index: 1002; // above floathead
-    background: #404040;
-    color: white;
-    padding: 8px;
+    padding: 0.5rem;
     cursor: default;
 }
 #crossfade {
     width: 100%;
 }
 #downloader {
-    //min-width: 400px;
+    min-width: 25rem;
 
     #downloader-status {
-        min-height: 20px;
+        min-height: 1.5rem;
     }
 }
 #browser-selection {
@@ -238,8 +238,8 @@ main.row {
 }
 #downloader-wrap {
     overflow: auto;
-    height: calc(100vh - 300px);
-    min-height: 100px;
+    height: calc(100vh - 20rem);
+    min-height: 10rem;
 }
 #testing { // unit testing ouput
     width: 400px;
@@ -294,12 +294,20 @@ table.floatThead-table {
 .faded:hover {
     opacity: 1;
 }
+#slwrap, #library-artists-wrap, #library-albums-wrap, #library-songs-wrap {
+    // an odd problem with webkit will at first make the element
+    // the same size as the parent has that has a scrollbar, instead
+    // of making it parentWidth-scrollbarWidth, when set at bootstrap's
+    // 100%, until resizing the browser.
+    // This is used to work around that issue.
+    display: flex;
+}
 .nowrap, .song-list-icons, .playlist-song-list-icons {
     white-space:nowrap;
 }
 .song-list-icons {
-    // slightly less jarring when there there is an init width
-    min-width: 25px;
+    // slightly less jarring for songs by themselves
+    min-width: 1.5rem;
 }
 .fixed-table {
     /* magic */
@@ -368,6 +376,7 @@ table.floatThead-table {
     display: -webkit-box; /* fallback for apple webkit */
     display: flex;
     justify-content: space-between;
+    align-self: stretch;
 }
 .main-link {
     flex: 1;
@@ -448,7 +457,6 @@ table.table-header-fixed {
         width: 100%;
     }
     #browser, #playlist, #library {
-        margin-top: 16px;
         // had weird issues with just "height: 500px"
         max-height: $item-heights;
         min-height: $item-heights;
@@ -482,4 +490,25 @@ table.table-header-fixed {
         height: $item-heights/2;
         align-self: flex-start;
     }
+    #downloader {
+        min-width: auto;
+    }
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    // (1)
+    // In bootstrap4, they removed the min-height in navbars. This issue
+    // only effects webkit.
+    // The height is 0 when the scrollbar for the browser or playlist
+    // shows up. This is used to work around this.
+    // Note: in thin-vars.scss, this gets set to a smaller value
+    .pages {
+        min-height: 3rem;
+    }
+}
+
+// See https://github.com/twbs/bootstrap/issues/23553
+.dropdown-menu.dropdown-menu-right {
+    right: 0;
+    left: auto;
 }

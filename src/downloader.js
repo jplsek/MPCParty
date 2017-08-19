@@ -234,7 +234,7 @@ return {
         });
 
         mpcp.downloader.rowSelect =
-            mpcp.utils.rowSelect('.downloader-directory', 'bg-primary', '#downloader-wrap');
+            mpcp.utils.rowSelect('.downloader-directory', 'bg-primary text-light', '#downloader-wrap');
 
         mpcp.downloader.rowSelect.on('enter', function (ele) {
             var dir = $(ele).data().dirid;

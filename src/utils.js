@@ -569,7 +569,7 @@ return {
         if (deselect === undefined) deselect = true;
 
         $(obj.table).multiSelect({
-            actcls: 'info',
+            actcls: 'bg-info text-light',
             selector: 'tr.gen',
             except: disable,
             deselect: deselect,
@@ -600,7 +600,8 @@ return {
 
         for (var i = 0; i < obj.selected.length; ++i) {
             //console.log(obj.selected[i]);
-            $(obj.selected[i])[0].classList.remove('info');
+            $(obj.selected[i])[0].classList.remove('bg-info');
+            $(obj.selected[i])[0].classList.remove('text-light');
         }
 
         obj.selected = [];

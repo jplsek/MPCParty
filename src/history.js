@@ -9,7 +9,7 @@ return {
         if (!type)
             type = '';
         else
-            type = 'bg-' + type;
+            type = 'text-light bg-' + type;
 
         var html = '<tr class="' + type + '"><td>' + mpcp.utils.getTime() + '</td><td>' + title + '</td><td><i class="history-remove faded text-danger fa fa-remove" title="Remove item from history"></i></td></tr>';
         $('#history').prepend(html);

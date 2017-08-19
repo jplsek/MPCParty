@@ -224,7 +224,7 @@ return {
 
                         if (updatedCurrentPlaylist) {
                             var msg = 'You must open the updated playlist for it to update the current playlist.';
-                            mpcp.history.add(msg, 'info');
+                            mpcp.history.add(msg, 'bg-info');
                             toastr.info(msg + '<button title="Reloads the playlist" class="playlist-reload btn btn-default pull-right"><span class="fa fa-repeat"></span></button>', 'Playlist update', {
                                 'closeButton': true,
                                 'positionClass': 'toast-bottom-left',
@@ -375,7 +375,7 @@ return {
     },
 
     initEvents: function () {
-        var rowSelect = mpcp.utils.rowSelect('.playlists-row', 'bg-primary');
+        var rowSelect = mpcp.utils.rowSelect('.playlists-row', 'bg-primary text-light');
 
         rowSelect.on('down', function (ele) {
             var file = $(ele).data().fileid;

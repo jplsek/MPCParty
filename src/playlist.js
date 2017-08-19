@@ -160,6 +160,9 @@ return {
                 current = 'gen';
 
             // highlight current song on first load
+            // I would use text-light, but the multiselect is finicky.
+            // It would remove the text-light when clicking on the currently
+            // playing song.
             if (mpcp.player.current && value.Id == mpcp.player.current.Id)
                 current += ' bg-success';
 

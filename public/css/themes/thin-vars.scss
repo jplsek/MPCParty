@@ -1,3 +1,5 @@
+$font-size-base: 0.9rem;
+$font-size-sm: 0.75rem;
 $table-cell-padding: 0.1rem;
 $breadcrumb-padding-y: 0.1rem;
 $breadcrumb-padding-x: 0.2rem;
@@ -6,6 +8,26 @@ $nav-link-padding-x: 0.4rem;
 $navbar-padding-y: 0.1rem;
 $navbar-padding-x: 0.2rem;
 $form-group-margin-bottom: 0.5rem;
+$form-check-margin-bottom: 0.1rem;
 $input-height: auto;
 $input-btn-padding-y: 0.2rem;
 $input-btn-padding-x: 0.4rem;
+$dropdown-padding-y: 0.2rem;
+$dropdown-item-padding-x: 1rem;
+$spacer: 0.1rem;
+$modal-header-padding: 10px;
+$modal-inner-padding: 10px;
+
+$h1-font-size: 2rem;
+$h2-font-size: 1.75rem;
+$h3-font-size: 1.5rem;
+$h4-font-size: 1.25rem;
+$h5-font-size: 1.15rem;
+$h6-font-size: 0.9rem;
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    // see (1) in overwrite.scss
+    .pages {
+        min-height: 2rem;
+    }
+}
