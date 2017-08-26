@@ -118,6 +118,9 @@ return {
                     document.getElementById('play').style.display = 'none';
                     document.getElementById('pause').classList.remove('active');
                     mpcp.progressbar.start();
+                    // updating immediately makes it so when skipping songs that
+                    // the progressbar updates immediately
+                    mpcp.progressbar.update();
                     break;
 
                 case 'pause':
@@ -155,6 +158,9 @@ return {
 
             if (!status.xfade) status.xfade = 0;
             document.getElementById('crossfade').value = status.xfade;
+            // keep the minimum of 1 for skipping songs
+            if (status.xfade > 1)
+                mpcp.progressbar.crossfade = status.xfade;
 
             mpcp.player.callbackUpdate();
             if (callback) callback();

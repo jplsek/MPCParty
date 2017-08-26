@@ -8,6 +8,8 @@ return {
     musicprogress: null,
     // the song time. Set to 1 to avoid 0/0
     max: 1,
+    // crossfade from the server
+    crossfade: 1,
 
     progressfn: function () {
         // avoid 'this' as it's in a new scope of setInterval
@@ -38,8 +40,22 @@ return {
     },
 
     update: function () {
+        // This makes it so the transition to 0 seconds is not animated after
+        // skipping to a different song. Adding the variable check as to not
+        // update the transition style every time.
+        // It is based on the crossfade because of the animation from finishing
+        // a song to the start of the next song.
+        if (mpcp.progressbar.progress < parseInt(mpcp.progressbar.crossfade)) {
+            document.getElementById('music-time').style.transition = 'none';
+            mpcp.progressbar.transition = false;
+        } else if (!mpcp.progressbar.transition) {
+            document.getElementById('music-time').style.transition =
+                'all 1s linear';
+            mpcp.progressbar.transition = true;
+        }
+
         document.getElementById('music-time').style.width =
-            mpcp.progressbar.progress / mpcp.progressbar.max * 100 + "%";
+            mpcp.progressbar.progress / mpcp.progressbar.max * 100 + '%';
 
         if (mpcp.progressbar.progress == 0 && mpcp.progressbar.max == 1 &&
                 !mpcp.player.current)

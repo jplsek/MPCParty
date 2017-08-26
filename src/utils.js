@@ -644,13 +644,15 @@ return {
 
     // A slider that can be clicked on and draged. Return a percent of
     // the location when activated.
-    customSlider: function (container, slider, vertical, dragFn, startFn, endFn) {
+    customSlider: function (
+            container, slider, vertical, dragFn, startFn, endFn) {
         container = document.getElementById(container);
         slider = document.getElementById(slider);
         var dragging = false;
+        slider.style.transition = 'all 1s linear';
 
         // drag start
-        container.addEventListener("mousedown", function(e) {
+        container.addEventListener('mousedown', function(e) {
             if (!(e.target.id == container.id || e.target.id == slider.id))
                 return;
 
@@ -658,20 +660,25 @@ return {
                 startFn();
 
             updateSlider(e);
+
+            slider.style.transition = 'none';
+
             dragging = true;
         });
 
         // drag during
-        document.addEventListener("mousemove", function(e) {
-            if (!(dragging && (e.target.id == container.id || e.target.id == slider.id)))
+        document.addEventListener('mousemove', function(e) {
+            if (!(dragging && (e.target.id == container.id ||
+                               e.target.id == slider.id)))
                 return;
 
             updateSlider(e);
         });
 
         // drag end
-        document.addEventListener("mouseup", function(e) {
-            if (!(dragging && (e.target.id == container.id || e.target.id == slider.id)))
+        document.addEventListener('mouseup', function(e) {
+            if (!(dragging && (e.target.id == container.id ||
+                               e.target.id == slider.id)))
                 return;
 
             var percent = updateSlider(e);
@@ -679,6 +686,8 @@ return {
 
             if (endFn)
                 endFn(percent);
+
+            slider.style.transition = 'all 1s linear';
         });
 
         function updateSlider(e) {
@@ -686,10 +695,10 @@ return {
 
             if (vertical) {
                 percent = getPercent(e.pageY);
-                slider.style.height = parseInt(percent * 100) + "%";
+                slider.style.height = parseInt(percent * 100) + '%';
             } else {
                 percent = getPercent(e.pageX);
-                slider.style.width = parseInt(percent * 100) + "%";
+                slider.style.width = parseInt(percent * 100) + '%';
             }
 
             if (dragFn)
@@ -713,9 +722,9 @@ return {
             }
 
             if (percent > 1)
-              percent = 1;
+                percent = 1;
             else if (percent < 0)
-              percent = 0;
+                percent = 0;
 
             return percent;
         }
