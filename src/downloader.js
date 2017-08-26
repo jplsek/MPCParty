@@ -22,12 +22,9 @@ return {
     // download the video
     download: function (url, location) {
         if (url !== '') {
-            mpcp.socket.send(JSON.stringify({
-                    'type': 'downloader-download',
-                    'url': url,
-                    'location': location
-                    }), function (err) {
-                if (err) console.log(err);
+            mpcp.socket.emit('downloader-download', {
+                'url': url,
+                'location': location
             });
         }
     },
@@ -116,13 +113,11 @@ return {
 
         $('#downloader-location-crumb ol')[0].innerHTML += html;
 
-        komponist.lsinfo(directory, function (err, files) {
+        mpcp.socket.emit('mpc', 'database.listInfo', directory, (files) => {
             //console.log(files);
-            if (err) return console.log(err);
 
             $(mpcp.downloader.table + ' .gen').remove();
             mpcp.downloader.localFolders = [];
-            files = mpcp.utils.toArray(files);
 
             if (!files.length) {
                 html = '<tr class="directory gen"><td colspan="6">' +

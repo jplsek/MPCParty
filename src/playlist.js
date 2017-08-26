@@ -49,17 +49,12 @@ return {
             // which is used for 'movetocurrent', the 'remove last song' bug
             // and other operations
             mpcp.player.updateAll(function () {
-                komponist.playlistinfo(function (err, playlistLoad) {
+                mpcp.socket.emit('mpc', 'currentPlaylist.playlistInfo',
+                    (playlistLoad) => {
                     $('#playlist-title strong')[0].innerHTML =
                         mpcp.playlist.current;
                     $('#playlist-title strong').attr('title',
                         mpcp.playlist.current);
-
-                    if (err) {
-                        console.log(err);
-                        mpcp.playlist.callbackUpdate();
-                        return;
-                    }
 
                     document.getElementById(mpcp.playlist.tbodyid).innerHTML = '';
                     mpcp.playlist.local = playlistLoad;
@@ -411,40 +406,10 @@ return {
         this.add(dir, to, callback);
     },
 
-    // wrapper for komponist.findadd
-    findAdd: function (artist, album) {
-        if (!album) {
-            komponist.findadd('artist', artist, function (err, files) {
-                setSongs(err, files);
-            });
-        } else {
-            komponist.findadd(
-                    'artist', artist, 'album', album, function (err, files) {
-                setSongs(err, files);
-            });
-        }
-
-        function setSongs (err, files) {
-            if (err) console.log(err);
-            // no files in response
-
-            mpcp.playlist.addCallbackUpdate(function () {
-                mpcp.pages.go('playlist', mpcp.pages.totalPlaylist, true);
-            });
-        }
-    },
-
     // plays the song in the playlist
     playSong: function (file) {
         console.log('play song from playlist: ' + file);
-        komponist.playid(file, function (err, val) {
-            // false positive error
-            if (err && err.message !=
-                    'Integer expected: undefined [2@0] {playid}') {
-                console.log('Error: No song found to play');
-                console.log(err);
-            }
-        });
+        mpcp.socket.emit('mpc', 'playback.playId', file);
     },
 
     // wrapper for playSong, given an element
@@ -472,20 +437,17 @@ return {
             j = 0;
 
         $(this.local).each(function (item, file) {
-            if (duplicate[file.file] && (mpcp.player.current === null ||
-                        file.Pos != mpcp.player.current.Pos)) {
-                komponist.deleteid(file.Id, function (err, val) {
-                    if (err) {
-                        console.log('Error: Cannot remove duplicate file, this might be a bug');
-                        console.log(err);
-                    }
+            if (duplicate[file.path] && (mpcp.player.current === null ||
+                        file.pos != mpcp.player.current.pos)) {
+                mpcp.socket.emit('mpc', 'currentPlaylist.deleteId', file.id,
+                        () => {
 
                     if (++j == Object.keys(mpcp.playlist.local).length &&
                             callback)
                         mpcp.playlist.addCallbackUpdate(callback);
                 });
             } else {
-                duplicate[file.file] = true;
+                duplicate[file.path] = true;
 
                 if (++j == Object.keys(mpcp.playlist.local).length && callback)
                     mpcp.playlist.addCallbackUpdate(callback);
@@ -499,18 +461,13 @@ return {
     // remove song from the playlist. The element must be removed
     // manually before or after calling!
     removeSong: function (fileid) {
-        komponist.deleteid(fileid, function (err, val) {
-            if (err) console.log('No song with id ' + fileid + ' to delete!');
-        });
+        mpcp.socket.emit('mpc', 'currentPlaylist.deleteId', fileid);
 
         // playlist doesn't get updated when the same song being removed is
         // playling (future me: this happens with not only pause, but other
         // times as well, so dont check for a pause flag!)
         if (mpcp.player.current && fileid == mpcp.player.current.Id)
-            socket.send(JSON.stringify(
-                    {'type': 'update-playlist'}), function (err) {
-                if (err) console.log(err);
-            });
+            mpcp.socket.emit('update-playlist');
     },
 
     // wrapper for removeSong, given an element
@@ -566,9 +523,7 @@ return {
                 file = $(tr).data().fileid;
                 mpcp.playlist.toPulse.push(file);
 
-                komponist.moveid(file, item, function (err) {
-                    if (err) console.log(err);
-                });
+                mpcp.socket.emit('mpc', 'currentPlaylist.moveId', file, item);
             });
 
             // clear selected just in case.
@@ -830,10 +785,7 @@ return {
 
         // this is done server-side to fix a bug:
         // refresh -> add -> play -> clear does not work
-        socket.send(JSON.stringify({'type': 'clear-playlist'}),
-                function (err) {
-            if (err) console.log(err);
-        });
+        mpcp.socket.emit('clear-playlist');
     },
 
     scramble: function (callback) {

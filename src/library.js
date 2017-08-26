@@ -107,22 +107,21 @@ return {
     getSongsFromAlbum: function (artist, album, callback) {
         // TODO fix special characters
         if (!album) {
-            komponist.find('artist', artist, function (err, files) {
-                setSongs(err, files);
+            mpcp.socket.emit('mpc', 'database.find', ['artist', artist],
+                    (files) => {
+                setSongs(files);
             });
         } else {
-            komponist.find('artist', artist, 'album', album,
-                    function (err, files) {
-                setSongs(err, files);
+            mpcp.socket.emit('mpc', 'database.find',
+                    ['artist', artist, 'album', album], (files) => {
+                setSongs(files);
             });
         }
 
-        function setSongs (err, files) {
+        function setSongs (files) {
             //console.log(files);
-            files = mpcp.utils.toArray(files);
-
-            if (!files.length || (files.length == 1 && !files[0].Album &&
-                        !files[0].Artist)) {
+            if (!files.length || (files.length == 1 && !files[0].album &&
+                        !files[0].artist)) {
                 console.log('No songs found');
                 mpcp.lazyToast.warning('This may be an issue with special characters: ' + album, 'No songs found');
                 return;

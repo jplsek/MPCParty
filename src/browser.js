@@ -94,14 +94,11 @@ return {
 
         $('#location ol')[0].innerHTML += html;
 
-        komponist.lsinfo(directory, function (err, files) {
-            //console.log(files);
-            if (err) return console.log(err);
-
+        mpcp.socket.emit('mpc', 'database.listInfo', directory, (files) => {
+            console.log(files);
             document.getElementById(mpcp.browser.tbodyid).innerHTML = '';
             mpcp.browser.localFolders = [];
             mpcp.browser.localFiles = [];
-            files = mpcp.utils.toArray(files);
 
             if (!files.length) {
                 html = '<tr class="directory gen"><td colspan="6">' +
@@ -143,21 +140,12 @@ return {
         }
 
         // search for tag
-        komponist.search('any', name, function (err, anyFiles) {
-            if (err) {
-                if (callback) callback();
-                return console.log(err);
-            }
+        mpcp.socket.emit('mpc', 'database.search', ['any', name],
+            (anyFiles) => {
 
             // search for file name
-            komponist.search('file', name, function (err, files) {
-                if (err) {
-                    if (callback) callback();
-                    return console.log(err);
-                }
-
-                anyFiles = mpcp.utils.toArray(anyFiles);
-                files = mpcp.utils.toArray(files);
+            mpcp.socket.emit('mpc', 'database.search', ['file', name],
+                    (files) => {
 
                 //console.log(anyFiles);
                 //console.log(files);
@@ -244,12 +232,12 @@ return {
             strippedDir = '',
             html        = '';
 
-        if (value.directory) {
+        if (value.entryType == 'directory') {
             //console.log('dir');
 
-            strippedDir = mpcp.utils.stripSlash(value.directory);
+            strippedDir = mpcp.utils.stripSlash(value.path);
 
-            html = '<tr class="context-menu directory gen" data-dirid="' + value.directory + '"><td class="song-list-icons"><i class="text-warning fa fa-folder-open"></i> <i class="folder-open faded fa fa-share" title="Open directory. Note: You can double click the directory to open"></i></a></td><td colspan="3" class="width100" title="' + strippedDir + '">' + tableStart + strippedDir + tableEnd + '</td><td colspan="2" class="song-list-icons text-right"><i class="dir-add faded text-success fa fa-plus" title="Add whole directory of songs to the bottom of the playlist"></i></td></tr>';
+            html = '<tr class="context-menu directory gen" data-dirid="' + value.path + '"><td class="song-list-icons"><i class="text-warning fa fa-folder-open"></i> <i class="folder-open faded fa fa-share" title="Open directory. Note: You can double click the directory to open"></i></a></td><td colspan="3" class="width100" title="' + strippedDir + '">' + tableStart + strippedDir + tableEnd + '</td><td colspan="2" class="song-list-icons text-right"><i class="dir-add faded text-success fa fa-plus" title="Add whole directory of songs to the bottom of the playlist"></i></td></tr>';
         }
 
         return html;
@@ -261,17 +249,17 @@ return {
             stripFile  = '',
             html       = '';
 
-        if (value.file) {
+        if (value.entryType == 'song') {
             //console.log('file');
 
-            value.Album  = (!value.Album ? mpcp.settings.unknown :
-                    value.Album);
-            value.Artist = (!value.Artist ? mpcp.settings.unknown :
-                    value.Artist);
-            stripFile    = mpcp.utils.stripSlash(value.file);
-            value.Title  = (!value.Title ? stripFile : value.Title);
+            value.album  = (!value.album ? mpcp.settings.unknown :
+                    value.album);
+            value.artist = (!value.artist ? mpcp.settings.unknown :
+                    value.artist);
+            stripFile    = mpcp.utils.stripSlash(value.path);
+            value.title  = (!value.title ? stripFile : value.title);
 
-            html = '<tr class="context-menu file gen" data-fileid="' + value.file + '"><td class="song-list-icons pos"><i class="text-primary fa fa-file"></i></td><td title="' + value.Title + '">' + tableStart + value.Title + tableEnd + '</td><td title="' + value.Artist + '">' + tableStart + value.Artist + tableEnd + '</td><td title="' + value.Album + '">' + tableStart + value.Album + tableEnd + '</td><td class="nowrap">' + mpcp.utils.toMMSS(value.Time) + '</td><td class="song-list-icons text-right"><i class="song-add faded text-success fa fa-plus" title="Add song to the bottom of the playlist"></i></td></tr>';
+            html = '<tr class="context-menu file gen" data-fileid="' + value.path + '"><td class="song-list-icons pos"><i class="text-primary fa fa-file"></i></td><td title="' + value.title + '">' + tableStart + value.title + tableEnd + '</td><td title="' + value.artist + '">' + tableStart + value.artist + tableEnd + '</td><td title="' + value.album + '">' + tableStart + value.album + tableEnd + '</td><td class="nowrap">' + mpcp.utils.toMMSS(value.duration) + '</td><td class="song-list-icons text-right"><i class="song-add faded text-success fa fa-plus" title="Add song to the bottom of the playlist"></i></td></tr>';
         }
 
         return html;
@@ -282,15 +270,7 @@ return {
         console.log('updatePosition');
         var tr = $('.song-list tbody').children('.file');
 
-        komponist.currentsong(function (err, song) {
-            if (err) {
-                window.dispatchEvent(new CustomEvent("MPCperowserChanged"));
-
-                if (callback) callback();
-
-                return console.log(err);
-            }
-
+        mpcp.socket.emit('mpc', 'status.currentSong', (song) => {
             if ($.isEmptyObject(song))
                 mpcp.player.setCurrent(null);
             else
@@ -392,7 +372,7 @@ return {
 
     // show song information to the user
     getSongInfo: function (file, callback) {
-        komponist.find('file', file, function (err, value) {
+        mpcp.socket.emit('mpc', 'database.find', ['file', file], (value) => {
             mpcp.utils.parseSongInfo(err, value[0], callback);
         });
     },
@@ -402,48 +382,33 @@ return {
         console.log('add all songs from ' + this.current);
 
         if (this.searching) {
-            komponist.search('any', this.searchTerm,
-                    function (err, files) {
-                if (err) {
-                    console.log(err);
-                    if (callback) callback();
-                    return;
-                }
-
-                if ($.isEmptyObject(files[0])) {
-                    console.log('No songs found');
-                    if (callback) callback();
-                    return;
-                }
-
-                if (mpcp.pe.current !== null)
-                    mpcp.pe.addSong(files, null, callback);
-                else {
-                    mpcp.playlist.addCallbackUpdate(callback);
-
-                    $(files).each(function (item, value) {
-                        komponist.add(value.file, function (err) {
-                            if (err) console.log(err);
-                        });
-                    });
-                }
-            });
-        } else {
-            if (mpcp.pe.current) {
-                mpcp.utils.getAllInfo(this.current, function (files) {
-                    mpcp.pe.addSong(files, null, callback);
-                });
-            } else {
-                komponist.lsinfo(this.current, function (err, files) {
-                    //console.log(files);
-
-                    if (err) {
-                        console.log(err);
+            if (mpcp.pe.current !== null) {
+                mpcp.socket.emit('mpc', 'database.search',
+                    ['any', this.searchterm], (files) => {
+                    if ($.isEmptyObject(files[0])) {
+                        console.log('No songs found');
                         if (callback) callback();
                         return;
                     }
 
-                    files = mpcp.utils.toArray(files);
+                    mpcp.pe.addSong(files, null, callback);
+                });
+            } else {
+                mpcp.socket.emit('mpc', 'database.searchAdd',
+                    ['any', this.searchTerm], (files) => {
+                    if (callback) callback();
+                });
+            }
+        } else {
+            if (mpcp.pe.current) {
+                mpcp.socket.emit('mpc', 'database.listAllInfo',
+                        ['any', this.current], (files) => {
+                    mpcp.pe.addSong(files, null, callback);
+                });
+            } else {
+                mpcp.socket.emit('mpc', 'database.listInfo', this.current,
+                        (files) => {
+                    //console.log(files);
 
                     if (!files.length) {
                         console.log('Empty directory');
@@ -589,18 +554,9 @@ return {
                 var updateInterval = setInterval(function () {
                     console.log('checking if update db is done...');
 
-                    komponist.status(function (err, status) {
-                        if (err) {
-                            $('#update .fa')[0].classList.remove('fa-spin');
-                            clearInterval(updateInterval);
-                            mpcp.lazyToast.error(
-                                    'Error getting the status from MPD!');
-
-                            return console.log(err);
-                        }
-
+                    mpcp.socket.emit('mpc', 'status.status', (status) => {
                         // incase job id is 0/1, just check if undefined
-                        if (status.updating_db === undefined) {
+                        if (!status.updating) {
                             // stop interval and send update-browser
                             // to everyone
                             clearInterval(updateInterval);
@@ -608,11 +564,7 @@ return {
                             mpcp.lazyToast.info(
                                     'Music library updated!', 'Library');
 
-                            socket.send(JSON.stringify(
-                                    {'type': 'update-browser'}),
-                                    function (err) {
-                                if (err) console.log(err);
-                            });
+                            mpcp.socket.emit('update-browser');
                         }
                     });
                 }, 500);

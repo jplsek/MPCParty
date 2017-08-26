@@ -29,7 +29,6 @@ return {
             //console.log(files);
 
             $(mpcp.libraryArtists.table + ' .gen').remove();
-            files = mpcp.utils.toArray(files);
 
             var html = '';
 

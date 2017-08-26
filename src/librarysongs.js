@@ -26,40 +26,33 @@ return {
         mpcp.library.album = album;
 
         if (!album) {
-            komponist.find('artist', artist, function (err, files) {
-                setSongs(err, files);
+            mpcp.socket.emit('mpc', 'database.find', ['artist', artist],
+                    (files) => {
+                setSongs(files);
             });
         } else {
-            komponist.find('artist', artist, 'album', album,
-                    function (err, files) {
-                setSongs(err, files);
+            mpcp.socket.emit('mpc', 'database.find',
+                    ['artist', artist, 'album', album], (files) => {
+                setSongs(files);
             });
         }
 
         if (!poppedState) mpcp.library.addToHistory();
 
-        function setSongs(err, files) {
-            if (err) {
-                console.log(err);
-                if (callback) callback();
-                return;
-            }
-
+        function setSongs(files) {
             //console.log(files);
-
             $(mpcp.librarySongs.table + ' .gen').remove();
-            files = mpcp.utils.toArray(files);
-
             var html = '';
 
-            if (!files.length || (files.length == 1 && !files[0].Album &&
-                        !files[0].Artist)) {
+            if (!files.length || (files.length == 1 && !files[0].album &&
+                        !files[0].artist)) {
                 html = '<tr class="gen"><td colspan="6">' +
                     '<em class="text-muted">No songs found</em></td></tr>';
                 document.getElementById(mpcp.librarySongs.tbodyid).innerHTML = html;
                 window.dispatchEvent(new CustomEvent('MPCPLibrarySongsChanged'));
                 console.log('No songs found');
                 if (callback) callback();
+                return;
             }
 
             var tableStart = '<table class="fixed-table"><tr><td>',
@@ -108,18 +101,17 @@ return {
 
         if (mpcp.library.artist && mpcp.library.album) {
             //console.log('search artist and album');
-            komponist.search('artist', mpcp.library.artist, 'album',
-                    mpcp.library.album, 'title', title, function (err, files) {
-                if (err) return console.log(err);
-                compare(files);
-            });
+            mpcp.socket.emit('mpc', 'database.search', [
+                        'artist', mpcp.library.artist,
+                        'album', mpcp.library.album,
+                        'title', title
+                    ], compare);
         } else if (mpcp.library.artist) {
             //console.log('search artist');
-            komponist.search('artist', mpcp.library.artist,
-                    'title', title, function (err, files) {
-                if (err) return console.log(err);
-                compare(files);
-            });
+            mpcp.socket.emit('mpc', 'database.search', [
+                        'artist', mpcp.library.artist,
+                        'title', title
+                    ], compare);
         } else {
             console.log('no artist or album selected?');
             if (callback) callback();

@@ -18,12 +18,12 @@ html
         script(src='/js/jquery-ui.min.js')
         script(src='/popper/popper.min.js')
         script(src='/bootstrap/js/bootstrap.min.js')
-        script(src='/js/komponist.build.js')
         script(src='/js/jQuery_sortColumn.js')
         script(src='/js/jquery-multiselect.js')
         script(src='/toastr/toastr.min.js')
         script(src='/dragula/dragula.min.js')
         script(src='/jquery-contextmenu/jquery.contextMenu.min.js')
+        script(src='/socket.io/socket.io.js')
         script(src='/mpcparty.js')
         if (config.testing)
             link(rel='stylesheet', href='https://code.jquery.com/qunit/qunit-1.23.1.css')
@@ -251,7 +251,7 @@ html
                             button#random.btn.btn-outline-dark(title='Select random songs in playlist')
                                 i.fa.fa-random
                 // set background for mobile
-                #header-middle.bg-light 
+                #header-middle.bg-light
                     img#album-art
                     #time-bar.flex-full.text-center
                         table#title.fixed-table
@@ -309,7 +309,7 @@ html
                             input#search-browser.form-control(type='text', placeholder='Search songs...')
                             span.input-group-addon
                                 i#search-clear.fa.fa-remove
-                                  
+
             mixin pages(id)
                 .pages.navbar.bg-light(id=id+'-pages')
                     button.btn.btn-light.first(title='Go to first page')

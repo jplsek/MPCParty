@@ -163,13 +163,7 @@ return {
     // wrapper (similar to komponist.addid)
     addid: function (fileid, pos, callback) {
         //console.log(fileid);
-        komponist.find('file', fileid, function (err, value) {
-            if (err) {
-                console.log(err);
-                if (callback) callback();
-                return;
-            }
-
+        mpcp.socket.emit('mpc', 'database.find', ['file', fileid], (files) => {
             //console.log(value);
             value = value[0];
 
@@ -191,9 +185,8 @@ return {
         }
 
         function setFile(fileid) {
-            komponist.find('file', content, function (err, value) {
-                if (err) return console.log(err);
-
+            mpcp.socket.emit('mpc', 'database.find', ['file', fileid],
+                (files) => {
                 value = value[0];
 
                 if (value.file && !value.directory) {
@@ -284,13 +277,8 @@ return {
 
     // open the playlist to the pe
     open: function (file, callback) {
-        komponist.listplaylistinfo(file, function (err, val) {
-            if (err) {
-                console.log(err);
-                if (callback) callback();
-                return;
-            }
-
+        mpcp.socket.emit('mpc', 'storedPlaylist.listPlaylistInfo', file,
+                (val) => {
             mpcp.pe.clear();
             mpcp.pe.addSong(val, null, callback);
         });

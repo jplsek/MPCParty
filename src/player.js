@@ -19,15 +19,7 @@ return {
 
     updateAll: function (callback) {
         // set song title
-        komponist.currentsong(function (err, song) {
-            if (err) {
-                console.log(err);
-                mpcp.player.updateControls(callback);
-                return;
-            }
-
-            //console.log(song);
-
+        mpcp.socket.emit('mpc', 'status.currentSong', (song) => {
             if ($.isEmptyObject(song)) {
                 document.getElementById('title-text').innerHTML =
                     '<em class="text-muted" title="No song selected">No song selected</em>';
@@ -43,10 +35,10 @@ return {
             }
 
             mpcp.player.title = mpcp.utils.getSimpleTitle(
-                    song.Title, song.Artist, song.file);
+                    song.title, song.artist, song.path);
 
             if (mpcp.player.current &&
-                    mpcp.player.current.file != song.file) {
+                    mpcp.player.current.file != song.path) {
                 mpcp.history.add('Playing: ' + mpcp.player.title);
             }
 
@@ -55,10 +47,10 @@ return {
             $('#title-text').attr('title', mpcp.player.title);
             document.title =  mpcp.player.title + ' - MPCParty';
             document.getElementById('title-pos').innerHTML =
-                (parseInt(song.Pos) + 1) + '. ';
-            mpcp.progressbar.max = song.Time;
+                (parseInt(song.postition) + 1) + '. ';
+            mpcp.progressbar.max = song.duration;
             document.getElementById('time-total').innerHTML =
-                ' / ' + mpcp.utils.toMMSS(song.Time);
+                ' / ' + mpcp.utils.toMMSS(song.duration);
 
             // highlight song in playlist with song.Id and data-fileid
             // this happens with only a player update
@@ -77,15 +69,8 @@ return {
 
     // set player properties
     updateControls: function (callback) {
-        komponist.status(function (err, status) {
+        mpcp.socket.emit('mpc', 'status.status', (status) => {
             //console.log(status);
-            if (err) {
-                console.log(err);
-                mpcp.player.callbackUpdate();
-                if (callback) callback();
-                return;
-            }
-
             mpcp.progressbar.progress = status.elapsed;
 
             if (mpcp.player.current !== null && status.state == 'stop') {
@@ -163,9 +148,8 @@ return {
 
     // set interface properties
     updateMixer: function () {
-        komponist.status(function (err, status) {
+        mpcp.socket.emit('mpc', 'status.status', (status) => {
             //console.log(status);
-            if (err) return console.log(err);
 
             if (status.error) {
                 mpcp.lazyToast.error(status.error);
@@ -199,8 +183,8 @@ return {
     // set int's so there is less parsing when accessing mpcp.player.current
     setCurrent: function (song) {
         if (song) {
-            song.Id  = parseInt(song.Id);
-            song.Pos = parseInt(song.Pos);
+            song.id  = parseInt(song.id);
+            song.postition = parseInt(song.postition);
         }
 
         this.current = song;
@@ -274,29 +258,14 @@ return {
 
             if (!document.getElementById('next').classList.contains('active')) {
                 document.getElementById('next').classList.add('active');
-
-                socket.send(JSON.stringify({
-                    'type': 'song-vote-next', 'info': 'yes'
-                }), function (err) {
-                    if (err) console.log(err);
-                });
-
+                mpcp.socket.emit('song-vote-next', {'info': 'yes'});
             } else {
                 document.getElementById('next').classList.remove('active');
-
-                socket.send(JSON.stringify({
-                    'type': 'song-vote-next', 'info': 'no'
-                }), function (err) {
-                    if (err) console.log(err);
-                });
+                mpcp.socket.emit('song-vote-next', {'info': 'no' });
             }
         } else {
             console.log('next');
-            socket.send(JSON.stringify({
-                'type': 'song-next'
-            }), function (err) {
-                if (err) console.log(err);
-            });
+            mpcp.socket.emit('song-next');
 
             // if skipping too fast, race conditions happen
             var current = mpcp.player.current;
@@ -318,27 +287,15 @@ return {
             mpcp.player.addCallbackUpdate(callback);
 
             if (!document.getElementById('previous').classList.contains('active')) {
-                socket.send(JSON.stringify({
-                    'type': 'song-vote-previous', 'info': 'yes'
-                }), function (err) {
-                    if (err) console.log(err);
-                });
+                mpcp.socket.emit('song-vote-previous', {'info': 'yes'});
                 document.getElementById('previous').classList.add('active');
             } else {
                 document.getElementById('previous').classList.remove('active');
-                socket.send(JSON.stringify({
-                    'type': 'song-vote-previous', 'info': 'no'
-                }), function (err) {
-                    if (err) console.log(err);
-                });
+                mpcp.socket.emit('song-vote-previous', {'info': 'no'});
             }
         } else {
             console.log('previous');
-            socket.send(JSON.stringify({
-                'type': 'song-previous'
-            }), function (err) {
-                if (err) console.log(err);
-            });
+            mpcp.socket.emit('song-previous');
 
             // if skipping too fast, race conditions happen
             var current = mpcp.player.current;
@@ -358,11 +315,7 @@ return {
         if (callback)
             mpcp.player.volumeCallbacks.push(callback);
 
-        socket.send(JSON.stringify({
-            'type': 'toggle-mute',
-        }), function (err) {
-            if (err) console.log(err);
-        });
+        mpcp.socket.emit('toggle-mute');
     },
 
     setvol: function (volume, callback) {

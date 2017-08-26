@@ -31,7 +31,6 @@ return {
             }
 
             $(mpcp.libraryAlbums.table + ' .gen').remove();
-            files = mpcp.utils.toArray(files);
 
             var html       = '',
                 tableStart = '<table class="fixed-table"><tr><td>',

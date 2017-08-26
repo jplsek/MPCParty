@@ -289,11 +289,7 @@ return {
                     $('#playlist-title strong')[0].innerHTML = file;
                     $('#playlist-title strong').attr('title', file);
 
-                    socket.send(JSON.stringify({
-                        'type': 'playlist-title', 'info': file
-                    }), function (err) {
-                        if (err) console.log(err);
-                    });
+                    mpcp.socket.emit('playlist-title', {'info': file});
 
                     if (callback) callback();
                 });
@@ -361,11 +357,7 @@ return {
                     $('#playlist-title strong')[0].innerHTML = file;
                     $('#playlist-title strong').attr('title', file);
 
-                    socket.send(JSON.stringify({
-                        'type': 'playlist-title', 'info': file
-                    }), function (err) {
-                        if (err) console.log(err);
-                    });
+                    mpcp.socket.emit('playlist-title', {'info': file});
 
                     mpcp.playlist.addCallbackUpdate(callback);
                 });

@@ -29,38 +29,6 @@ mpcp.tableHeader    = require('./tableheader.js')(mpcp);
 require('./contextmenu.js')(mpcp);
 require('./draganddrop.js')(mpcp);
 
-komponist.on('changed', function (system) {
-    console.log('changed: ' + system);
-
-    switch (system) {
-        case 'player':
-            mpcp.player.updateAll();
-            break;
-
-        case 'playlist':
-            mpcp.playlist.updateAll();
-            break;
-
-        case 'mixer':
-            mpcp.player.updateMixer();
-            break;
-
-        case 'options':
-            mpcp.player.updateControls();
-            break;
-
-        case 'update':
-            mpcp.browser.update();
-            mpcp.utils.updateStats();
-            break;
-
-        case 'stored_playlist':
-            mpcp.stored.updatePlaylists('#playlist-open-modal');
-            mpcp.stored.updatePlaylists('#playlist-save-modal');
-            break;
-    }
-});
-
 // misc events
 $(document).on('click', '.stop-click-event', function (event) {
     // stop bootstrap from closing the dropdown
@@ -74,17 +42,11 @@ $('.dropdown').on('hide.bs.dropdown', function (e) {
 
 $(document).on('click', '.stop-server', function () {
     console.log('you stopped the server');
-    mpcp.socket.send(JSON.stringify({'type': 'stop-server'}), function (err) {
-        if (err) console.log(err);
-    });
+    mpcp.socket.emit('stop-server');
 });
 
 $(document).on('click', '.playlist-reload', function () {
-    mpcp.socket.send(JSON.stringify({
-            'type': 'playlist-reload', 'info': mpcp.playlist.current
-            }), function (err) {
-        if (err) console.log(err);
-    });
+    mpcp.socket.emit('playlist-reload', {'info': mpcp.playlist.current});
 });
 
 // handle back and forwards
