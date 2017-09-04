@@ -60,10 +60,6 @@ function initAfterConnection() {
             });
         }
     }, 200);
-
-    socket.onclose = function (event) {
-        mpcp.disconnect.callSocketClose();
-    };
 }
 
 // Web socket configuration
@@ -196,41 +192,58 @@ socket.on('downloader-status', function (msg) {
     document.getElementById('downloader-status').innerHTML = msg.info;
 });
 
-// album art
 socket.on('album-art', function (msg) {
     mpcp.utils.setCurrentAlbumArt(msg.url);
 });
 
-socket.on('mpd', function (msg) {
-    console.log('changed: ' + msg.changed);
+socket.on('mpc-error', err => {
+    mpcp.lazyToast.error('There was an error processing a request: ' +
+        err.errorMessage, 'MPC Error', 10000, true);
+});
 
-    switch (msg.changed) {
-        case 'player':
-            mpcp.player.updateAll();
-            break;
+socket.on('mpd-changed', function (msg) {
+    console.log('changed: ' + msg);
 
-        case 'playlist':
-            mpcp.playlist.updateAll();
-            break;
+    msg.forEach(item => {
+        switch (item) {
+            case 'player':
+                mpcp.player.updateAll();
+                break;
 
-        case 'mixer':
-            mpcp.player.updateMixer();
-            break;
+            case 'playlist':
+                mpcp.playlist.updateAll();
+                break;
 
-        case 'options':
-            mpcp.player.updateControls();
-            break;
+            case 'mixer':
+                mpcp.player.updateMixer();
+                break;
 
-        case 'update':
-            mpcp.browser.update();
-            mpcp.utils.updateStats();
-            break;
+            case 'options':
+                mpcp.player.updateControls();
+                break;
 
-        case 'stored_playlist':
-            mpcp.stored.updatePlaylists('#playlist-open-modal');
-            mpcp.stored.updatePlaylists('#playlist-save-modal');
-            break;
-    }
+            case 'update':
+                mpcp.browser.update();
+                mpcp.utils.updateStats();
+                break;
+
+            case 'stored_playlist':
+                mpcp.stored.updatePlaylists('#playlist-open-modal');
+                mpcp.stored.updatePlaylists('#playlist-save-modal');
+                break;
+        }
+    });
+});
+
+socket.on('disconnect', reason => {
+    console.log(reason);
+    mpcp.lazyToast.error('Reason: ' + reason +
+        '. Attempting to reestablish...', 'Lost connection!');
+});
+
+socket.on('reconnect', () => {
+    toastr.remove();
+    mpcp.lazyToast.info('', 'Connection reestablished!');
 });
 
 // gracefully close the socket

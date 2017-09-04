@@ -85,8 +85,6 @@ Edit config.cfg
 * Edit view/index.jade in the configuration section, add your theme file name as the value and a name. (This might be changed to auto-populate the select list, but for now, you have to add them manually.)
 
 ## Issues
-* Something, somewhere, crashes, at what seems to be random times. I've seen this happen with other web clients, so I'm not sure what the cause of this is. It could be MPCParty's code, the komponist library, or MPD itself. Restarting the MPCParty server fixes these issues. You *should* get a popup when it stops responding.
-* Not all errors from MPD are handled properly. When this happens, MPCParty will stop working. Refresh the page to fix it. If possible, check the console and report what the error was and what you were doing to cause the error.
 * If something is not working, and there is no notification, please report the issue as to what you were doing and what you were expecting. Check the console as to what the error was.
 
 ## Contribution
@@ -95,8 +93,8 @@ Edit config.cfg
 * I recommend using [jshint](http://jshint.com/install/) before sending something.
 
 ## Other Notes
-* Updates may be slow for now on. This repo will be updated if someone notices some annoying bug, or if I feel the need to add a "must have" feature. Some bugs are related to the library I use to interact with mpd. Such as the bad json bug which is hackishly fixed (`utils.getAllInfo()`), and the not fixed sometimes occurring "a single song in a directory won't show up".
-* 2.0, if I get around to it, will be a rewrite to use TypeScript (maybe with some view framework?), an attempt to decouple things, and to be able to choose whether to run the process intensive things on the client (which is done right now) or choose to run it on the server. (Lan party = beefy desktops usually, and for our setup we had an old server. But what about phones and non-beefy pc's? Then we would want it to run it on the server.) It will also use a lighter / more "low level" mpd js library.
+* Updates may be slow for now on. This repo will be updated if someone notices some annoying bug, or if I feel the need to add a "must have" feature. 
+* 2.0, if I get around to it, will be a rewrite to use TypeScript (maybe with some view framework?), an attempt to decouple things, and to be able to choose whether to run the process intensive things on the client (which is done right now) or choose to run it on the server. (Lan party = beefy desktops usually, and for our setup we had an old server. But what about phones and non-beefy pc's? Then we would want it to run it on the server.)
 
 ## License
 GNU Lesser General Public License v3 (LGPL-3.0)

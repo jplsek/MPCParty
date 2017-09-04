@@ -18,9 +18,11 @@ return {
     volume: document.getElementById('volume'),
 
     updateAll: function (callback) {
+        console.log("player.updateAll");
         // set song title
-        mpcp.socket.emit('mpc', 'status.currentSong', (song) => {
-            if ($.isEmptyObject(song)) {
+        mpcp.socket.emit('mpc', 'status.currentSong', song => {
+            //console.log(song);
+            if (!song) {
                 document.getElementById('title-text').innerHTML =
                     '<em class="text-muted" title="No song selected">No song selected</em>';
                 document.title = 'MPCParty';
@@ -47,16 +49,16 @@ return {
             $('#title-text').attr('title', mpcp.player.title);
             document.title =  mpcp.player.title + ' - MPCParty';
             document.getElementById('title-pos').innerHTML =
-                (parseInt(song.postition) + 1) + '. ';
+                (song.position + 1) + '. ';
             mpcp.progressbar.max = song.duration;
             document.getElementById('time-total').innerHTML =
                 ' / ' + mpcp.utils.toMMSS(song.duration);
 
-            // highlight song in playlist with song.Id and data-fileid
+            // highlight song in playlist with song.id and data-id
             // this happens with only a player update
             $(mpcp.playlist.table + ' .gen').each(function () {
-                var id = $(this).data().fileid;
-                if (parseInt(id) == mpcp.player.current.Id) {
+                var id = $(this).data().id;
+                if (parseInt(id) == mpcp.player.current.id) {
                     $(this)[0].classList.add('bg-success');
                 } else {
                     $(this)[0].classList.remove('bg-success');
@@ -69,7 +71,7 @@ return {
 
     // set player properties
     updateControls: function (callback) {
-        mpcp.socket.emit('mpc', 'status.status', (status) => {
+        mpcp.socket.emit('mpc', 'status.status', status => {
             //console.log(status);
             mpcp.progressbar.progress = status.elapsed;
 
@@ -114,28 +116,29 @@ return {
             }
 
             // random
-            if (parseInt(status.random) === 0) {
-                document.getElementById('random').classList.remove('active');
-            } else if (parseInt(status.random) == 1) {
+            if (status.random) {
                 document.getElementById('random').classList.add('active');
+            } else {
+                document.getElementById('random').classList.remove('active');
             }
 
             // repeat
-            if (parseInt(status.repeat) === 0) {
-                document.getElementById('repeat').classList.remove('active');
-            } else if (parseInt(status.repeat) == 1) {
+            if (status.repeat) {
                 document.getElementById('repeat').classList.add('active');
+            } else {
+                document.getElementById('repeat').classList.remove('active');
             }
 
             // consume
-            if (parseInt(status.consume) === 0) {
-                $('#consume').prop('checked', false);
-                document.getElementById('warning-consume').style.display = 'none';
-            } else if (parseInt(status.consume) == 1) {
+            if (status.consume) {
                 $('#consume').prop('checked', true);
-                if (mpcp.settings.consumeWarning)
+                if (mpcp.settings.consumeWarning) {
                     document.getElementById('warning-consume').style.display =
                         'block';
+                }
+            } else {
+                $('#consume').prop('checked', false);
+                document.getElementById('warning-consume').style.display = 'none';
             }
 
             if (!status.xfade) status.xfade = 0;
@@ -148,7 +151,7 @@ return {
 
     // set interface properties
     updateMixer: function () {
-        mpcp.socket.emit('mpc', 'status.status', (status) => {
+        mpcp.socket.emit('mpc', 'status.status', status => {
             //console.log(status);
 
             if (status.error) {
@@ -158,7 +161,7 @@ return {
             mpcp.player.volume.style.height = status.volume + "%";
 
             var speaker = document.getElementById('volume-speaker');
-            if (parseInt(status.volume) == 0) {
+            if (status.volume == 0) {
                 if (speaker.classList.contains('fa-volume-up')) {
                     speaker.classList.remove('fa-volume-up');
                     speaker.classList.add('fa-volume-off');
@@ -180,13 +183,7 @@ return {
         });
     },
 
-    // set int's so there is less parsing when accessing mpcp.player.current
     setCurrent: function (song) {
-        if (song) {
-            song.id  = parseInt(song.id);
-            song.postition = parseInt(song.postition);
-        }
-
         this.current = song;
     },
 
@@ -215,43 +212,42 @@ return {
         }
     },
 
-    // wrapper for komponist.play
+    // wrapper for mpc.play
     play: function (callback) {
         console.log('play');
-        komponist.play(function (err) {
-            if (err) console.log(err);
+        mpcp.socket.emit('mpc', 'playback.play', () => {
             mpcp.player.addCallbackUpdate(callback);
         });
     },
 
-    // wrapper for komponist.toggle
-    toggle: function (callback) {
-        console.log('toggle');
+    // wrapper for mpc.pause
+    pause: function (callback) {
+        console.log('pause');
 
         // 1. (playing) -> mousedown adds active -> mouseup -> active goes away ->
         // wait for mpd -> active comes back (to indicate pause).
         // This removes the "active goes away" part so it is more consistent.
         document.getElementById('pause').classList.toggle('active');
 
-        komponist.toggle(function (err) {
-            if (err) console.log(err);
-            mpcp.player.addCallbackUpdate(callback);
+        mpcp.socket.emit('mpc', 'status.status', status => {
+            mpcp.socket.emit('mpc', 'playback.pause', status.state != 'pause',
+                    () => {
+                mpcp.player.addCallbackUpdate(callback);
+            });
         });
     },
 
-    // wrapper for komponist.stop
+    // wrapper for mpc.stop
     stop: function (callback) {
         console.log('stop');
 
         if (callback)
             mpcp.player.stopCallbacks.push(callback);
 
-        komponist.stop(function (err) {
-            if (err) console.log(err);
-        });
+        mpcp.socket.emit('mpc', 'playback.stop');
     },
 
-    // wrapper for komponist.next
+    // wrapper for mpc.next
     next: function (callback) {
         if (mpcp.vote.enabled) {
             mpcp.player.addCallbackUpdate(callback);
@@ -269,11 +265,10 @@ return {
 
             // if skipping too fast, race conditions happen
             var current = mpcp.player.current;
-            komponist.next(function (err) {
-                if (err) console.log(err);
+            mpcp.socket.emit('mpc', 'playback.next', () => {
 
                 if (mpcp.playlist.skipToRemove) {
-                    mpcp.playlist.removeSong(current.Id);
+                    mpcp.playlist.removeSong(current.id);
                 }
 
                 mpcp.player.addCallbackUpdate(callback);
@@ -281,7 +276,7 @@ return {
         }
     },
 
-    // wrapper for komponist.previous
+    // wrapper for mpc.previous
     previous: function (callback) {
         if (mpcp.vote.enabled) {
             mpcp.player.addCallbackUpdate(callback);
@@ -299,11 +294,10 @@ return {
 
             // if skipping too fast, race conditions happen
             var current = mpcp.player.current;
-            komponist.previous(function (err) {
-                if (err) console.log(err);
+            mpcp.socket.emit('mpc', 'playback.previous', () => {
 
                 if (mpcp.playlist.skipToRemove) {
-                    mpcp.playlist.removeSong(current.Id);
+                    mpcp.playlist.removeSong(current.id);
                 }
 
                 mpcp.player.addCallbackUpdate(callback);
@@ -324,14 +318,12 @@ return {
         if (callback)
             mpcp.player.volumeCallbacks.push(callback);
 
-        komponist.setvol(volume, function (err) {
-            if (err) console.log(err);
-        });
+        mpcp.socket.emit('mpc', 'playbackOptions.setVolume', volume);
     },
 
     initEvents: function () {
         $('#pause').click(function () {
-            mpcp.player.toggle();
+            mpcp.player.pause();
         });
 
         $('#play').click(function () {
@@ -361,36 +353,22 @@ return {
 
         $('#random').click(function () {
             console.log('random');
-            if (document.getElementById('random').classList.contains('active')) {
-                // read 1.
-                document.getElementById('random').classList.toggle('active');
-                komponist.random(0, function (err) {
-                    if (err) console.log(err);
-                });
-            } else {
-                // read 1.
-                document.getElementById('random').classList.toggle('active');
-                komponist.random(1, function (err) {
-                    if (err) console.log(err);
-                });
-            }
+
+            // update style immediately before server responds
+            var random = !document.getElementById('random').classList.contains('active');
+            document.getElementById('random').classList.toggle('active');
+
+            mpcp.socket.emit('mpc', 'playbackOptions.setRandom', random);
         });
 
         $('#repeat').click(function () {
             console.log('repeat');
-            if (document.getElementById('repeat').classList.contains('active')) {
-                // read 1.
-                document.getElementById('repeat').classList.toggle('active');
-                komponist.repeat(0, function (err) {
-                    if (err) console.log(err);
-                });
-            } else {
-                // read 1.
-                document.getElementById('repeat').classList.toggle('active');
-                komponist.repeat(1, function (err) {
-                    if (err) console.log(err);
-                });
-            }
+
+            // update style immediately before server responds
+            var repeat = !document.getElementById('repeat').classList.contains('active');
+            document.getElementById('repeat').classList.toggle('active');
+
+            mpcp.socket.emit('mpc', 'playbackOptions.setRepeat', repeat);
         });
 
         $('#volume-speaker').click(function (e) {

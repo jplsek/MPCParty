@@ -26,15 +26,11 @@ return {
         mpcp.library.album = album;
 
         if (!album) {
-            mpcp.socket.emit('mpc', 'database.find', ['artist', artist],
-                    (files) => {
-                setSongs(files);
-            });
+            mpcp.socket.emit('mpc', 'database.find', [['artist', artist]],
+                    setSongs);
         } else {
             mpcp.socket.emit('mpc', 'database.find',
-                    ['artist', artist, 'album', album], (files) => {
-                setSongs(files);
-            });
+                    [['artist', artist], ['album', album]], setSongs);
         }
 
         if (!poppedState) mpcp.library.addToHistory();
@@ -42,20 +38,8 @@ return {
         function setSongs(files) {
             //console.log(files);
             $(mpcp.librarySongs.table + ' .gen').remove();
-            var html = '';
-
-            if (!files.length || (files.length == 1 && !files[0].album &&
-                        !files[0].artist)) {
-                html = '<tr class="gen"><td colspan="6">' +
-                    '<em class="text-muted">No songs found</em></td></tr>';
-                document.getElementById(mpcp.librarySongs.tbodyid).innerHTML = html;
-                window.dispatchEvent(new CustomEvent('MPCPLibrarySongsChanged'));
-                console.log('No songs found');
-                if (callback) callback();
-                return;
-            }
-
-            var tableStart = '<table class="fixed-table"><tr><td>',
+            var html = '',
+                tableStart = '<table class="fixed-table"><tr><td>',
                 tableEnd   = '</td></tr></table>';
 
             for (var i = 0; i < files.length; ++i) {

@@ -7,10 +7,10 @@ function contextResponse(key, table, tr) {
     switch(key) {
         // playlist
         case 'mttPlaylist':
-            mpcp.playlist.moveToTop(tr.data().fileid);
+            mpcp.playlist.moveToTop(tr.data().id);
             break;
         case 'mtbPlaylist':
-            mpcp.playlist.moveToBottom(tr.data().fileid);
+            mpcp.playlist.moveToBottom(tr.data().id);
             break;
         case 'mtc':
             mpcp.playlist.moveToCurrent(tr);
@@ -32,68 +32,68 @@ function contextResponse(key, table, tr) {
             mpcp.pe.removeSong(tr);
             break;
         case 'infoBrowser':
-            mpcp.browser.getSongInfo(tr.data().fileid);
+            mpcp.browser.getSongInfo(tr.data().path);
             break;
         case 'infoPlaylist':
-            mpcp.playlist.getSongInfo(tr.data().file);
+            mpcp.playlist.getSongInfo(tr.data().path);
             break;
     }
 
     // browser
     // directory
     if ($(tr)[0].classList.contains('directory')) {
-        var dirid = tr.data().dirid;
+        var path = tr.data().path;
 
         switch(key) {
             case 'attPlaylist':
                 if (mpcp.browser.selected.length) {
                     mpcp.browser.addMulti(0);
                 } else {
-                    mpcp.playlist.addDir(dirid, 0);
+                    mpcp.playlist.addDir(path, 0);
                 }
                 break;
             case 'attpe':
                 if (mpcp.browser.selected.length) {
                     mpcp.browser.addMulti(0);
                 } else {
-                    mpcp.pe.add(dirid, 0);
+                    mpcp.pe.add(path, 0);
                 }
                 break;
             case 'atbPlaylist':
                 if (mpcp.browser.selected.length) {
                     mpcp.browser.addMulti();
                 } else {
-                    mpcp.playlist.addDir(dirid);
+                    mpcp.playlist.addDir(path);
                 }
                 break;
             case 'atbpe':
                 if (mpcp.browser.selected.length) {
                     mpcp.browser.addMulti();
                 } else {
-                    mpcp.pe.add(dirid);
+                    mpcp.pe.add(path);
                 }
                 break;
             case 'atc':
-                mpcp.playlist.addToCurrent(dirid, 'dir');
+                mpcp.playlist.addToCurrent(path, 'dir');
                 break;
         }
     }
 
     // file
     if ($(tr)[0].classList.contains('file')) {
-        var fileid = tr.data().fileid;
+        var path = tr.data().path;
 
         switch(key) {
             case 'attPlaylist':
             case 'attpe':
-                mpcp.browser.addExternal(fileid, 0);
+                mpcp.browser.addExternal(path, 0);
                 break;
             case 'atbPlaylist':
             case 'atbpe':
-                mpcp.browser.addExternal(fileid);
+                mpcp.browser.addExternal(path);
                 break;
             case 'atc':
-                mpcp.browser.addExternal(fileid, mpcp.player.current.Pos + 1);
+                mpcp.browser.addExternal(path, mpcp.player.current.position + 1);
                 break;
         }
     }
@@ -126,16 +126,16 @@ function contextResponse(key, table, tr) {
                 if ($(tr)[0].classList.contains('artist') &&
                         mpcp.libraryArtists.selected.length) {
                     mpcp.library.addExternal(mpcp.libraryArtists, artist,
-                        album, mpcp.player.current.Pos + 1, false);
+                        album, mpcp.player.current.position + 1, false);
                 } else if ($(tr)[0].classList.contains('album') &&
                         mpcp.libraryAlbums.selected.length) {
                     mpcp.library.addExternal(mpcp.libraryAlbums, artist, album,
-                        mpcp.player.current.Pos + 1, false);
+                        mpcp.player.current.position + 1, false);
                 } else {
                     mpcp.library.getSongsFromAlbum(artist, album,
                             function (files) {
                         for (var i = 0; i < files.length; ++i) {
-                            mpcp.playlist.addToCurrent(files[i].file, 'file');
+                            mpcp.playlist.addToCurrent(files[i].path, 'file');
                         }
                     });
                 }

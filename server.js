@@ -9,8 +9,6 @@ var express         = require('express'),
     glob            = require('glob'),
     // optional modules
     youtubedl = null,
-    // package.json;
-    pack,
     // whether to optimize the client for production usage
     release = false;
 
@@ -131,21 +129,28 @@ fs.readFile(__dirname + '/config.cfg', function (err, data) {
         utils.updateMixer();
 
         mpc.on('changed', function (system) {
-            //console.log('subsystem changed: ' + system);
-            switch (system) {
-                case 'player':
-                // running setSong with a playlist change to fix a vote issue
-                // where users could vote after no song was selected
-                case 'playlist':
-                    utils.setSong();
-                    break;
+            if (system.length === 0)
+                return;
 
-                case 'mixer':
-                    utils.updateMixer();
-                    break;
-            }
+            console.log('subsystem changed: ' + system);
+            io.emit('mpd-changed', system);
+
+            system.forEach(item => {
+                switch (item) {
+                    case 'player':
+                    // running setSong with a playlist change to fix a vote issue
+                    // where users could vote after no song was selected
+                    case 'playlist':
+                        utils.setSong();
+                        break;
+
+                    case 'mixer':
+                        utils.updateMixer();
+                        break;
+                }
+            });
         });
-    }).catch((err) => {
+    }).catch(err => {
         console.log(err);
         process.exit(-5);
     });

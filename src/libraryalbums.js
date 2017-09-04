@@ -22,13 +22,12 @@ return {
         console.log('update albums');
         mpcp.library.artist = artist;
 
-        komponist.list('album', artist, function (err, files) {
-            if (err) {
-                console.log(err);
-                mpcp.librarySongs.update(
-                        artist, albumUse, poppedState, callback);
-                return;
-            }
+        mpcp.socket.emit('mpc', 'database.list', 'Album', [['Artist', artist]],
+                albums => {
+
+            //console.log(albums);
+            albums = albums[0][1];
+            //console.log(albums);
 
             $(mpcp.libraryAlbums.table + ' .gen').remove();
 
@@ -44,27 +43,16 @@ return {
             html += '<tr class="context-menu gen album library-artist-all ' + addClass + '" data-artist="' + artist + '" title="All"><td>' + tableStart + 'All' + tableEnd + '</td><td class="song-list-icons text-right"><i class="album-add faded text-success fa fa-plus" title="Add album to the bottom of the playlist"></i></td></tr>';
             addClass = '';
 
-            //console.log(files);
-
-            if (!files.length || files[0].Album === '') {
-                html = '<tr class="gen"><td colspan="2">' +
-                    '<em class="text-muted">No albums</em></td></tr>';
-                document.getElementById(mpcp.libraryAlbums.tbodyid).innerHTML = html;
-                console.log('No albums found');
-                mpcp.librarySongs.update(
-                        artist, albumUse, poppedState, callback);
-                return;
-            }
-
-            for (var i = 0; i < files.length; ++i) {
-                var album = files[i].Album;
+            albums.forEach(album => {
+                if (album === '')
+                    return;
 
                 if (album == albumUse)
                     addClass = 'bg-info text-light';
 
                 html += '<tr class="context-menu gen album ' + addClass + '" data-artist="' + artist + '" data-album="' + album + '" title="' + album + '"><td>' + tableStart + album + tableEnd + '</td><td class="song-list-icons text-right"><i class="album-add faded text-success fa fa-plus" title="Add album to the bottom of the playlist"></i></td></tr>';
                 addClass = '';
-            }
+            });
 
             document.getElementById(mpcp.libraryAlbums.tbodyid).innerHTML = html;
 

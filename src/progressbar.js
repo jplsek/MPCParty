@@ -76,16 +76,10 @@ return {
 
             var value = Math.round(mpcp.progressbar.max * percent);
 
+            console.log('Seeking...');
             // DO NOT USE seekcur, it introduces the SKIPPING BUG
             // on SOME systems.
-            komponist.seek(mpcp.player.current.Pos, value, function (err) {
-                if (err) {
-                    console.log('no song playing to seek');
-                    return;
-                }
-
-                console.log('Seeking...');
-            });
+            mpcp.socket.emit('mpc', 'playback.seek', mpcp.player.current.position, value);
         });
     }
 };

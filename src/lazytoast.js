@@ -5,7 +5,7 @@ return {
         if (!title) title = 'Info';
         if (!timeout) timeout = 5000;
 
-        if (addHistory) mpcp.history.add(msg, 'bg-info');
+        if (addHistory) mpcp.history.add(msg, 'info');
 
         toastr.info(msg, title, {
             'closeButton': true,
@@ -17,15 +17,15 @@ return {
 
     error: function (msg, title, timeout, addHistory) {
         if (!title) title = 'Error';
+        if (!timeout) timeout = -1;
 
-        if (addHistory) mpcp.history.add(msg, 'bg-danger');
+        if (addHistory) mpcp.history.add(msg, 'danger');
 
         toastr.error(msg, title, {
             'closeButton': true,
             'positionClass': 'toast-bottom-left',
             'preventDuplicates': true,
-            'timeOut': '-1',
-            'extendedTimeOut': '-1'
+            'timeOut': timeout,
         });
     },
 
@@ -33,7 +33,7 @@ return {
         if (!title) title = 'Warning';
         if (!timeout) timeout = 5000;
 
-        if (addHistory) mpcp.history.add(msg, 'bg-warning');
+        if (addHistory) mpcp.history.add(msg, 'warning');
 
         toastr.warning(msg, title, {
             'closeButton': true,

@@ -11,7 +11,7 @@ return {
     // set to false when we don't want an update to happen
     doUpdate: true,
     // list used for other functions
-    list: {files: [], positions: []},
+    list: {paths: [], positions: []},
     // local copy of mpd json response
     local: {},
     // selected items from multiSelect
@@ -40,7 +40,7 @@ return {
         console.log('updating playlist');
 
         // reset list
-        mpcp.playlist.list = {files: [], positions: []};
+        mpcp.playlist.list = {paths: [], positions: []};
 
         if (mpcp.playlist.isSearching) {
             mpcp.playlist.search();
@@ -50,7 +50,7 @@ return {
             // and other operations
             mpcp.player.updateAll(function () {
                 mpcp.socket.emit('mpc', 'currentPlaylist.playlistInfo',
-                    (playlistLoad) => {
+                        playlistLoad => {
                     $('#playlist-title strong')[0].innerHTML =
                         mpcp.playlist.current;
                     $('#playlist-title strong').attr('title',
@@ -59,7 +59,7 @@ return {
                     document.getElementById(mpcp.playlist.tbodyid).innerHTML = '';
                     mpcp.playlist.local = playlistLoad;
 
-                    if ($.isEmptyObject(playlistLoad[0])) {
+                    if (playlistLoad.length === 0) {
                         var html = '<tr class="rem gen"><td><em class="text-muted">The playlist is empty! Songs can be added from the browser or by opening a playlist.</em></td></tr>';
                         document.getElementById(mpcp.playlist.tbodyid).innerHTML = html;
                         // fix for removing the last song that's
@@ -77,10 +77,10 @@ return {
                     // efficiently with mpcp.browser.updatePlaylist instead of
                     // utilizing mpcp.playlist.list
                     for (var i = 0; i < mpcp.playlist.local.length; ++i) {
-                        mpcp.playlist.list.files.push(
-                            mpcp.playlist.local[i].file);
+                        mpcp.playlist.list.paths.push(
+                            mpcp.playlist.local[i].path);
                         mpcp.playlist.list.positions.push(
-                            mpcp.playlist.local[i].Pos);
+                            mpcp.playlist.local[i].position);
                     }
 
                     // since goToCurrent runs updateLocal, skip the regular
@@ -107,7 +107,7 @@ return {
 
         // length is always 1 for this.local, this fixes the empty
         // object
-        if (this.local.length <= 1 && !this.local[0].file) {
+        if (this.local.length <= 1 && !this.local[0].path) {
             // remove album-art if playlist was cleared
             mpcp.utils.setCurrentAlbumArt();
 
@@ -138,10 +138,6 @@ return {
         for (i = 0; i < this.local.length; ++i) {
             var value = this.local[i];
 
-            value.Pos = parseInt(value.Pos);
-            value.Id  = parseInt(value.Id);
-            //console.log(value.file);
-
             // show only necessary files
             if (mpcp.pages.enabledPlaylist) {
                 if (i < start)
@@ -151,25 +147,25 @@ return {
             }
 
             var title   = mpcp.utils.getSimpleTitle(
-                    value.Title, value.Artist, value.file),
+                    value.title, value.artist, value.path),
                 current = 'gen';
 
             // highlight current song on first load
             // I would use text-light, but the multiselect is finicky.
             // It would remove the text-light when clicking on the currently
             // playing song.
-            if (mpcp.player.current && value.Id == mpcp.player.current.Id)
+            if (mpcp.player.current && value.id == mpcp.player.current.id)
                 current += ' bg-success';
 
             if (mpcp.settings.pulse &&
-                    ~this.toPulse.indexOf(value.Id)) {
+                    ~this.toPulse.indexOf(value.id)) {
                 // pulses twice because of lag
                 current += ' pulse2';
             }
 
             //console.log(i + ': start');
 
-            html += '<tr class="drag context-menu ' + current + '" title="' + title + '" data-fileid="' + value.Id + '" data-file="' + value.file + '" data-pos="' + value.Pos +  '"><td class="playlist-song-list-icons"><i class="fa fa-play song-play faded text-success" title="Play song"></i>' + (value.Pos + 1) + '.</td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><i class="song-remove faded text-danger fa fa-remove" title="Remove song from playlist"></i></td></tr>';
+            html += '<tr class="drag context-menu ' + current + '" title="' + title + '" data-id="' + value.id + '" data-path="' + value.path + '" data-pos="' + value.position +  '"><td class="playlist-song-list-icons"><i class="fa fa-play song-play faded text-success" title="Play song"></i>' + (value.position + 1) + '.</td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><i class="song-remove faded text-danger fa fa-remove" title="Remove song from playlist"></i></td></tr>';
         }
 
         this.toPulse = [];
@@ -211,7 +207,7 @@ return {
         // file
         // note: multiselect is checked in addDir and addSong!
         if (el.classList.contains('file')) {
-            var file = el.dataset.fileid;
+            var file = el.dataset.path;
             // check if nothing in playlist
             if (this.local.length <= 1) {
                 this.addid(file, undefined, true);
@@ -220,8 +216,8 @@ return {
             }
         } else if (el.classList.contains('directory')) {
             // directory
-            var dir = el.dataset.dirid;
-            console.log('add dir ' + dir);
+            var dir = el.dataset.path;
+            console.log('add dir: ' + dir);
 
             if (this.local.length <= 1) {
                 this.addDir(dir, undefined, true);
@@ -234,7 +230,7 @@ return {
 
             mpcp.library.getSongsFromAlbum(artist, album, function (files) {
                 for (i = 0; i < files.length; ++i) {
-                    mpcp.playlist.addSong(files[i].file, newIndex, true);
+                    mpcp.playlist.addSong(files[i].path, newIndex, true);
                 }
             });
         } else if (el.classList.contains('artist')) {
@@ -243,7 +239,7 @@ return {
             mpcp.library.getSongsFromAlbum(
                     artist, undefined, function (files) {
                         for (i = 0; i < files.length; ++i) {
-                            mpcp.playlist.addSong(files[i].file, newIndex, true);
+                            mpcp.playlist.addSong(files[i].path, newIndex, true);
                         }
                     });
         } else {
@@ -260,74 +256,58 @@ return {
 
         if (this.selected.length) {
             $(this.selected).each(function (item, tr) {
-                file = $(tr).data().fileid;
+                file = $(tr).data().id;
 
                 mpcp.playlist.toPulse.push(file);
 
                 var pos = $(tr).data().pos,
                     index;
 
-                // if original location is below the "move to"
-                // location
+                // if original location is below the "move to" location
                 if (pos > newIndex) {
                     index = newIndex + item;
-                    //console.log('dragged playlist: ' + file + ' to ' +
-                    //index);
-                    komponist.moveid(file, index, function (err) {
-                        if (err) console.log(err);
-                    });
                 } else {
                     // else if original location is about the
                     // "move to" location
                     index = newIndex;
-                    //console.log('dragged playlist: ' + file + ' to ' +
-                    //index);
-                    komponist.moveid(file, index, function (err) {
-                        if (err) console.log(err);
-                    });
                 }
+
+                //console.log('dragged playlist: ' + file + ' to ' + index);
+                mpcp.socket.emit('mpc', 'currentPlaylist.moveId', file, index);
             });
 
             mpcp.utils.clearSelected(this);
         } else {
-            file = el.dataset.fileid;
+            file = el.dataset.id;
             this.toPulse.push(file);
             //console.log('dragged playlist: ' + file + ' to ' + newIndex);
 
-            komponist.moveid(file, newIndex, function (err) {
-                if (err) console.log(err);
-            });
+            mpcp.socket.emit('mpc', 'currentPlaylist.moveId', file, newIndex);
         }
     },
 
-    // wrapper for komponist.addid
+    // wrapper for mpc.addid
     addid: function (file, to, callback) {
 
         if (mpcp.utils.isNumber(to))
-            komponist.addid(file, to, function (err, val) {
-                if (err)
-                    console.log(err);
-                else
-                    mpcp.playlist.toPulse.push(val.Id);
-
+            mpcp.socket.emit('mpc', 'currentPlaylist.addId', file, to, val => {
+                mpcp.playlist.toPulse.push(val.id);
                 mpcp.playlist.addCallbackUpdate(callback);
             });
         else
-            komponist.addid(file, function (err, val) {
-                if (err)
-                    console.log(err);
-                else
-                    mpcp.playlist.toPulse.push(val.Id);
-
+            mpcp.socket.emit('mpc', 'currentPlaylist.addId', file, val => {
+                mpcp.playlist.toPulse.push(val.id);
                 mpcp.playlist.addCallbackUpdate(callback);
             });
     },
 
-    // wrapper for komponist.add
+    // wrapper for mpc.add
     add: function (dir, to, callback) {
         if (mpcp.utils.isNumber(to)) {
-            mpcp.utils.getAllInfo(dir, function (files) {
-                if (!files.length) {
+
+            mpcp.socket.emit('mpc', 'database.listAllInfo', dir, files => {
+
+                if (files.length === 0) {
                     console.log('Nothing in db');
                     if (callback) callback();
                     return;
@@ -336,27 +316,24 @@ return {
                 //console.log(files);
                 var j = 0;
 
-                $(files).each(function (item, value) {
-                    //console.log(value);
-                    if (value.file) {
-                        mpcp.playlist.addid(value.file, to++, function () {
+                files.forEach(item => {
+                    //console.log(item);
+                    if (item.entryType == 'song') {
+                        mpcp.socket.emit('mpc', 'currentPlaylist.addId', item.path,
+                                to++, () => {
                             if (++j == Object.keys(files).length)
                                 mpcp.playlist.addCallbackUpdate(callback);
                         });
                     } else {
-                        if (++j == Object.keys(files).length)
-                            mpcp.playlist.addCallbackUpdate(callback);
+                        j++;
                     }
                 });
             });
         } else {
-            komponist.add(dir, function (err, val) {
-                //val returns an empty object (I was hoping for an Id list)
+            mpcp.socket.emit('mpc', 'currentPlaylist.add', dir, () => {
+                //returns void (I was hoping for an Id list)
                 //console.log(val);
-                if (err)
-                    console.log(err);
-                //else
-                //mpcp.playlist.toPulse.push(val.Id);
+                //mpcp.playlist.toPulse.push(val.id);
 
                 mpcp.playlist.addCallbackUpdate(callback);
             });
@@ -365,7 +342,7 @@ return {
 
     // addSong
     addSong: function (file, to, dontScroll, callback) {
-        console.log('adding song to playlist');
+        console.log('adding song to playlist: ' + file);
 
         if (!dontScroll) {
             if (to === undefined || isNaN(to)) {
@@ -373,7 +350,7 @@ return {
                     mpcp.pages.go('playlist', mpcp.pages.totalPlaylist, true);
                 });
             } else if (mpcp.player.current &&
-                    to == mpcp.player.current.Pos + 1) {
+                    to == mpcp.player.current.position + 1) {
                 this.addCallbackUpdate(function () {
                     mpcp.playlist.goToCurrent();
                 });
@@ -414,7 +391,7 @@ return {
 
     // wrapper for playSong, given an element
     play: function (ele) {
-        var file = $(ele).data().fileid;
+        var file = $(ele).data().id;
         this.playSong(file);
     },
 
@@ -456,17 +433,17 @@ return {
     },
 
     // TODO Goal: remove song from playlist without mpd updating the playlist
-    // locally. Have to update this.local .Pos to work, or somehow
+    // locally. Have to update this.local .position to work, or somehow
     // use numbered table rows instead of using Pos.
     // remove song from the playlist. The element must be removed
     // manually before or after calling!
-    removeSong: function (fileid) {
-        mpcp.socket.emit('mpc', 'currentPlaylist.deleteId', fileid);
+    removeSong: function (id) {
+        mpcp.socket.emit('mpc', 'currentPlaylist.deleteId', id);
 
         // playlist doesn't get updated when the same song being removed is
         // playling (future me: this happens with not only pause, but other
         // times as well, so dont check for a pause flag!)
-        if (mpcp.player.current && fileid == mpcp.player.current.Id)
+        if (mpcp.player.current && id == mpcp.player.current.id)
             mpcp.socket.emit('update-playlist');
     },
 
@@ -479,7 +456,7 @@ return {
         if (this.selected.length) {
             $(this.selected).each(function (item, tr) {
                 //console.log(tr);
-                file = $(tr).data().fileid;
+                file = $(tr).data().id;
                 mpcp.playlist.removeSong(file);
             });
 
@@ -487,14 +464,14 @@ return {
             mpcp.utils.clearSelected(this);
         } else {
             // single file (fallback)
-            file = $(ele).data().fileid;
+            file = $(ele).data().id;
             this.removeSong(file);
         }
     },
 
     // adds the song after the currently playing song
     addToCurrent: function (file, type) {
-        var newPos = mpcp.player.current.Pos + 1;
+        var newPos = mpcp.player.current.position + 1;
         this.goAfterUpdate = true;
 
         if (mpcp.browser.selected.length) {
@@ -520,7 +497,7 @@ return {
         if (mpcp.playlist.selected.length) {
             $(mpcp.playlist.selected).each(function (item, tr) {
                 //console.log(tr);
-                file = $(tr).data().fileid;
+                file = $(tr).data().id;
                 mpcp.playlist.toPulse.push(file);
 
                 mpcp.socket.emit('mpc', 'currentPlaylist.moveId', file, item);
@@ -532,18 +509,16 @@ return {
             mpcp.playlist.toPulse.push(file);
             console.log(file);
 
-            komponist.moveid(file, 0, function (err) {
-                if (err) console.log(err);
-            });
+            mpcp.socket.emit('mpc', 'currentPlaylist.moveId', file, 0);
         }
     },
 
     // move song to the currently playing song in the playlist
     moveToCurrent: function (file) {
-        //console.log(mpcp.player.current.Pos);
+        //console.log(mpcp.player.current.position);
         //console.log(file);
 
-        var newPos = mpcp.player.current.Pos + 1;
+        var newPos = mpcp.player.current.position + 1;
 
         // multiselect check
         if (mpcp.playlist.selected.length) {
@@ -555,53 +530,49 @@ return {
             mpcp.playlist.goAfterUpdate = true;
 
             $(mpcp.playlist.selected).each(function (item, tr) {
-                var fileid = $(tr).data().fileid,
+                var id = $(tr).data().id,
                     pos    = $(file).data().pos;
 
-                mpcp.playlist.toPulse.push(fileid);
+                mpcp.playlist.toPulse.push(id);
 
                 // currently playing song is above file to be moved
-                if (mpcp.player.current && mpcp.player.current.Pos < pos)
-                    newPos = mpcp.player.current.Pos + 1 + item;
+                if (mpcp.player.current && mpcp.player.current.position < pos)
+                    newPos = mpcp.player.current.position + 1 + item;
                 // currently playing song is below file to be moved
                 else if ((mpcp.player.current &&
-                            mpcp.player.current.Pos > pos) ||
+                            mpcp.player.current.position > pos) ||
                         mpcp.player.current)
-                    newPos = mpcp.player.current.Pos;
+                    newPos = mpcp.player.current.position;
                 // currently playing song is the same file to be moved
                 else
                     newPos = 0 + item;
 
                 //console.log(newPos);
-                komponist.moveid(fileid, newPos, function (err) {
-                    if (err) console.log(err);
-                });
+                mpcp.socket.emit('mpc', 'currentPlaylist.moveId', id, newPos);
             });
 
             // clear selected just in case.
             mpcp.utils.clearSelected(mpcp.playlist);
         } else {
             mpcp.playlist.goAfterUpdate = true;
-            var fileid = $(file).data().fileid,
+            var id = $(file).data().id,
                 pos    = $(file).data().pos;
 
-            mpcp.playlist.toPulse.push(fileid);
+            mpcp.playlist.toPulse.push(id);
 
             // currently playing song is above file to be moved
-            if (mpcp.player.current && mpcp.player.current.Pos < pos)
-                newPos = mpcp.player.current.Pos + 1;
+            if (mpcp.player.current && mpcp.player.current.position < pos)
+                newPos = mpcp.player.current.position + 1;
             // currently playing song is below file to be moved
-            else if ((mpcp.player.current && mpcp.player.current.Pos > pos) ||
+            else if ((mpcp.player.current && mpcp.player.current.position > pos) ||
                     mpcp.player.current)
-                newPos = mpcp.player.current.Pos;
+                newPos = mpcp.player.current.position;
             // currently playing song is the same file to be moved
             else
                 newPos = 0;
 
             //console.log(newPos);
-            komponist.moveid(fileid, newPos, function (err) {
-                if (err) console.log(err);
-            });
+            mpcp.socket.emit('mpc', 'currentPlaylist.moveId', id, newPos);
         }
     },
 
@@ -617,12 +588,10 @@ return {
         // multiselect check
         if (mpcp.playlist.selected.length) {
             $(mpcp.playlist.selected).each(function (item, tr) {
-                file = $(tr).data().fileid;
+                file = $(tr).data().id;
                 mpcp.playlist.toPulse.push(file);
 
-                komponist.moveid(file, (index - 1), function (err) {
-                    if (err) console.log(err);
-                });
+                mpcp.socket.emit('mpc', 'currentPlaylist.moveId', file, (index - 1));
             });
 
             // clear selected just in case.
@@ -631,9 +600,7 @@ return {
             //console.log(file);
             mpcp.playlist.toPulse.push(file);
 
-            komponist.moveid(file, (index - 1), function (err) {
-                if (err) console.log(err);
-            });
+            mpcp.socket.emit('mpc', 'currentPlaylist.moveId', file, (index - 1));
         }
     },
 
@@ -656,9 +623,9 @@ return {
         $('#pslwrap').scrollTop($(this.table));
 
         // go to the page the song is playing on
-        this.goToPos(mpcp.player.current.Pos);
+        this.goToPos(mpcp.player.current.position);
         // try to go above the element, so the item is semi-centered
-        var to = (mpcp.player.current.Pos % mpcp.pages.maxPlaylist) - 5;
+        var to = (mpcp.player.current.position % mpcp.pages.maxPlaylist) - 5;
 
         if (to < 1) to = 1;
 
@@ -676,8 +643,9 @@ return {
 
     // show song information to the user
     getSongInfo: function (file, callback) {
-        komponist.playlistfind('file', file, function (err, value) {
-            mpcp.utils.parseSongInfo(err, value[0], callback);
+        mpcp.socket.emit('mpc', 'currentPlaylist.playlistFind', 'file', file,
+                value => {
+            mpcp.utils.parseSongInfo(value[0], callback);
         });
     },
 
@@ -690,18 +658,14 @@ return {
         // set to true (in case of after clicking clear)
         mpcp.playlist.isSearching = true;
 
-        komponist.playlistsearch('any', val, function(err, response) {
-            if (err) {
-                if (callback) callback();
-                return console.log(err);
-            }
-
-            //console.log(response);
+        mpcp.socket.emit('mpc', 'currentPlaylist.playlistSearch', 'any', val,
+                response => {
+            console.log(response);
 
             $(mpcp.playlist.table + ' .gen').remove();
             mpcp.playlist.local = response;
 
-            if ($.isEmptyObject(response[0])) {
+            if (response.length === 0) {
                 var html = '<tr class="gen"><td><em class="text-muted">No songs found</em></td></tr>';
                 document.getElementById(mpcp.playlist.tbodyid).innerHTML = html;
                 // fix for removing the last song that's
@@ -718,8 +682,8 @@ return {
             // efficiently with mpcp.browser.updatePlaylist instead of
             // utilizing this.list
             $(mpcp.playlist.local).each(function (item, value) {
-                mpcp.playlist.list.files.push(value.file);
-                mpcp.playlist.list.positions.push(value.Pos);
+                mpcp.playlist.list.paths.push(value.path);
+                mpcp.playlist.list.positions.push(value.position);
             });
 
             mpcp.playlist.updateLocal(function () {
@@ -738,7 +702,7 @@ return {
     // open playlist from stored element
     openFromStored: function (callback) {
         if ($('#playlist-open-modal .selected').length) {
-            var file = $('#playlist-open-modal .selected').data().fileid;
+            var file = $('#playlist-open-modal .selected').data().name;
             mpcp.stored.open(file, callback);
         } else {
             mpcp.lazyToast.warning('No playlist was selected', 'Playlist');
@@ -790,8 +754,7 @@ return {
 
     scramble: function (callback) {
         console.log('scramble playlist');
-        komponist.shuffle(function (err) {
-            if (err) console.log(err);
+        mpcp.socket.emit('mpc', 'currentPlaylist.shuffle', () => {
             mpcp.playlist.addCallbackUpdate(callback);
         });
     },
@@ -854,12 +817,12 @@ return {
         });
 
         $(document).on('dblclick', this.tbody + ' tr', function () {
-            var file = $(this).data().fileid;
+            var file = $(this).data().id;
             mpcp.playlist.playSong(file);
         });
 
         $(document).on('click', '.song-play', function () {
-            var file = $(this).parent().parent().data().fileid;
+            var file = $(this).parent().parent().data().id;
             mpcp.playlist.playSong(file);
         });
 

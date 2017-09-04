@@ -22,7 +22,6 @@ return {
         this.loadHistoryMax();
         this.loadItemsMax();
         this.loadPagination();
-        this.loadShowAllErrors();
         this.loadPulse();
         this.loadUnknown();
         this.loadSkipToRemove();
@@ -149,20 +148,6 @@ return {
             localStorage.setItem('mpcp-use-pages-browser', use);
 
         this.loadPagination(type, true);
-    },
-
-    loadShowAllErrors: function () {
-        var use = localStorage.getItem('mpcp-show-all-errors'),
-        show = false;
-
-        if (use && use === 'true') show = true;
-
-        $('#show-all-errors').prop('checked', show);
-    },
-
-    saveShowAllErrors: function (use) {
-        console.log('changed show all errors');
-        localStorage.setItem('mpcp-show-all-errors', use);
     },
 
     loadPulse: function () {
@@ -323,25 +308,16 @@ return {
             mpcp.settings.saveSkipToRemove(use);
         });
 
-        $('#show-all-errors').change(function () {
-            var use = $(this).prop('checked');
-            mpcp.settings.saveShowAllErrors(use);
-        });
-
         // server config
         $('#crossfade').on('input change', function () {
-            komponist.crossfade(this.value, function (err) {
-                if (err) console.log(err);
-            });
+            mpcp.socket.emit('mpc', 'playbackOptions.setCrossfade', this.value);
         });
 
         $('#consume').change(function () {
             var use = $(this).prop('checked');
             use = use ? 1 : 0;
 
-            komponist.consume(use, function (err) {
-                if (err) console.log(err);
-            });
+            mpcp.socket.emit('mpc', 'playbackOptions.setConsume', use);
         });
 
         $('#use-consume-warning').change(function () {

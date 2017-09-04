@@ -23,18 +23,13 @@ var utils = {
             console.log(childrenNow.length);
 
             //for(var i = 0; i < children.length; ++i) {
-            //    if (children[i].attributes["data-dirid"])
-            //        if (children[i].attributes["data-dirid"].value != childrenNow[i].attributes["data-dirid"].value) {
+            //    if (children[i].attributes["data-path"])
+            //        if (children[i].attributes["data-path"].value != childrenNow[i].attributes["data-path"].value) {
             //            console.log(children.get(i-1));
             //            console.log(childrenNow.get(i-1));
             //            console.log(children[i]);
             //            console.log(childrenNow[i]);
             //            break;
-            //        }
-            //    else if (children[i].attributes["data-fileid"])
-            //        if (children[i].attributes["data-fileid"].value != childrenNow[i].attributes["data-fileid"].value) {
-            //            console.log(children[i]);
-            //            console.log(childrenNow[i]);
             //        }
             //    else {
             //        console.log(children[i]);
@@ -63,10 +58,10 @@ var utils = {
     // browser functions
     // execute: call function while in folder
     openFolder: function (assert, execute, callback) {
-        var title = $($(utils.fb).find('tr')[0]).data().dirid;
+        var title = $($(utils.fb).find('tr')[0]).data().path;
 
         mpcp.browser.update(title, false, function() {
-            var titleCrumb = $($('#location').find('.loc-dir')[0]).data().dirid;
+            var titleCrumb = $($('#location').find('.loc-dir')[0]).data().path;
             assert.equal(titleCrumb, title, 'check if loc-dir is the same as the original folder name');
 
             var children = $(utils.fb).children('.gen');
@@ -118,7 +113,7 @@ var utils = {
     },
 
     addDirTope: function (assert, callback) {
-        var title = $($(utils.fb).find('tr')[0]).data().dirid;
+        var title = $($(utils.fb).find('tr')[0]).data().path;
         mpcp.browser.addExternalDir(title, null, function() {
             var children = $(utils.pe).children('.gen');
             assert.ok(children.length > 1, 'check if anything is in the pe');
@@ -138,12 +133,12 @@ var utils = {
 
         if (incremental) {
             for (i = 0; i < times; ++i) {
-                file = $(songs[i]).parent().parent().data().fileid;
+                file = $(songs[i]).parent().parent().data().path;
                 mpcpAdd(file);
             }
         } else {
             for (i = 0; i < times; ++i) {
-                file = $(songs[0]).parent().parent().data().fileid;
+                file = $(songs[0]).parent().parent().data().path;
                 mpcpAdd(file);
             }
         }
@@ -189,7 +184,7 @@ var utils = {
 
     // playlist functions
     addDirToPl: function (assert, callback) {
-        var title = $($(utils.fb).find('tr')[0]).data().dirid;
+        var title = $($(utils.fb).find('tr')[0]).data().path;
         mpcp.browser.addExternalDir(title, null, function() {
             var children = $(utils.pl).children('.gen');
             assert.ok(children.length > 1, 'check if anything is in the pl');
@@ -246,7 +241,7 @@ var utils = {
         var time = $('#time-current').text();
         var active = $('#pause').hasClass('active');
 
-        mpcp.player.toggle(function () {
+        mpcp.player.pause(function () {
             // we wait for progress bar checks
             setTimeout(function () {
                 var timeNow = $('#time-current').text();

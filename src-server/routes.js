@@ -4,6 +4,8 @@ const fs         = require('fs'),
 
 module.exports = function (express, app, downloader, config) {
 
+'use strict';
+
 // sass config
 app.use(sass({src: __dirname + '/../public'}));
 // compile js client side code
@@ -14,6 +16,8 @@ app.use(express.static(__dirname + '/../public'));
 // use pug with express
 app.set('views', __dirname + '/../views');
 app.set('view engine', 'pug');
+
+var pack;
 
 fs.readFile(__dirname + '/../package.json', function (err, data) {
     if (err) return console.log(err);

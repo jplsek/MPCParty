@@ -1,5 +1,7 @@
 module.exports = function (io, mpc, skip, downloader, config, utils) {
 
+'use strict';
+
 var addresses = [],
     // save playlist title for future connections (because I have no idea how
     // to get the playlist title on initial load)
@@ -7,18 +9,8 @@ var addresses = [],
     // ip:hostname
     hostnames = {};
 
-io.on('connection', function (socket) {
+io.on('connection', socket => {
     var address = socket.request.connection.remoteAddress;
-
-    // a bug occurs where when the client closes the browser,
-    // it sends a connection request, but the address is undefined.
-    // This causes issues when trying to send() something to the socket,
-    // causing an error
-    if (!address) {
-        console.log('Address is undefined (did a user disconnect?)');
-        sendUpdate(address, false);
-        return;
-    }
 
     // if the user skipped in the past, add the skip back onto their client.
     if (~skip.addressNext.indexOf(address))
@@ -39,56 +31,56 @@ io.on('connection', function (socket) {
         'album-art': utils.currentArt,
     });
 
-    socket.on('playlist-title', function (data) {
+    socket.on('playlist-title', data => {
         // sends the new playlist title to the other users
-        if (playlisttitle == msg.info) return;
+        if (playlisttitle == data.info) return;
 
         console.log('Sending new title of the playlist to all clients.');
-        playlisttitle = msg.info;
-        io.broadcast.emit('playlist-title', {'info': msg.info});
+        playlisttitle = data.info;
+        io.emit('playlist-title', {'info': data.info});
     });
 
-    socket.on('stop-server', function (data) {
+    socket.on('stop-server', () => {
         console.log(address + ' closed the server.');
         process.exit(-1);
     });
 
-    socket.on('clear-playlist', function (data) {
+    socket.on('clear-playlist', () => {
         console.log('Clearing the playlist for all clients.');
 
         mpc.currentPlaylist.clear(() => {
             playlisttitle = '';
-            io.broadcast.emit('clear-playlist');
+            io.emit('clear-playlist');
             utils.setSong();
         });
     });
 
-    socket.on('update-playlist', function (data) {
+    socket.on('update-playlist', () => {
         // used for updating the playlist when the client removes the
         // currently playing song
         console.log('Updating the playlist for all clients.');
-        io.broadcast.emit('update-playlist');
+        io.emit('update-playlist');
     });
 
-    socket.on('update-browser', function (data) {
+    socket.on('update-browser', () => {
         // used for updating the browser after updaing the database
         console.log('Updating the browser for all clients.');
-        io.broadcast.emit('update-browser');
+        io.emit('update-browser');
     });
 
-    socket.on('song-next', function (data) {
+    socket.on('song-next', () => {
         console.log(address + ' skipped song');
-        io.broadcast.emit('song-next', {'info': address});
+        io.emit('song-next', {'info': address});
     });
 
-    socket.on('song-previous', function (data) {
+    socket.on('song-previous', () => {
         console.log(address + ' skipped song');
-        io.broadcast.emit('song-previous', {'info': address});
+        io.emit('song-previous', {'info': address});
     });
 
-    socket.on('song-vote-next', function (data) {
-        index = '';
-        if (utils.currentSong !== null && msg.info == 'yes' &&
+    socket.on('song-vote-next', data => {
+        var index = '';
+        if (utils.currentSong !== null && data.info == 'yes' &&
                 !~skip.addressNext.indexOf(address)) {
 
             // checks vote cancel
@@ -106,10 +98,10 @@ io.on('connection', function (socket) {
             (skip.total !== 0)) {
                 skip.nextSuccess();
             } else {
-                io.broadcast.emit('song-vote-next', {'info': skip.next});
+                io.emit('song-vote-next', {'info': skip.next});
             }
 
-        } else if (msg.info == 'no' &&
+        } else if (data.info == 'no' &&
                 !~skip.addressNextCancel.indexOf(address) &&
                 ~skip.addressNext.indexOf(address)) {
 
@@ -121,13 +113,13 @@ io.on('connection', function (socket) {
             skip.addressNext.splice(index, 1);
 
             --skip.next;
-            io.broadcast.emit('song-vote-next', {'info': skip.next});
+            io.emit('song-vote-next', {'info': skip.next});
         }
     });
 
-    socket.on('song-vote-previous', function (data) {
-        index = '';
-        if (currentSong !== null && msg.info == 'yes' &&
+    socket.on('song-vote-previous', data => {
+        var index = '';
+        if (utils.currentSong !== null && data.info == 'yes' &&
                 !~skip.addressPrevious.indexOf(address)) {
 
             // checks vote cancel
@@ -145,10 +137,10 @@ io.on('connection', function (socket) {
             (skip.previous !== 0) && (skip.total !== 0)) {
                 skip.previousSuccess();
             } else {
-                io.broadcast.emit('song-vote-previous',
+                io.emit('song-vote-previous',
                     {'info': skip.previous});
             }
-        } else if (msg.info == 'no' &&
+        } else if (data.info == 'no' &&
                 !~skip.addressPreviousCancel.indexOf(address) &&
                 ~skip.addressPrevious.indexOf(address)) {
 
@@ -160,33 +152,49 @@ io.on('connection', function (socket) {
             skip.addressPrevious.splice(index, 1);
 
             --skip.previous;
-            io.broadcast.emit('song-vote-previous', {'info': skip.previous});
+            io.emit('song-vote-previous', {'info': skip.previous});
         }
 
     });
 
-    socket.on('get-votes', function (data) {
+    socket.on('get-votes', () => {
         console.log('Got vote request from ' + address +
         ', sending updates...');
         sendUpdate(address, true, socket);
     });
 
-    socket.on('playlist-reload', function (data) {
+    socket.on('playlist-reload', data => {
         console.log('Reloading the playlist for all clients.');
         mpc.currentPlaylist.clear(() => {
-            mpc.storedPlaylists.load(msg.info).then(() => {
-                io.broadcast.emit('playlist-title', {'info': msg.info});
+            mpc.storedPlaylists.load(data.info).then(() => {
+                io.emit('playlist-title', {'info': data.info});
             });
         });
     });
 
-    socket.on('toggle-mute', function (data) {
+    socket.on('toggle-mute', () => {
         utils.toggleMute();
     });
 
     // arg1 and arg2 can be callbacks
-    socket.on('mpc', function (cmd, arg1, arg2, callback) {
-        console.log('got mpc request: ' + cmd);
+    socket.on('mpc', (cmd, arg1, arg2, callback) => {
+
+        function createFullCommandString() {
+            var fullcmd = cmd + "(";
+            // check for undefined because they can be booleans
+            if (arg1 !== undefined && typeof(arg1) !== 'function') {
+                fullcmd += arg1;
+                if (arg2 !== undefined && typeof(arg2) !== 'function') {
+                    fullcmd += arg2;
+                }
+            }
+
+            return fullcmd + ")";
+        }
+
+        var fullcmd = createFullCommandString();
+        console.log(address + ': got mpc request: ' + fullcmd);
+
         if (typeof(arg1) == 'function') {
             callback = arg1;
             arg1 = '';
@@ -197,32 +205,43 @@ io.on('connection', function (socket) {
             arg2 = '';
         }
 
-        // so we can pass arrays
-        if (typeof(arg1) == 'string' && arg1 != '') {
-            arg1 = '"' + arg1 + '"';
+        function reportError(msg) {
+            console.log(address + ": SOCKET MCP REQUEST ERROR for: " + fullcmd);
+            console.log(msg);
+            socket.emit('mpc-error', msg);
         }
 
-        var args = arg1;
+        function respond(resp) {
+            // Maps do weird things when sent over a socket
+            if (resp instanceof Map) {
+                resp = Array.from(resp);
+            }
+
+            if (callback) callback(resp);
+        }
 
         // This is a horrible way of doing this.
         // If there is a better way, please tell me.
         // The goal is to use mpc-js from the browser. I was unable to get
         // websockify to work.
+        // (I'm not a very good js programmer...)
         // Using Function instead of eval to keep it out of scope.
-        if (typeof(arg2) != 'function')
+        if (arg1 !== '' && arg2 !== '') {
             new Function('mpc', 'arg1', 'arg2',
                 'return mpc.' + cmd + '(arg1, arg2)')(mpc, arg1, arg2).
-                then((resp) => {
-                    if (callback) callback(resp);
-                }).catch(console.log);
-        else
-            new Function('mpc', 'return mpc.' + cmd + '(' + arg1 + ')')(mpc).
-                then((resp) => {
-                    if (callback) callback(resp);
-                }).catch(console.log);
+                then(respond).catch(reportError);
+        } else if (arg1 !== '') {
+            new Function('mpc', 'arg1',
+                'return mpc.' + cmd + '(arg1)')(mpc, arg1).
+                then(respond).catch(reportError);
+        } else {
+            new Function('mpc',
+                'return mpc.' + cmd + '()')(mpc).
+                then(respond).catch(reportError);
+        }
     });
 
-    socket.on('close', function () {
+    socket.on('disconnect', () => {
         sendUpdate(address, false);
     });
 });
@@ -235,8 +254,9 @@ var sendUpdate = function (address, connect, customSocket) {
 
     addresses = [];
 
-    for (i = 0; i < io.clients.length; ++i) {
-        var remAdd = io.clients[i]._socket.remoteAddress;
+    var sockets = io.sockets.sockets;
+    for (var socketId in sockets) {
+        var remAdd = sockets[socketId].conn.remoteAddress;
         // check if remAdd is undefined
         if (!~addresses.indexOf(remAdd) && remAdd)
             addresses.push(remAdd);
@@ -248,11 +268,11 @@ var sendUpdate = function (address, connect, customSocket) {
     i = 0;
 
     function hostHandler(addr) {
-        return getHostname(addr, function (hostname, usedip) {
+        return utils.getHostname(addr, function (hostname, usedip) {
             hostnames[usedip] = hostname;
 
             if (i == addresses.length - 1 && config.users.enabled) {
-                io.broadcast.emit('hostnames', {'info': hostnames});
+                io.emit('hostnames', {'info': hostnames});
             }
             ++i;
         });
@@ -341,7 +361,7 @@ var sendUpdate = function (address, connect, customSocket) {
         if (customSocket)
             customSocket.emit(send);
         else
-            io.broadcast.emit(send);
+            io.emit(send);
 
         console.log('\\---------------------------------------------------/');
     }

@@ -81,21 +81,21 @@ return {
         $('#location .loc-dir').remove();
         // toString incase of number only directories
         var dirs  = directory.toString().split('/'),
-            dirId = dirs[0],
+            path = dirs[0],
             html  = '',
             i;
 
         if (this.current != '/')
             for (i = 0; i < dirs.length; ++i) {
-                html += '<li class="breadcrumb-item loc-dir" data-dirid="' + dirId + '">' +
+                html += '<li class="breadcrumb-item loc-dir" data-path="' + path + '">' +
                     dirs[i] + '</li>';
-                dirId += '/' + dirs[i+1];
+                path += '/' + dirs[i+1];
             }
 
         $('#location ol')[0].innerHTML += html;
 
-        mpcp.socket.emit('mpc', 'database.listInfo', directory, (files) => {
-            console.log(files);
+        mpcp.socket.emit('mpc', 'database.listInfo', directory, files => {
+            //console.log(files);
             document.getElementById(mpcp.browser.tbodyid).innerHTML = '';
             mpcp.browser.localFolders = [];
             mpcp.browser.localFiles = [];
@@ -140,35 +140,24 @@ return {
         }
 
         // search for tag
-        mpcp.socket.emit('mpc', 'database.search', ['any', name],
-            (anyFiles) => {
+        mpcp.socket.emit('mpc', 'database.search', [['any', name]], anyFiles => {
 
             // search for file name
-            mpcp.socket.emit('mpc', 'database.search', ['file', name],
-                    (files) => {
-
-                //console.log(anyFiles);
-                //console.log(files);
+            mpcp.socket.emit('mpc', 'database.search', [['file', name]],
+                    files => {
 
                 var all = anyFiles.concat(files);
+                console.log(all);
 
-                // remove duplicate objects, if there is a "more official" way
-                // of doing this, or a quicker way of doing this, do tell or
-                // fix.
-                var unique = [];
-
-                for (var i = 0; i < all.length; ++i) {
-                    var duplicates = 0;
-
-                    for (var j = 0; j < unique.length; ++j) {
-                        if (all[i].file == unique[j].file)
-                            ++duplicates;
+                // remove duplicate objects (because of the tag and file search)
+                var temp = [];
+                var unique = all.filter(item => {
+                    if (!~temp.indexOf(item.path)) {
+                        temp.push(item.path);
+                        return true;
                     }
-
-                    if (!duplicates) {
-                        unique.push(all[i]);
-                    }
-                }
+                    return false;
+                });
 
                 //console.log(unique);
                 callbackSearch(unique);
@@ -237,7 +226,7 @@ return {
 
             strippedDir = mpcp.utils.stripSlash(value.path);
 
-            html = '<tr class="context-menu directory gen" data-dirid="' + value.path + '"><td class="song-list-icons"><i class="text-warning fa fa-folder-open"></i> <i class="folder-open faded fa fa-share" title="Open directory. Note: You can double click the directory to open"></i></a></td><td colspan="3" class="width100" title="' + strippedDir + '">' + tableStart + strippedDir + tableEnd + '</td><td colspan="2" class="song-list-icons text-right"><i class="dir-add faded text-success fa fa-plus" title="Add whole directory of songs to the bottom of the playlist"></i></td></tr>';
+            html = '<tr class="context-menu directory gen" data-path="' + value.path + '"><td class="song-list-icons"><i class="text-warning fa fa-folder-open"></i> <i class="folder-open faded fa fa-share" title="Open directory. Note: You can double click the directory to open"></i></a></td><td colspan="3" class="width100" title="' + strippedDir + '">' + tableStart + strippedDir + tableEnd + '</td><td colspan="2" class="song-list-icons text-right"><i class="dir-add faded text-success fa fa-plus" title="Add whole directory of songs to the bottom of the playlist"></i></td></tr>';
         }
 
         return html;
@@ -259,7 +248,7 @@ return {
             stripFile    = mpcp.utils.stripSlash(value.path);
             value.title  = (!value.title ? stripFile : value.title);
 
-            html = '<tr class="context-menu file gen" data-fileid="' + value.path + '"><td class="song-list-icons pos"><i class="text-primary fa fa-file"></i></td><td title="' + value.title + '">' + tableStart + value.title + tableEnd + '</td><td title="' + value.artist + '">' + tableStart + value.artist + tableEnd + '</td><td title="' + value.album + '">' + tableStart + value.album + tableEnd + '</td><td class="nowrap">' + mpcp.utils.toMMSS(value.duration) + '</td><td class="song-list-icons text-right"><i class="song-add faded text-success fa fa-plus" title="Add song to the bottom of the playlist"></i></td></tr>';
+            html = '<tr class="context-menu file gen" data-path="' + value.path + '"><td class="song-list-icons pos"><i class="text-primary fa fa-file"></i></td><td title="' + value.title + '">' + tableStart + value.title + tableEnd + '</td><td title="' + value.artist + '">' + tableStart + value.artist + tableEnd + '</td><td title="' + value.album + '">' + tableStart + value.album + tableEnd + '</td><td class="nowrap">' + mpcp.utils.toMMSS(value.duration) + '</td><td class="song-list-icons text-right"><i class="song-add faded text-success fa fa-plus" title="Add song to the bottom of the playlist"></i></td></tr>';
         }
 
         return html;
@@ -270,7 +259,7 @@ return {
         console.log('updatePosition');
         var tr = $('.song-list tbody').children('.file');
 
-        mpcp.socket.emit('mpc', 'status.currentSong', (song) => {
+        mpcp.socket.emit('mpc', 'status.currentSong', song => {
             if ($.isEmptyObject(song))
                 mpcp.player.setCurrent(null);
             else
@@ -278,18 +267,18 @@ return {
 
             if (mpcp.player.current) {
                 document.getElementById('title-pos').innerHTML =
-                    (mpcp.player.current.Pos + 1) + '. ';
+                    (mpcp.player.current.position + 1) + '. ';
             }
         });
 
-        var element, fileid, icon, index;
+        var element, id, icon, index;
 
         for (var i = 0; i < tr.length; ++i) {
             element = tr[i];
 
-            fileid = $(element).data().fileid;
-            icon   = '';
-            index  = mpcp.playlist.list.files.indexOf(fileid);
+            id = $(element).data().path;
+            icon = '';
+            index = mpcp.playlist.list.paths.indexOf(id);
 
             if (index != -1) {
                 icon = (parseInt(mpcp.playlist.list.positions[index]) + 1) +
@@ -372,8 +361,8 @@ return {
 
     // show song information to the user
     getSongInfo: function (file, callback) {
-        mpcp.socket.emit('mpc', 'database.find', ['file', file], (value) => {
-            mpcp.utils.parseSongInfo(err, value[0], callback);
+        mpcp.socket.emit('mpc', 'database.find', [['file', file]], value => {
+            mpcp.utils.parseSongInfo(value[0], callback);
         });
     },
 
@@ -384,7 +373,7 @@ return {
         if (this.searching) {
             if (mpcp.pe.current !== null) {
                 mpcp.socket.emit('mpc', 'database.search',
-                    ['any', this.searchterm], (files) => {
+                    ['any', this.searchterm], files => {
                     if ($.isEmptyObject(files[0])) {
                         console.log('No songs found');
                         if (callback) callback();
@@ -395,22 +384,23 @@ return {
                 });
             } else {
                 mpcp.socket.emit('mpc', 'database.searchAdd',
-                    ['any', this.searchTerm], (files) => {
+                    [['any', this.searchTerm]], files => {
                     if (callback) callback();
                 });
             }
         } else {
             if (mpcp.pe.current) {
                 mpcp.socket.emit('mpc', 'database.listAllInfo',
-                        ['any', this.current], (files) => {
-                    mpcp.pe.addSong(files, null, callback);
+                        this.current, files => {
+                    var songs = files.filter(item => item.entryType == 'song');
+                    mpcp.pe.addSong(songs, null, callback);
                 });
             } else {
                 mpcp.socket.emit('mpc', 'database.listInfo', this.current,
-                        (files) => {
+                        files => {
                     //console.log(files);
 
-                    if (!files.length) {
+                    if (files.length === 0) {
                         console.log('Empty directory');
                         if (callback) callback();
                         return;
@@ -418,18 +408,8 @@ return {
 
                     mpcp.playlist.addCallbackUpdate(callback);
 
-                    $(files).each(function (item, value) {
-                        if (value.directory) {
-                            komponist.add(value.directory, function (err) {
-                                if (err) console.log(err);
-                            });
-                        }
-
-                        if (value.file) {
-                            komponist.add(value.file, function (err) {
-                                if (err) console.log(err);
-                            });
-                        }
+                    files.forEach(item => {
+                        mpcp.socket.emit('mpc', 'currentPlaylist.add', item.path);
                     });
                 });
             }
@@ -482,11 +462,11 @@ return {
             for (i = 0; i < this.selected.length; ++i) {
                 tr = this.selected[i];
                 if (tr.classList.contains('file')) {
-                    file = tr.dataset.fileid;
+                    file = tr.dataset.path;
                     //console.log('adding ----- ' + file);
                     arr.push(['id', file]);
                 } else if (tr.classList.contains('directory')) {
-                    dir = tr.dataset.dirid;
+                    dir = tr.dataset.path;
                     arr.push(['dir', dir]);
                 }
             }
@@ -495,7 +475,7 @@ return {
         } else {
             var dontScroll = false;
             // dont scroll if drag and drop ("to" would not be null)
-            if (to && mpcp.player.current && to != mpcp.player.current.Pos + 1)
+            if (to && mpcp.player.current && to != mpcp.player.current.position + 1)
                 dontScroll = true;
 
             // reverse because not incrementing to variable because
@@ -504,11 +484,9 @@ return {
             for (i = 0; i < this.selected.length; ++i) {
                 tr = this.selected[i];
                 if (tr.classList.contains('file')) {
-                    file = tr.dataset.fileid;
-                    addFile(file);
+                    addFile(tr.dataset.path);
                 } else if (tr.classList.contains('directory')) {
-                    dir = tr.dataset.dirid;
-                    addDir(dir);
+                    addDir(tr.dataset.path);
                 } else {
                     if (++j == this.selected.length && callback)
                         callback();
@@ -546,15 +524,14 @@ return {
 
             $('#update .fa').addClass('fa-spin');
 
-            komponist.update(function (err) {
+            mpcp.socket.emit('mpc', 'database.update', () => {
                 // check if this is satus.updating_db is undefined
                 // if so, it is done updating (hopefully)
-                if (err) return console.log(err);
 
                 var updateInterval = setInterval(function () {
                     console.log('checking if update db is done...');
 
-                    mpcp.socket.emit('mpc', 'status.status', (status) => {
+                    mpcp.socket.emit('mpc', 'status.status', status => {
                         // incase job id is 0/1, just check if undefined
                         if (!status.updating) {
                             // stop interval and send update-browser
@@ -577,32 +554,32 @@ return {
         });
 
         $(document).on('click', '.song-add', function () {
-            var file = $(this).parent().parent().data().fileid;
+            var file = $(this).parent().parent().data().path;
             mpcp.browser.addExternal(file);
         });
 
         $(document).on('dblclick', 'tr.file', function () {
-            var file = $(this).data().fileid;
+            var file = $(this).data().path;
             mpcp.browser.addExternal(file);
         });
 
         $(document).on('dblclick', '.song-list tr.directory', function () {
-            var dir = $(this).data().dirid;
+            var dir = $(this).data().path;
             mpcp.browser.update(dir);
         });
 
         $(document).on('click', '.song-list .folder-open', function () {
-            var dir = $(this).parent().parent().data().dirid;
+            var dir = $(this).parent().parent().data().path;
             mpcp.browser.update(dir);
         });
 
         $(document).on('click', '.dir-add', function () {
-            var dir = $(this).parent().parent().data().dirid;
+            var dir = $(this).parent().parent().data().path;
             mpcp.browser.addExternalDir(dir);
         });
 
         $(document).on('click', '.loc-dir', function () {
-            var file = $(this).data().dirid;
+            var file = $(this).data().path;
             //console.log(file);
             mpcp.browser.update(file);
         });

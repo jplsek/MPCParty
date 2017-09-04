@@ -19,20 +19,16 @@ return {
 
         console.log('update artists');
 
-        komponist.list('artist', function (err, files) {
-            if (err) {
-                console.log(err);
-                if (callback) callback();
-                return;
-            }
-
-            //console.log(files);
+        mpcp.socket.emit('mpc', 'database.list', 'Artist', artists => {
+            //console.log(artists);
+            artists = artists[0][1];
+            //console.log(artists);
 
             $(mpcp.libraryArtists.table + ' .gen').remove();
 
             var html = '';
 
-            if (!files.length || files[0].Artist === '') {
+            if (artists.length === 0) {
                 html = '<tr class="gen"><td colspan="2">' +
                     '<em class="text-muted">No artists</em></td></tr>';
                 document.getElementById(mpcp.libraryArtists.tbodyid).innerHTML = html;
@@ -45,14 +41,15 @@ return {
                 tableEnd   = '</td></tr></table>',
                 addClass   = '';
 
-            for (var i = 0; i < files.length; ++i) {
-                var artist = files[i].Artist;
+            artists.forEach(artist => {
+                if (artist === '')
+                    return;
 
                 if (artist == artistUse) addClass = 'bg-info text-light';
 
                 html += '<tr class="context-menu gen artist ' + addClass + '" data-artist="' + artist + '" title="' + artist + '"><td>' + tableStart + artist + tableEnd + '</td><td class="song-list-icons text-right"><i class="artist-add faded text-success fa fa-plus" title="Add artist to the bottom of the playlist"></i></td></tr>';
                 addClass = '';
-            }
+            });
 
             document.getElementById(mpcp.libraryArtists.tbodyid).innerHTML = html;
 

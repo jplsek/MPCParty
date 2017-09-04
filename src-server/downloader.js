@@ -4,6 +4,8 @@ const fs    = require('fs'),
 
 module.exports = function (config) {
 
+'use strict';
+
 return {
     // some of these settings get set in config.cfg
     enabled: true,

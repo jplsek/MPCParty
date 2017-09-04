@@ -6,7 +6,6 @@ $(function () {
 "use strict";
 
 mpcp.socket         = require('./socket.js')(mpcp);
-mpcp.disconnect     = require('./disconnect.js')(mpcp);
 mpcp.utils          = require('./utils.js')(mpcp);
 mpcp.player         = require('./player.js')(mpcp);
 mpcp.history        = require('./history.js')(mpcp);
@@ -133,7 +132,6 @@ mpcp.pe         .initEvents();
 mpcp.history    .initEvents();
 mpcp.stored     .initEvents();
 mpcp.downloader .initEvents();
-mpcp.disconnect .initEvents();
 mpcp.library    .initEvents();
 
 });

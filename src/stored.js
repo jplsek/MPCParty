@@ -28,7 +28,7 @@ return {
                 this.current = 'native';
             } else if (Array.isArray(type)) {
                 this.fileArr = type;
-                this.current = 'fileids';
+                this.current = 'names';
             }
         } else if (!this.doUpdate) {
             if (++this.currentId >= this.totalIds) {
@@ -50,20 +50,9 @@ return {
 
         console.log('update stored playlists table');
 
-        komponist.listplaylists(function (err, playlists) {
+        mpcp.socket.emit('mpc', 'storedPlaylists.listPlaylists', playlists => {
             //console.log(id + ':');
             //console.log(playlists);
-            if (err) {
-                if (err.message == 'No such file or directory [52@0] {listplaylists}') {
-                    mpcp.lazyToast.error('Is there a playlist directory and correct write permissions?', 'Cannot read playlist directory!');
-                }
-
-                html = '<em class="gen text-muted">No saved playlists</em>';
-                $(id +' .modal-body')[0].innerHTML = html;
-                console.log(err);
-                if (callback) callback();
-                return;
-            }
 
             if (id == '#playlist-open-modal')
                 mpcp.stored.active = 'open';
@@ -85,21 +74,12 @@ return {
 
             var i = 0;
 
-            $(playlists).each(function (item, value) {
-                komponist.listplaylist(value.playlist, function (err, songs) {
-                    if (err && err.message ==
-                            'No such playlist [50@0] {listplaylist}') {
-                        console.log('no playlist found: "' +
-                            value.playlist + '"');
-                    } else if (err) {
-                        console.log(err);
-                    }
+            playlists.forEach(item => {
+                mpcp.socket.emit('mpc', 'storedPlaylists.listPlaylist',
+                        item.name, songs => {
 
-                    if (!Array.isArray(songs))
-                        songs = [songs];
-
-                    value.playlist = value.playlist.replace(/ /g, '\u00a0');
-                    html += '<tr class="gen playlists-row" data-fileid="' + value.playlist + '"><td>' + value.playlist + '</td><td>' + songs.length + '</td><td class="text-right"><i class="faded playlist-remove text-danger fa fa-remove" data-fileid="' + value.playlist + '" title="Remove the playlist"></i></td>';
+                    item.name = item.name.replace(/ /g, '\u00a0');
+                    html += '<tr class="gen playlists-row" data-name="' + item.name + '"><td>' + item.name + '</td><td>' + songs.length + '</td><td class="text-right"><i class="faded playlist-remove text-danger fa fa-remove" data-name="' + item.name + '" title="Remove the playlist"></i></td>';
                     if (++i == playlists.length) {
                         $(id +' .playlists tbody')[0].innerHTML = html;
                         if (callback) callback();
@@ -109,7 +89,7 @@ return {
         });
     },
 
-    // save the playlist. Wrapper for komponist.save()
+    // save the playlist. Wrapper for mpc.save()
     save: function (file, callback) {
         // When titles are "", it updates the current playlist, kind of.
         // It works via playlist editor, but not the playlist.
@@ -125,7 +105,7 @@ return {
         file = file.trim().replace(/\u00a0/g, " ");
         console.log(file);
 
-        if (this.current == 'fileids') {
+        if (this.current == 'names') {
             if (!this.fileArr.length) {
                 mpcp.lazyToast.warning('Playlist empty!', 'Playlist');
                 $('#playlist-save-modal').modal('hide');
@@ -134,109 +114,53 @@ return {
                 return console.log('empty playlist');
             }
 
+
             // overwrite any existing playlist
-            komponist.rm(file, function (err, val) {
-                if (err) {
-                    if (err.message == 'No such playlist [50@0] {rm}')
-                        console.log('No playlist to overwrite, continue...');
-                    else
-                        console.log(err);
-                }
-
-                //console.log(mpcp.stored.fileArr);
-
+            mpcp.stored.removePlaylist(file, () => {
                 // continue saving...
-                var saved                  = true,
-                    updatedCurrentPlaylist = false,
-                    invalid                = false,
-                    noFile                 = false,
-                    notFound               = false,
-                    unknown                = false,
-                    err2,
-                    // since everything is async, we have to use a deferred object.
+                var updatedCurrentPlaylist = false;
+
+                var songAddedPromise = new Promise((resolve, reject) => {
+                    // since everything is async, we have to use a promise.
                     // i is counting the elements being added, which resolves the
-                    // deferred.
-                    i                      = 0,
-                    def                    = $.Deferred();
+                    // promise.
+                    var i = 0;
 
-                function addSongToPlaylist(file, song) {
-                    komponist.playlistadd(file, song, function (err2, val) {
-                        // I would like to break from the each loop when an
-                        // error occurs, but getting that set up is hackish.
-                        // For now, it will run the each loop every time an
-                        // error is caught
-                        ++i;
-
-                        if (err2) {
-                            if (err2.message == 'playlist name is invalid: playlist names may not contain slashes, newlines or carriage returns [2@0] {playlistadd}') {
-                                invalid = true;
-                            } else if (err2.message == 'No such file or directory [52@0] {playlistadd}') {
-                                noFile = true;
-                            } else if (err2.message ==  'Not found [50@0] {playlistadd}') {
-                                // read MESSAGE1
-                                err2 = song;
-                                notFound = true;
-                            } else {
-                                unknown = true;
+                    function addSongToPlaylist(file, song) {
+                        mpcp.socket.emit('mpc', 'storedPlaylists.playlistAdd',
+                                file, song, () => {
+                            if (++i == mpcp.stored.fileArr.length) {
+                                if (mpcp.playlist.current == file)
+                                    updatedCurrentPlaylist = true;
+                                resolve();
                             }
-
-                            saved = false;
-                            // resolves earlier because output would be the
-                            // same anyways
-                            console.log(err2);
-                            def.resolve();
-                            return;
-                        }
-
-                        if (i == mpcp.stored.fileArr.length) {
-                            if (mpcp.playlist.current == file)
-                                updatedCurrentPlaylist = true;
-                            def.resolve();
-                        }
-                    });
-                }
-
-                for (var j = 0; j < mpcp.stored.fileArr.length; ++j) {
-                    // this if statement doesn't actually work, async makes
-                    // this loop happen too quickly
-                    if (!saved) return false;
-                    addSongToPlaylist(file, mpcp.stored.fileArr[j]);
-                }
-
-                def.done(function () {
-                    // in deferred because the loop can execute the
-                    // playlistadd multiple times
-                    if (invalid) {
-                        mpcp.lazyToast.warning('Playlist may not contain slashes, newlines, or carriage returns.', 'Invalid Characters', 10000);
-                    } else if (noFile) {
-                        mpcp.lazyToast.error('Is there a playlist directory and correct write permissions?', 'Cannot read playlist directory!');
-                    } else if (notFound) {
-                        // read MESSAGE1
-                        mpcp.lazyToast.error('File not found: ' + err2, 'Playlist');
-                    } else if (unknown) {
-                        mpcp.lazyToast.error(err2, 'Unhandled Error');
+                        });
                     }
 
-                    if (saved) {
-                        file = file.replace(/ /g, '\u00a0');
-                        mpcp.lazyToast.info(
-                                file + ' playlist saved!', 'Playlist update');
-
-                        if (updatedCurrentPlaylist) {
-                            var msg = 'You must open the updated playlist for it to update the current playlist.';
-                            mpcp.history.add(msg, 'bg-info');
-                            toastr.info(msg + '<button title="Reloads the playlist" class="playlist-reload btn btn-default pull-right"><span class="fa fa-repeat"></span></button>', 'Playlist update', {
-                                'closeButton': true,
-                                'positionClass': 'toast-bottom-left',
-                                'preventDuplicates': false,
-                                'timeOut': '-1',
-                                'extendedTimeOut': '-1'
-                            });
-                        }
-
-                        // clear fileArr after saving
-                        mpcp.stored.fileArr = [];
+                    for (var j = 0; j < mpcp.stored.fileArr.length; ++j) {
+                        addSongToPlaylist(file, mpcp.stored.fileArr[j]);
                     }
+                });
+
+                songAddedPromise.then(() => {
+                    file = file.replace(/ /g, '\u00a0');
+                    mpcp.lazyToast.info(
+                            file + ' playlist saved!', 'Playlist update');
+
+                    if (updatedCurrentPlaylist) {
+                        var msg = 'You must open the updated playlist for it to update the current playlist.';
+                        mpcp.history.add(msg, 'bg-info');
+                        toastr.info(msg + '<button title="Reloads the playlist" class="playlist-reload btn btn-default pull-right"><span class="fa fa-repeat"></span></button>', 'Playlist update', {
+                            'closeButton': true,
+                            'positionClass': 'toast-bottom-left',
+                            'preventDuplicates': false,
+                            'timeOut': '-1',
+                            'extendedTimeOut': '-1'
+                        });
+                    }
+
+                    // clear fileArr after saving
+                    mpcp.stored.fileArr = [];
 
                     if (callback) callback();
                 });
@@ -257,30 +181,11 @@ return {
                 return console.log('playlist empty');
             }
 
-            komponist.rm(file, function (err, val) {
-                if (err) {
-                    if (err.message == 'No such playlist [50@0] {rm}')
-                        console.log('No playlist to overwrite, continue...');
-                    else
-                        console.log(err);
-                }
+            mpcp.stored.removePlaylist(file, () => {
 
                 // continue saving...
-                komponist.save(file, function (err, val) {
+                mpcp.socket.emit('mpc', 'storedPlaylists.save', file, () => {
                     file = file.replace(/ /g, '\u00a0');
-
-                    if (err) {
-                        console.log(err.message);
-
-                        if (err.message == 'No such file or directory [52@0] {save}') {
-                            mpcp.lazyToast.error('Is there a playlist directory and correct write permissions?', 'Cannot read playlist directory!');
-                        } else if (err.message == 'playlist name is invalid: playlist names may not contain slashes, newlines or carriage returns [2@0] {save}') {
-                            mpcp.lazyToast.warning('Playlist may not contain slashes, newlines, or carriage returns.', 'Invalid Characters', 10000);
-                        }
-
-                        if (callback) callback();
-                        return console.log(err);
-                    }
 
                     mpcp.lazyToast.info(
                             file + ' playlist saved!', 'Playlist update');
@@ -301,35 +206,46 @@ return {
 
     externalSave: function (callback) {
         var trs = $(mpcp.pe.tbody).children('.gen').not('.rem'),
-            fileIds = [];
+            paths = [];
 
         for (var i = 0; i < trs.length; ++i)
-            fileIds[i] = $(trs[i]).data().fileid;
+            paths[i] = $(trs[i]).data().path;
 
-        mpcp.stored.updatePlaylists('#playlist-save-modal', fileIds, callback);
+        mpcp.stored.updatePlaylists('#playlist-save-modal', paths, callback);
     },
 
     removePlaylist: function (file, tr, callback) {
-        file = String(file).replace(/\u00a0/g, " ");
-        // client side deletion, less jaring (stops flashing the list)
-        mpcp.stored.doUpdate = false;
-        console.log('delete playlist ' + file);
+        if (typeof(tr) == 'function') {
+            callback = tr;
+        } else {
+            // else, client side remove
+            file = String(file).replace(/\u00a0/g, " ");
+            // client side deletion, less jaring (stops flashing the list)
+            mpcp.stored.doUpdate = false;
+        }
 
-        komponist.rm(file, function (err) {
-            if (err) {
-                mpcp.lazyToast.error(err, 'Error removing playlist!');
-                console.log(err);
-            } else {
+        function done() {
+            if (typeof(tr) != 'function') {
                 $(tr)[0].remove();
             }
 
             if (callback) callback();
+        }
+
+        mpcp.socket.emit('mpc', 'storedPlaylists.listPlaylists', playlists => {
+            if (playlists.some(item => item.name == file)) {
+                console.log('deleting playlist ' + file);
+                mpcp.socket.emit('mpc', 'storedPlaylists.remove', file, done);
+            } else {
+                done();
+            }
         });
     },
 
-    // open a playlist. Wrapper for komponist.open()
+    // open a playlist. Wrapper for mpc.open()
     open: function (file, callback) {
-        file = file.toString().replace(/\u00a0/g, " ");
+        console.log(file);
+        file = file.replace(/\u00a0/g, " ");
 
         if (this.call !== null) {
             console.log('calling fn..');
@@ -341,18 +257,9 @@ return {
             // stops duplicate updating because of socket sending
             mpcp.playlist.doUpdate = false;
 
-            komponist.clear(function (err) {
-                if (err) console.log(err);
+            mpcp.socket.emit('mpc', 'currentPlaylist.clear', () => {
 
-                komponist.load(file, function (err) {
-                    if (err) {
-                        mpcp.lazyToast.error('Error loading the playlist! ' +
-                                err.message);
-                        console.log(err);
-                        if (callback) callback();
-                        return;
-                    }
-
+                mpcp.socket.emit('mpc', 'storedPlaylists.load', file, () => {
                     // set title locally before sending to clients
                     $('#playlist-title strong')[0].innerHTML = file;
                     $('#playlist-title strong').attr('title', file);
@@ -370,17 +277,17 @@ return {
         var rowSelect = mpcp.utils.rowSelect('.playlists-row', 'bg-primary text-light');
 
         rowSelect.on('down', function (ele) {
-            var file = $(ele).data().fileid;
+            var file = $(ele).data().name;
             document.getElementById('playlist-save-input').value = file;
         });
 
         rowSelect.on('up', function (ele) {
-            var file = $(ele).data().fileid;
+            var file = $(ele).data().name;
             document.getElementById('playlist-save-input').value = file;
         });
 
         rowSelect.on('click', function (ele) {
-            var file = $(ele).data().fileid;
+            var file = $(ele).data().name;
             document.getElementById('playlist-save-input').value = file;
         });
 
@@ -392,12 +299,12 @@ return {
         });
 
         rowSelect.on('delete', function (ele) {
-            var file = $(ele).data().fileid;
+            var file = $(ele).data().name;
             mpcp.stored.removePlaylist(file, ele);
         });
 
         $(document).on('click', '.playlist-remove', function () {
-            var file = $(this).data().fileid,
+            var file = $(this).data().name,
                 tr   = $(this).parent().parent();
 
             mpcp.stored.removePlaylist(file, tr);

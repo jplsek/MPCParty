@@ -1,8 +1,9 @@
 module.exports = function (io, mpc) {
 
+'use strict';
+
 // song skipping
 return {
-    self: this,
     votePercent: 0.75,
     voting: true,
     // user count
@@ -27,30 +28,26 @@ return {
         this.addressPreviousCancel = [];
         // I would run sendUpdate(), but im not sure how
         // to do with my current set up.
-        io.broadcast.emit('request-vote-update-from-server');
+        io.emit('request-vote-update-from-server');
     },
 
     nextSuccess: function () {
-        mpc.playbackCommands.next(() => {
-            if (err) return console.log(err);
-
-            io.broadcast.emit('skipped', {'info': self.addressNext});
-            console.log('Song vote skip successful from ' + self.addressNext);
-            self.next = 0;
-            self.addressNext = [];
-        });
+        mpc.playback.next().then(() => {
+            io.emit('skipped', {'info': this.addressNext});
+            console.log('Song vote skip successful from ' + this.addressNext);
+            this.next = 0;
+            this.addressNext = [];
+        }).catch(console.log);
     },
 
     previousSuccess: function () {
-        mpc.playbackCommands.previous(() => {
-            if (err) return console.log(err);
-
-            io.broadcast.emit('skipped', {'info': self.addressPrevious});
+        mpc.playback.previous().then(() => {
+            io.emit('skipped', {'info': this.addressPrevious});
             console.log('Song vote skip successful from ' +
-                self.addressPrevious);
-            self.previous = 0;
-            self.addressPrevious = [];
-        });
+                this.addressPrevious);
+            this.previous = 0;
+            this.addressPrevious = [];
+        }).catch(console.log);
     }
 };
 

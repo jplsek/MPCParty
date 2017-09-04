@@ -28,7 +28,7 @@ return {
         var extra = '';
         if (mpcp.settings.pulse) extra += 'pulse';
 
-        return '<tr class="gen context-menu ' + extra + '" title="' + title + '" data-title="' + title + '" data-fileid="' + file + '"><td class="playlist-song-list-icons"></td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><i class="pe-song-remove faded text-danger fa fa-remove" title="Remove song from playlist"></i></td></tr>';
+        return '<tr class="gen context-menu ' + extra + '" title="' + title + '" data-title="' + title + '" data-path="' + file + '"><td class="playlist-song-list-icons"></td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><i class="pe-song-remove faded text-danger fa fa-remove" title="Remove song from playlist"></i></td></tr>';
     },
 
     // file object, position to put song
@@ -42,12 +42,12 @@ return {
 
         if (Array.isArray(file)) {
             for (var i = 0; i < file.length; ++i) {
-                title = mpcp.utils.getSimpleTitle(file[i].Title, file[i].Artist,
-                    file[i].file);
-                html += this.getHtml(title, file[i].file);
+                title = mpcp.utils.getSimpleTitle(file[i].title, file[i].artist,
+                    file[i].path);
+                html += this.getHtml(title, file[i].path);
             }
         } else {
-            title = mpcp.utils.getSimpleTitle(file.Title, file.Artist, file.file);
+            title = mpcp.utils.getSimpleTitle(file.title, file.artist, file.path);
             html = this.getHtml(title, file.file);
         }
 
@@ -76,7 +76,7 @@ return {
                 index = mpcp.pe.selected.index(el);
 
             $(mpcp.pe.selected).each(function (item, tr) {
-                //var file = $(tr).data().fileid;
+                //var file = $(tr).data().path;
 
                 // if dropped item is further down than the current tr
                 if (index > item) {
@@ -136,11 +136,11 @@ return {
         var artist, album;
 
         if (el.classList.contains('file')) {
-            var fileName = el.dataset.fileid;
+            var fileName = el.dataset.path;
             this.addid(fileName, index);
         } else if (el.classList.contains('directory')) {
             // directory
-            var dir = el.dataset.dirid;
+            var dir = el.dataset.path;
             this.add(dir, index);
         } else if (el.classList.contains('album')) {
             artist = el.dataset.artist;
@@ -160,16 +160,12 @@ return {
         }
     },
 
-    // wrapper (similar to komponist.addid)
-    addid: function (fileid, pos, callback) {
-        //console.log(fileid);
-        mpcp.socket.emit('mpc', 'database.find', ['file', fileid], (files) => {
-            //console.log(value);
-            value = value[0];
-
-            if (value.file && !value.directory) {
-                mpcp.pe.addSong(value, pos, callback);
-            }
+    // wrapper (similar to mpc.addid)
+    addid: function (path, pos, callback) {
+        //console.log(path);
+        mpcp.socket.emit('mpc', 'database.find', [['file', path]], files => {
+            //console.log(files);
+            mpcp.pe.addSong(files[0], pos, callback);
         });
     },
 
@@ -184,22 +180,23 @@ return {
             mpcp.pe.addSong(newArr, pos, rootCallback);
         }
 
-        function setFile(fileid) {
-            mpcp.socket.emit('mpc', 'database.find', ['file', fileid],
-                (files) => {
-                value = value[0];
+        function setFile(path) {
+            mpcp.socket.emit('mpc', 'database.find', [['file', path]],
+                    files => {
+                var file = files[0];
 
-                if (value.file && !value.directory) {
+                if (file.entryType == 'song') {
                     //console.log(value);
-                    newArr.push(value);
+                    newArr.push(file);
                     if (++j == arr.length) callback();
                 }
             });
         }
 
         function setDir(dir) {
-            mpcp.utils.getAllInfo(dir, function (files) {
-                newArr = newArr.concat(files);
+            mpcp.socket.emit('mpc', 'database.listAllInfo', dir, files => {
+                var songs = files.filter(item => item.entryType == 'song');
+                newArr = newArr.concat(songs);
                 if (++j == arr.length) callback();
             });
         }
@@ -230,18 +227,11 @@ return {
         }
     },
 
-    // wrapper (similar to komponist.add)
+    // wrapper (similar to mpc.add)
     add: function (dir, pos, callback) {
-        // FUTURE SELF: DO NOT USE LISTALLINFO, IT WILL HAVE THE "OFF BY ONE"
-        // BUG, KEEP THIS 'getAllInfo'.
-        // Option 1: Loop through all directories recursively running lsinfo
-        // Option 2: Run listall, then loop through each item to get metadata
-        // Option 1 sends less requests to the server, so we'll implement that.
-        // Add All and Multiselect directories is still based on how fast the
-        // server can respond per directory (so it can look random)
-        mpcp.utils.getAllInfo(dir, function (files) {
-            //console.log(files);
-            mpcp.pe.addSong(files, pos, callback);
+        mpcp.socket.emit('mpc', 'database.listAllInfo', dir, files => {
+            var songs = files.filter(item => item.entryType == 'song');
+            mpcp.pe.addSong(songs, pos, callback);
         });
     },
 
@@ -277,8 +267,8 @@ return {
 
     // open the playlist to the pe
     open: function (file, callback) {
-        mpcp.socket.emit('mpc', 'storedPlaylist.listPlaylistInfo', file,
-                (val) => {
+        mpcp.socket.emit('mpc', 'storedPlaylists.listPlaylistInfo', file,
+                val => {
             mpcp.pe.clear();
             mpcp.pe.addSong(val, null, callback);
         });

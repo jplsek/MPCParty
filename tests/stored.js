@@ -9,7 +9,7 @@ QUnit.test('stored: no songs test', function (assert) {
 
         mpcp.playlist.saveFromStored(function () {
             assert.ok(~$('.toast-message').text().indexOf('empty'), 'check if empty toast');
-            toastr.clear();
+            toastr.remove();
 
             // clear the playlist
             utils.clearPlaylist(assert, function () {
@@ -31,7 +31,7 @@ QUnit.test('stored: no title test', function (assert) {
 
             mpcp.playlist.saveFromStored(function () {
                 assert.ok(~$('.toast-message').text().indexOf('title'), 'check if no title toast');
-                toastr.clear();
+                toastr.remove();
 
                 // clear the playlist
                 utils.clearPlaylist(assert, function () {

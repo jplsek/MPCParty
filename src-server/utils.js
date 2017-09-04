@@ -2,11 +2,15 @@ const dns = require('dns');
 
 module.exports = function (io, mpc) {
 
+'use strict';
+
 return {
     // The current song
     currentSong: null,
     // currently playing song's album art url
     currentArt: null,
+    // used for toggling the mute
+    lastVolume: 0,
 
     isEmpty: function(obj) { return Object.keys(obj).length === 0; },
 
@@ -39,8 +43,8 @@ return {
 
             // if the volume is 0, then use the last volume that was not zero
             // else mute it
-            if (parseInt(status.volume) == 0) {
-                volume = parseInt(lastVolume);
+            if (parseInt(status.volume) === 0) {
+                volume = parseInt(this.lastVolume);
 
                 // if the volume is still 0 (such as from a server restart)
                 // just set it to an arbitrary value
@@ -50,28 +54,26 @@ return {
             }
 
             mpc.playbackOptions.setVolume(volume);
-        });
+        }).catch(console.log);
     },
 
     updateMixer: function() {
         mpc.status.status().then(status => {
-            if (err) console.log(err);
-
             if (status.volume != 0) {
-                lastVolume = status.volume;
+                this.lastVolume = status.volume;
             }
-        });
+        }).catch(console.log);
     },
 
     sendArtworkMessage: function() {
-        io.broadcast.emit('album-art', {'url': currentArt});
+        io.emit('album-art', {'url': this.currentArt});
     },
 
     // get album art based on the directory the file is in
     getImage: function(song) {
         if (!song || config.mpd.library === '') {
-            currentArt = null;
-            sendArtworkMessage();
+            this.currentArt = null;
+            this.sendArtworkMessage();
             return;
         }
 
@@ -84,8 +86,8 @@ return {
 
             //console.log(files);
             if (files.length === 0) {
-                currentArt = null;
-                sendArtworkMessage();
+                this.currentArt = null;
+                this.sendArtworkMessage();
                 return;
             }
 
@@ -93,16 +95,16 @@ return {
             var imageLocation = tilde(folder + path.sep + files[0]);
             //console.log(imageLocation);
 
-            currentArt = encodeURI('/album-art/' + subFolder + '/' + files[0])
+            this.currentArt = encodeURI('/album-art/' + subFolder + '/' + files[0])
                 // *sigh* https://stackoverflow.com/a/8143232
                 .replace(/\(/g, '%28').replace(/\)/g, '%29');
 
-            console.log('Creating art URL: ' + currentArt);
+            console.log('Creating art URL: ' + this.currentArt);
 
             // TODO check if there is a way to remove the old url when a
             // new one is created (or will the gc or express handle that?)
             // create a new url
-            app.get(currentArt, function (req, res) {
+            app.get(this.currentArt, function (req, res) {
                 res.sendFile(imageLocation, function (err) {
                     if (err) {
                         console.log(err);
@@ -111,33 +113,28 @@ return {
                 });
             });
 
-            sendArtworkMessage();
+            this.sendArtworkMessage();
         });
     },
 
     setSong: function() {
-        mpc.status.currentSong().then((song) => {
-            if (err) {
-                console.log('Error setting current song');
-                return console.log(err);
-            }
-
+        mpc.status.currentSong().then(song => {
             //console.log('set song: ' + song);
 
-            if (isEmpty(song)) {
-                currentSong = null;
-                getImage();
+            if (!song) {
+                this.currentSong = null;
+                this.getImage();
                 return console.log('No song selected');
             }
 
-            if (currentSong != song.file) {
+            if (this.currentSong != song.file) {
                 console.log('Now playing: ' + song.file);
                 skip.reset();
-                getImage(song);
+                this.getImage(song);
             }
 
-            currentSong = song.file;
-        });
+            this.currentSong = song.file;
+        }).catch(console.log);
     }
 };
 

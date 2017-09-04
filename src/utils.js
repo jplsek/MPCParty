@@ -116,19 +116,13 @@ return {
     },
 
     // create the popup window for song information
-    parseSongInfo: function (err, values, callback) {
-        if (err || !values || Object.keys(values).length < 1) {
-            mpcp.lazyToast.warning('This is most likely a bug with MPCParty or the song is not in the live database.', 'Error getting song information.', 10000);
-            if (callback) callback();
-            return console.log(err);
-        }
-
+    parseSongInfo: function (values, callback) {
         //console.log(values);
         $('#song-info .gen').remove();
         $('#song-info-modal h4')[0].innerHTML = '';
         $('#song-info-modal').modal('show');
 
-        var title = mpcp.utils.getSimpleTitle(values.Title, values.Artist, values.file);
+        var title = mpcp.utils.getSimpleTitle(values.title, values.artist, values.path);
         $('#song-info-modal h4')[0].innerHTML = title;
 
         if (values.Time) values.Time = mpcp.utils.toMMSS(values.Time);
@@ -146,9 +140,9 @@ return {
 
     // update database statistics to the client
     updateStats: function () {
-        mpcp.socket.emit('mpc', 'status.statistics', (stat) => {
+        mpcp.socket.emit('mpc', 'status.statistics', stats => {
             //console.log(stats);
-            var html = '<small>' + stats.artists + ' artists, ' + stats.albums + ' albums, ' + stats.songs + ' songs (' + mpcp.utils.toFriendlyDDHHMM(stats.db_playtime) + '). Last database update: ' + new Date(stats.db_update * 1000).toLocaleString() + '</small>';
+            var html = '<small>' + stats.artists + ' artists, ' + stats.albums + ' albums, ' + stats.songs + ' songs (' + mpcp.utils.toFriendlyDDHHMM(stats.dbPlaytime) + ')<br>Last database update: ' + stats.dbUpdate + '</small>';
             //console.log(html);
             document.getElementById('stats').innerHTML = html;
         });

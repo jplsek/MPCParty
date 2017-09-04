@@ -107,13 +107,13 @@ return {
     getSongsFromAlbum: function (artist, album, callback) {
         // TODO fix special characters
         if (!album) {
-            mpcp.socket.emit('mpc', 'database.find', ['artist', artist],
-                    (files) => {
+            mpcp.socket.emit('mpc', 'database.find', [['artist', artist]],
+                    files => {
                 setSongs(files);
             });
         } else {
             mpcp.socket.emit('mpc', 'database.find',
-                    ['artist', artist, 'album', album], (files) => {
+                    [['artist', artist], ['album', album]], files => {
                 setSongs(files);
             });
         }
