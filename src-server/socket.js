@@ -226,18 +226,22 @@ io.on('connection', socket => {
         // websockify to work.
         // (I'm not a very good js programmer...)
         // Using Function instead of eval to keep it out of scope.
-        if (arg1 !== '' && arg2 !== '') {
-            new Function('mpc', 'arg1', 'arg2',
-                'return mpc.' + cmd + '(arg1, arg2)')(mpc, arg1, arg2).
-                then(respond).catch(reportError);
-        } else if (arg1 !== '') {
-            new Function('mpc', 'arg1',
-                'return mpc.' + cmd + '(arg1)')(mpc, arg1).
-                then(respond).catch(reportError);
-        } else {
-            new Function('mpc',
-                'return mpc.' + cmd + '()')(mpc).
-                then(respond).catch(reportError);
+        try {
+            if (arg1 !== '' && arg2 !== '') {
+                new Function('mpc', 'arg1', 'arg2',
+                    'return mpc.' + cmd + '(arg1, arg2)')(mpc, arg1, arg2).
+                    then(respond).catch(reportError);
+            } else if (arg1 !== '') {
+                new Function('mpc', 'arg1',
+                    'return mpc.' + cmd + '(arg1)')(mpc, arg1).
+                    then(respond).catch(reportError);
+            } else {
+                new Function('mpc',
+                    'return mpc.' + cmd + '()')(mpc).
+                    then(respond).catch(reportError);
+            }
+        } catch(e) {
+            reportError(e);
         }
     });
 
