@@ -19,16 +19,19 @@ function initVolume(assert, callback) {
     assert.equal($('#volume').height(), 0, 'volume is 0');
     assert.ok($('#volume-speaker').hasClass('fa-volume-off'), 'speaker is mute icon');
     mpcp.player.setvol(50, function () {
-        assert.ok($('#volume').height() > 0, 'volume is not 0');
-        assert.ok($('#volume-speaker').hasClass('fa-volume-up'), 'speaker is not mute icon');
-
-        // (1)
-        // this happens too fast. As it does another volume action, it gets
-        // added to the callback queue BEFORE
-        // the previous callback queue is cleared. So we add a timeout.
+        // wait for animations
         setTimeout(function () {
-            callback();
-        }, 500);
+            assert.ok($('#volume').height() > 0, 'volume is not 0');
+            assert.ok($('#volume-speaker').hasClass('fa-volume-up'), 'speaker is not mute icon');
+
+            // (1)
+            // this happens too fast. As it does another volume action, it gets
+            // added to the callback queue BEFORE
+            // the previous callback queue is cleared. So we add a timeout.
+            setTimeout(function () {
+                callback();
+            }, 1100);
+        }, 1100);
     });
 }
 
@@ -47,23 +50,28 @@ QUnit.test('player mute button', function (assert) {
 
     initVolume(assert, function () {
         mpcp.player.toggleMute(function () {
-            assert.equal($('#volume').height(), 0, 'volume is 0');
-            assert.ok($('#volume-speaker').hasClass('fa-volume-off'), 'speaker is mute icon');
-
-            // read (1)
             setTimeout(function () {
-                mpcp.player.toggleMute(function () {
-                    assert.ok($('#volume').height() > 0, 'volume is not 0');
-                    assert.ok($('#volume-speaker').hasClass('fa-volume-up'), 'speaker is not mute icon');
+                assert.equal($('#volume').height(), 0, 'volume is 0');
+                assert.ok($('#volume-speaker').hasClass('fa-volume-off'), 'speaker is mute icon');
 
-                    // read (1)
-                    setTimeout(function () {
-                        utils.mute(assert, function () {
-                            done();
+                // read (1)
+                setTimeout(function () {
+                    mpcp.player.toggleMute(function () {
+                        // read (1)
+                        setTimeout(function () {
+                            assert.ok($('#volume').height() > 0, 'volume is not 0');
+                            assert.ok($('#volume-speaker').hasClass('fa-volume-up'), 'speaker is not mute icon');
+
+                            // read (1)
+                            setTimeout(function () {
+                                utils.mute(assert, function () {
+                                    done();
+                                });
+                            }, 1100);
                         });
-                    }, 500);
-                });
-            }, 500);
+                    }, 1100);
+                }, 1100);
+            }, 1100);
         });
     });
 });

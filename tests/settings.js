@@ -3,7 +3,8 @@ module.exports = function (utils) {
 QUnit.test('settings use pl pagination', function (assert) {
     var done = assert.async();
 
-    utils.addSong(210, false, function () {
+    mpcp.settings.saveItemsMax('playlist', 10);
+    utils.addSong(11, false, function () {
         var children = $(utils.pl).children('.gen');
 
         mpcp.settings.savePagination('playlist', false);
@@ -14,6 +15,8 @@ QUnit.test('settings use pl pagination', function (assert) {
         mpcp.settings.savePagination('playlist', true);
         assert.ok($('#playlist-pages').is(':visible'), 'check if pl pages is visible');
 
+        mpcp.settings.saveItemsMax('playlist', 200);
+
         utils.clearPlaylist(assert, function () {
             done();
         });
@@ -23,10 +26,10 @@ QUnit.test('settings use pl pagination', function (assert) {
 QUnit.test('settings set max pl pagination', function (assert) {
     var done = assert.async();
 
-    utils.addSong(210, false, function () {
+    utils.addSong(11, false, function () {
         var children = $(utils.pl).children('.gen');
 
-        mpcp.settings.saveItemsMax('playlist', 10);
+        mpcp.settings.saveItemsMax('playlist', 9);
         var childrenNow = $(utils.pl).children('.gen');
         assert.ok(children.length != childrenNow.length, 'check if pl children is not the same');
 
@@ -80,4 +83,3 @@ QUnit.test('settings use browser pagination', function (assert) {
 // TODO check consume
 
 };
-

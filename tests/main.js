@@ -43,12 +43,12 @@ $(function () {
             $('#random').click();
         }
 
-        // workaround some state issues...
-        setTimeout(function () {
-            mpcp.player.setvol(0, function () {
+        mpcp.player.setvol(0, function () {
+            // workaround some state issues... (and animatiosn)
+            setTimeout(function () {
                 QUnit.start();
-            });
-        }, 1000);
+            }, 1100);
+        });
     });
 });
 

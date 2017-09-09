@@ -197,7 +197,7 @@ QUnit.test('pl song info', function (assert) {
     var done = assert.async();
 
     utils.addDirToPl(assert, function () {
-        var file = $($(utils.pl).find('.gen')[0]).data().file;
+        var file = $($(utils.pl).find('.gen')[0]).data().path;
 
         mpcp.playlist.getSongInfo(file, function () {
             var children = $('#song-info tbody').children('.gen');

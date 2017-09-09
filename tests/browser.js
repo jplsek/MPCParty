@@ -20,7 +20,7 @@ QUnit.test('search from browser', function (assert) {
 
         mpcp.browser.resetSearch(function () {
             var childrenNow = $(utils.fb).children('.gen');
-            utils.offWorkaround(assert, children, childrenNow);
+            assert.equal(childrenNow.length, children.length, 'check if same as original');
             done();
         });
     });
@@ -43,7 +43,7 @@ QUnit.test('search from browser nothing', function (assert) {
 
         mpcp.browser.resetSearch(function () {
             var childrenNow = $(utils.fb).children('.gen');
-            utils.offWorkaround(assert, children, childrenNow);
+            assert.equal(childrenNow.length, children.length, 'check if same as original');
             done();
         });
     });
@@ -59,7 +59,7 @@ QUnit.test('browser folder open + back', function (assert) {
 
 QUnit.test('browser song info', function (assert) {
     var done = assert.async();
-    var file = $($(utils.fb).find('.file')[0]).data().fileid;
+    var file = $($(utils.fb).find('.file')[0]).data().path;
 
     mpcp.browser.getSongInfo(file, function () {
         var children = $('#song-info tbody').children('.gen');
@@ -70,4 +70,3 @@ QUnit.test('browser song info', function (assert) {
 });
 
 };
-

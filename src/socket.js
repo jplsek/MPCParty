@@ -81,8 +81,7 @@ socket.on('init', function (msg) {
 });
 
 // playlist
-// when song is playing, the playlist doesn't get updated,
-// this is used to force the update
+// used to update the playlist title
 socket.on('clear-playlist', function (msg) {
     console.log('user clear-playlist called');
     mpcp.playlist.updateTitle('');

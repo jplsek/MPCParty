@@ -140,7 +140,7 @@ QUnit.test('browser to pe: folder + save + open + delete', function (assert) {
                     var ele = utils.plOpenModal + ' tr:contains("' + utils.plSave + '")';
                     var num = parseInt($(ele + ' td:nth-child(2)').html());
                     assert.ok($(ele).length, 'check if pl is visible');
-                    utils.closeEnough(assert, num, childrenBefore.length, 'check saved playlist has same number of songs');
+                    assert.ok(num, childrenBefore.length, 'check saved playlist has same number of songs');
                     $(ele).click();
 
                     // open the playlist
@@ -186,7 +186,7 @@ QUnit.test('browser to pe: folder + save + open + delete', function (assert) {
 //                    var ele = utils.plOpenModal + ' tr:contains("' + utils.plSaveOddFix + '")';
 //                    var num = parseInt($(ele + ' td:nth-child(2)').html());
 //                    assert.ok($(ele).length, 'check if pl is visible');
-//                    utils.closeEnough(assert, num, childrenBefore.length, 'check saved playlist has same number of songs');
+//                    assert.ok(num, childrenBefore.length, 'check saved playlist has same number of songs');
 //                    $(ele).click();
 //
 //                    // open the playlist

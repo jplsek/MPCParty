@@ -105,20 +105,6 @@ return {
 
         console.log('update playlist locally');
 
-        // length is always 1 for this.local, this fixes the empty
-        // object
-        if (this.local.length <= 1 && !this.local[0].path) {
-            // remove album-art if playlist was cleared
-            mpcp.utils.setCurrentAlbumArt();
-
-            if ((this.local[0] && Object.getOwnPropertyNames(
-                            this.local[0]).length <= 0) ||
-                    this.local.length <= 0) {
-                this.callbackUpdate();
-                return;
-            }
-        }
-
         $(this.table + ' .gen').remove();
 
         var html  = '',
@@ -746,9 +732,7 @@ return {
     clear: function (callback) {
         console.log('clear playlist');
         this.addCallbackUpdate(callback);
-
-        // this is done server-side to fix a bug:
-        // refresh -> add -> play -> clear does not work
+        // used to update the playlist for all clients
         mpcp.socket.emit('clear-playlist');
     },
 

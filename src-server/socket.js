@@ -45,14 +45,15 @@ io.on('connection', socket => {
         process.exit(-1);
     });
 
+    // used to keep track of the playlist title
     socket.on('clear-playlist', () => {
-        console.log('Clearing the playlist for all clients.');
+        console.log('Clearing the playlist.');
 
-        mpc.currentPlaylist.clear(() => {
+        mpc.currentPlaylist.clear().then(() => {
             playlisttitle = '';
             io.emit('clear-playlist');
             utils.setSong();
-        });
+        }).catch(console.log);
     });
 
     socket.on('update-playlist', () => {

@@ -14,47 +14,6 @@ var utils = {
     plSaveOddFix: 'unitTest~!@#$%^&()_+,.',
     pl:           '#playlist-song-list tbody',
 
-    // I think I found a bug jquery, sometimes the children function doesn't get everything. I keep getting an off by one failed assertion at random times. The elements that don't show in the jquery object IS in the DOM. So I'm not sure how to handle this...
-    offWorkaround: function (assert, children, childrenNow) {
-        if (children.length == childrenNow.length + 1 || children.length + 1 == childrenNow.length) {
-            console.log('Possible jquery bug detected, off by one issue?');
-
-            console.log(children.length);
-            console.log(childrenNow.length);
-
-            //for(var i = 0; i < children.length; ++i) {
-            //    if (children[i].attributes["data-path"])
-            //        if (children[i].attributes["data-path"].value != childrenNow[i].attributes["data-path"].value) {
-            //            console.log(children.get(i-1));
-            //            console.log(childrenNow.get(i-1));
-            //            console.log(children[i]);
-            //            console.log(childrenNow[i]);
-            //            break;
-            //        }
-            //    else {
-            //        console.log(children[i]);
-            //        console.log(childrenNow[i]);
-            //    }
-            //}
-
-            closeEnough(assert, children.length, childrenNow.length, 'check if same as original');
-        } else {
-            assert.equal(childrenNow.length, children.length, 'check if same as original');
-        }
-    },
-
-    // used for issues out of my scope
-    closeEnough: function (assert, val1, val2, msg) {
-        if (val1 == val2)
-            assert.ok(true, msg);
-        else if (val1 + 1 == val2)
-            assert.ok(true, msg + ', not equal');
-        else if (val1 == val2 + 1)
-            assert.ok(true, msg + ', not equal');
-        else
-            assert.ok(false, msg);
-    },
-
     // browser functions
     // execute: call function while in folder
     openFolder: function (assert, execute, callback) {
@@ -195,15 +154,19 @@ var utils = {
     clearPlaylist: function (assert, callback) {
         console.log('before clear');
         mpcp.playlist.clear(function () {
-            var children = $(utils.pl).children('.gen');
-            console.log('after clear');
-            assert.equal(children.length, 1, 'check if nothing except 1 item');
-            assert.notOk($('#stop').is(':visible'), 'check if stop is not visible');
-            assert.equal($('#music-time').width(), 0, 'progressbar == 0');
-            assert.equal($('#time-current').text(), '', 'current time is none');
-            assert.equal($('#time-total').text(), '-- / --', 'total time is none');
-            assert.equal($('#playlist-title').text(), "", 'check if title is nothing');
-            callback();
+            // just wait for dom. May fix later...
+            setTimeout(() => {
+                var children = $(utils.pl).children('.gen');
+                console.log(children);
+                console.log('after clear');
+                assert.equal(children.length, 1, 'check if nothing except 1 item');
+                assert.notOk($('#stop').is(':visible'), 'check if stop is not visible');
+                assert.equal($('#music-time').width(), 0, 'progressbar == 0');
+                assert.equal($('#time-current').text(), '', 'current time is none');
+                assert.equal($('#time-total').text(), '-- / --', 'total time is none');
+                assert.equal($('#playlist-title').text(), "", 'check if title is nothing');
+                callback();
+            }, 1000);
         });
     },
 
@@ -262,9 +225,12 @@ var utils = {
 
     mute: function (assert, callback) {
         mpcp.player.setvol(0, function () {
-            assert.equal($('#volume').height(), 0, 'volume is 0');
-            assert.ok($('#volume-speaker').hasClass('fa-volume-off'), 'speaker is mute icon');
-            callback();
+            // wait for animations
+            setTimeout(function () {
+                assert.equal($('#volume').height(), 0, 'volume is 0');
+                assert.ok($('#volume-speaker').hasClass('fa-volume-off'), 'speaker is mute icon');
+                callback();
+            }, 1100);
         });
     },
 

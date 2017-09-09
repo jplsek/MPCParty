@@ -395,6 +395,9 @@ return {
                     var songs = files.filter(item => item.entryType == 'song');
                     mpcp.pe.addSong(songs, null, callback);
                 });
+            } else if (this.current == '' || this.current == '/') {
+                mpcp.playlist.addCallbackUpdate(callback);
+                mpcp.socket.emit('mpc', 'currentPlaylist.add', '/');
             } else {
                 mpcp.socket.emit('mpc', 'database.listInfo', this.current,
                         files => {
