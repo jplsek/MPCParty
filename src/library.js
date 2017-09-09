@@ -62,21 +62,21 @@ return {
     // obj, libraryArtist or libraryAlbum
     addMulti: function (obj, to, dontScroll, dragging) {
         mpcp.utils.toArraySelected(obj);
-        var i, tr, artist, album;
+        var i, tr;
 
-        function sendTope(art, alb) {
-            mpcp.library.getSongsFromAlbum(art, alb, function (files) {
+        function sendTope(artist, album) {
+            mpcp.library.getSongsFromAlbum(artist, album, function (files) {
                 mpcp.pe.addSong(files, to);
             });
         }
 
-        function sendToPl(art, alb) {
+        function sendToPl(artist, album) {
             mpcp.library.getSongsFromAlbum(artist, album, function (files) {
                 // reverse because not incrementing to variable because
                 // scrolling to center will be overridden in addSong
                 files = files.reverse();
                 for (var i = 0; i < files.length; ++i) {
-                    mpcp.playlist.addSong(files[i].file, to, dontScroll);
+                    mpcp.playlist.addSong(files[i].path, to, dontScroll);
                 }
             });
         }
@@ -86,17 +86,13 @@ return {
         // context menu check
         if (mpcp.pe.current && !dragging) {
             for (i = 0; i < obj.selected.length; ++i) {
-                tr     = obj.selected[i];
-                artist = $(tr).data().artist;
-                album  = $(tr).data().album;
-                sendTope(artist, album);
+                tr = obj.selected[i];
+                sendTope(tr.dataset.artist, tr.dataset.album);
             }
         } else {
             for (i = 0; i < obj.selected.length; ++i) {
-                tr     = obj.selected[i];
-                artist = $(tr).data().artist;
-                album  = $(tr).data().album;
-                sendToPl(artist, album);
+                tr = obj.selected[i];
+                sendToPl(tr.dataset.artist, tr.dataset.album);
             }
         }
 
@@ -108,20 +104,15 @@ return {
         // TODO fix special characters
         if (!album) {
             mpcp.socket.emit('mpc', 'database.find', [['artist', artist]],
-                    files => {
-                setSongs(files);
-            });
+                    setSongs);
         } else {
             mpcp.socket.emit('mpc', 'database.find',
-                    [['artist', artist], ['album', album]], files => {
-                setSongs(files);
-            });
+                    [['artist', artist], ['album', album]], setSongs);
         }
 
         function setSongs (files) {
             //console.log(files);
-            if (!files.length || (files.length == 1 && !files[0].album &&
-                        !files[0].artist)) {
+            if (files.length === 0) {
                 console.log('No songs found');
                 mpcp.lazyToast.warning('This may be an issue with special characters: ' + album, 'No songs found');
                 return;
