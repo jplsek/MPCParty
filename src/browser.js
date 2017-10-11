@@ -162,25 +162,7 @@ return {
                 //console.log(anyFiles);
                 //console.log(files);
 
-                var all = anyFiles.concat(files);
-
-                // remove duplicate objects, if there is a "more official" way
-                // of doing this, or a quicker way of doing this, do tell or
-                // fix.
-                var unique = [];
-
-                for (var i = 0; i < all.length; ++i) {
-                    var duplicates = 0;
-
-                    for (var j = 0; j < unique.length; ++j) {
-                        if (all[i].file == unique[j].file)
-                            ++duplicates;
-                    }
-
-                    if (!duplicates) {
-                        unique.push(all[i]);
-                    }
-                }
+                var unique = mpcp.utils.concatDedupe(anyFiles, files);
 
                 //console.log(unique);
                 callbackSearch(unique);
