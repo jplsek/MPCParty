@@ -560,6 +560,21 @@ return {
             return percent;
         }
     },
+
+    // remove duplicates for song object arrays
+    concatDedupe: function (arr1, arr2) {
+        var all = arr1.concat(arr2);
+
+        // remove duplicates from the array by utilizing an object
+        // this should be roughly O(n);
+        var duplicates = {};
+        return all.filter(function (ele) {
+            if (!duplicates[ele.path]) {
+                duplicates[ele.path] = true;
+                return true;
+            }
+        });
+    }
 };
 
 };
