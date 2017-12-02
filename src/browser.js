@@ -146,18 +146,7 @@ return {
             mpcp.socket.emit('mpc', 'database.search', [['file', name]],
                     files => {
 
-                var all = anyFiles.concat(files);
-                console.log(all);
-
-                // remove duplicate objects (because of the tag and file search)
-                var temp = [];
-                var unique = all.filter(item => {
-                    if (!~temp.indexOf(item.path)) {
-                        temp.push(item.path);
-                        return true;
-                    }
-                    return false;
-                });
+                var unique = mpcp.utils.concatDedupe(anyFiles, files);
 
                 //console.log(unique);
                 callbackSearch(unique);

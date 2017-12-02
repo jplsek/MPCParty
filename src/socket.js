@@ -71,7 +71,9 @@ socket.on('current-info', function (msg) {
     mpcp.vote.setTitles( msg['song-skip-next'],     'next');
 });
 
-socket.on('init', function (msg) {
+// once() so that if the connection reconnects, we don't create duplicate
+// event listeners
+socket.once('init', function (msg) {
     mpcp.playlist.updateTitle(msg['playlist-title']);
     mpcp.vote.enabled = msg['song-vote'];
     if (msg['downloader-enabled'])

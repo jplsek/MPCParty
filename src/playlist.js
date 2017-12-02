@@ -645,36 +645,45 @@ return {
         mpcp.playlist.isSearching = true;
 
         mpcp.socket.emit('mpc', 'currentPlaylist.playlistSearch', 'any', val,
-                response => {
-            console.log(response);
+                anyFiles => {
 
-            $(mpcp.playlist.table + ' .gen').remove();
-            mpcp.playlist.local = response;
+            mpcp.socket.emit('mpc', 'currentPlaylist.playlistSearch', 'file', val,
+                    files => {
 
-            if (response.length === 0) {
-                var html = '<tr class="gen"><td><em class="text-muted">No songs found</em></td></tr>';
-                document.getElementById(mpcp.playlist.tbodyid).innerHTML = html;
-                // fix for removing the last song that's
-                // playling from the playlist
-                mpcp.playlist.doUpdate = true;
-                mpcp.player.updateAll();
-                mpcp.pages.update('playlist');
-                mpcp.browser.updatePosition();
-                if (callback) callback();
-                return console.log('No songs found in playlist search');
-            }
+                //console.log(files);
 
-            // TODO figure out a way to use this.local
-            // efficiently with mpcp.browser.updatePlaylist instead of
-            // utilizing this.list
-            $(mpcp.playlist.local).each(function (item, value) {
-                mpcp.playlist.list.paths.push(value.path);
-                mpcp.playlist.list.positions.push(value.position);
-            });
+                var unique = mpcp.utils.concatDedupe(anyFiles, files);
 
-            mpcp.playlist.updateLocal(function () {
-                // fixes issues such as the last song not updating the player;
-                mpcp.player.updateAll(callback);
+                console.log(unique);
+
+                $(mpcp.playlist.table + ' .gen').remove();
+                mpcp.playlist.local = unique;
+
+                if ($.isEmptyObject(unique[0])) {
+                    var html = '<tr class="gen"><td><em class="text-muted">No songs found</em></td></tr>';
+                    document.getElementById(mpcp.playlist.tbodyid).innerHTML = html;
+                    // fix for removing the last song that's
+                    // playling from the playlist
+                    mpcp.playlist.doUpdate = true;
+                    mpcp.player.updateAll();
+                    mpcp.pages.update('playlist');
+                    mpcp.browser.updatePosition();
+                    if (callback) callback();
+                    return console.log('No songs found in playlist search');
+                }
+
+                // TODO figure out a way to use this.local
+                // efficiently with mpcp.browser.updatePlaylist instead of
+                // utilizing this.list
+                $(mpcp.playlist.local).each(function (item, value) {
+                    mpcp.playlist.list.paths.push(value.path);
+                    mpcp.playlist.list.positions.push(value.position);
+                });
+
+                mpcp.playlist.updateLocal(function () {
+                    // fixes issues such as the last song not updating the player;
+                    mpcp.player.updateAll(callback);
+                });
             });
         });
     },

@@ -6,14 +6,31 @@ var express         = require('express'),
     mpc             = new Mpc(),
     fs              = require('fs'),
     toml            = require('toml'),
-    glob            = require('glob'),
     // optional modules
     youtubedl = null,
     // whether to optimize the client for production usage
     release = false;
 
-const utils = require(__dirname + '/src-server/utils.js')(io, mpc);
+// default config
+var config = {
+    server: {
+        port: 8081
+    },
+    mpd: {
+        url: 'localhost',
+        port: 6600,
+        library: ''
+    },
+    users: {
+        enabled: false
+    },
+    testing: {
+        enabled: false
+    }
+};
+
 const skip = require(__dirname + '/src-server/skip.js')(io, mpc);
+const utils = require(__dirname + '/src-server/utils.js')(io, app, mpc, config, skip);
 
 // TODO base this off dev vs prod practice
 if (release) {
@@ -33,24 +50,6 @@ if (release) {
 }
 
 app.disable('x-powered-by');
-
-// default config
-var config = {
-    server: {
-        port: 8081
-    },
-    mpd: {
-        url: 'localhost',
-        port: 6600,
-        library: ''
-    },
-    users: {
-        enabled: false
-    },
-    testing: {
-        enabled: false
-    }
-};
 
 fs.readFile(__dirname + '/config.cfg', function (err, data) {
     if (err) {

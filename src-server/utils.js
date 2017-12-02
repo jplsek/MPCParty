@@ -1,6 +1,9 @@
-const dns = require('dns');
+const dns   = require('dns'),
+      glob  = require('glob'),
+      path  = require('path'),
+      tilde = require('expand-tilde');
 
-module.exports = function (io, mpc) {
+module.exports = function (io, app, mpc, config, skip) {
 
 'use strict';
 
@@ -77,8 +80,9 @@ return {
             return;
         }
 
-        var subFolder = song.file.substr(0, song.file.lastIndexOf('/')),
-            folder    = tilde(config.mpd.library + '/' + subFolder);
+        var subFolder = song.path.substr(0, song.path.lastIndexOf('/')),
+            folder    = tilde(config.mpd.library + '/' + subFolder),
+            that      = this;
 
         //console.log(folder);
         glob('{*.jpg,*.png}', {cwd:folder}, function(err, files) {
@@ -86,8 +90,8 @@ return {
 
             //console.log(files);
             if (files.length === 0) {
-                this.currentArt = null;
-                this.sendArtworkMessage();
+                that.currentArt = null;
+                that.sendArtworkMessage();
                 return;
             }
 
@@ -95,16 +99,16 @@ return {
             var imageLocation = tilde(folder + path.sep + files[0]);
             //console.log(imageLocation);
 
-            this.currentArt = encodeURI('/album-art/' + subFolder + '/' + files[0])
+            that.currentArt = encodeURI('/album-art/' + subFolder + '/' + files[0])
                 // *sigh* https://stackoverflow.com/a/8143232
                 .replace(/\(/g, '%28').replace(/\)/g, '%29');
 
-            console.log('Creating art URL: ' + this.currentArt);
+            console.log('Creating art URL: ' + that.currentArt);
 
             // TODO check if there is a way to remove the old url when a
             // new one is created (or will the gc or express handle that?)
             // create a new url
-            app.get(this.currentArt, function (req, res) {
+            app.get(that.currentArt, function (req, res) {
                 res.sendFile(imageLocation, function (err) {
                     if (err) {
                         console.log(err);
@@ -113,13 +117,14 @@ return {
                 });
             });
 
-            this.sendArtworkMessage();
+            that.sendArtworkMessage();
         });
     },
 
     setSong: function() {
         mpc.status.currentSong().then(song => {
-            //console.log('set song: ' + song);
+            //console.log('set song: ');
+            //console.log(song);
 
             if (!song) {
                 this.currentSong = null;
@@ -127,13 +132,13 @@ return {
                 return console.log('No song selected');
             }
 
-            if (this.currentSong != song.file) {
-                console.log('Now playing: ' + song.file);
+            if (this.currentSong != song.path) {
+                console.log('Now playing: ' + song.path);
                 skip.reset();
                 this.getImage(song);
             }
 
-            this.currentSong = song.file;
+            this.currentSong = song.path;
         }).catch(console.log);
     }
 };
