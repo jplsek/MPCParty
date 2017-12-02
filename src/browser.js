@@ -395,26 +395,9 @@ return {
                     var songs = files.filter(item => item.entryType == 'song');
                     mpcp.pe.addSong(songs, null, callback);
                 });
-            } else if (this.current == '' || this.current == '/') {
+            } else {
                 mpcp.playlist.addCallbackUpdate(callback);
                 mpcp.socket.emit('mpc', 'currentPlaylist.add', '/');
-            } else {
-                mpcp.socket.emit('mpc', 'database.listInfo', this.current,
-                        files => {
-                    //console.log(files);
-
-                    if (files.length === 0) {
-                        console.log('Empty directory');
-                        if (callback) callback();
-                        return;
-                    }
-
-                    mpcp.playlist.addCallbackUpdate(callback);
-
-                    files.forEach(item => {
-                        mpcp.socket.emit('mpc', 'currentPlaylist.add', item.path);
-                    });
-                });
             }
         }
     },
