@@ -69,7 +69,8 @@ return {
             }
         }
 
-        $(this.table + ' .gen')[0].remove();
+        document.querySelectorAll(this.table + ' .gen')
+            .forEach(e => e.parentNode.removeChild(e));
 
         var start = 0,
             end   = this.localFolders.length,
@@ -100,7 +101,8 @@ return {
         // location bar:
         // split directory based on /'s
         // create a list item for each dir split
-        $('#downloader-location-crumb .downloader-loc-dir')[0].remove();
+        document.querySelectorAll('#downloader-location-crumb .downloader-loc-dir')
+            .forEach(e => e.parentNode.removeChild(e));
         // toString incase of number only directories
         var dirs  = directory.toString().split('/'),
             dirId = dirs[0],
@@ -114,13 +116,15 @@ return {
                 dirId += '/' + dirs[i+1];
             }
 
-        $('#downloader-location-crumb ol')[0].innerHTML = html;
+        document.querySelector('#downloader-location-crumb ol')
+            .insertAdjacentHTML('beforeend', html);
 
         komponist.lsinfo(directory, function (err, files) {
             //console.log(files);
             if (err) return console.log(err);
 
-            $(mpcp.downloader.table + ' .gen')[0].remove();
+            document.querySelectorAll(mpcp.downloader.table + ' .gen')
+                .forEach(e => e.parentNode.removeChild(e));
             mpcp.downloader.localFolders = [];
             files = mpcp.utils.toArray(files);
 
