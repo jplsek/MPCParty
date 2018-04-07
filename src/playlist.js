@@ -171,7 +171,13 @@ return {
 
             //console.log(i + ': start');
 
-            html += '<tr class="drag context-menu ' + current + '" title="' + title + '" data-fileid="' + value.Id + '" data-file="' + value.file + '" data-pos="' + value.Pos +  '"><td class="playlist-song-list-icons"><span class="glyphicon glyphicon-play song-play faded text-success" title="Play song"></span>' + (value.Pos + 1) + '.</td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><span class="song-remove faded text-danger glyphicon glyphicon-remove" title="Remove song from playlist"></span></td></tr>';
+            let prio = '';
+
+            if (value.Prio) {
+                prio = ` [${value.Prio}]`;
+            }
+
+            html += `<tr class="drag context-menu ${current}" title="${title}" data-fileid="${value.Id }" data-file="${value.file}" data-pos="${value.Pos}" data-prio="${value.Prio}"><td class="playlist-song-list-icons"><span class="glyphicon glyphicon-play song-play faded text-success" title="Play song"></span>${value.Pos + 1}.${prio}</td><td class="playlist-song-title"><table class="fixed-table"><tr><td>${title}</td></tr></table></td><td class="playlist-song-list-icons text-right"><span class="song-remove faded text-danger glyphicon glyphicon-remove" title="Remove song from playlist"></span></td></tr>`;
         }
 
         this.toPulse = [];
@@ -853,6 +859,23 @@ return {
         });
     },
 
+    setPriority: (priority, fileid) => {
+        komponist.prioid(priority, fileid, (err) => {
+            if (err) console.error(err);
+        });
+    },
+
+    setPriorityFromForm: () => {
+        if (!document.getElementById('priority-form').checkValidity()) {
+            document.getElementById('priority-submit').click();
+        } else {
+            $('#set-priority-modal').modal('hide');
+            let priority = document.getElementById('priority').value;
+            let fileid = document.getElementById('priority-form').dataset.fileid;
+            mpcp.playlist.setPriority(priority, fileid);
+        }
+    },
+
     initEvents: function () {
         $('#new-playlist').click(function () { mpcp.pe.newLocal(); });
 
@@ -918,6 +941,14 @@ return {
         $(document).on('click', '.song-play', function () {
             var file = $(this).parent().parent().data().fileid;
             mpcp.playlist.playSong(file);
+        });
+
+        $('#set-priority-confirm').click(() => {
+            mpcp.playlist.setPriorityFromForm();
+        });
+
+        document.getElementById('priority-form').addEventListener('submit', () => {
+            mpcp.playlist.setPriorityFromForm();
         });
 
         mpcp.utils.multiSelect(this, ['song-remove']);

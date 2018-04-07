@@ -21,6 +21,11 @@ function contextResponse(key, table, tr) {
         case 'play':
             mpcp.playlist.play(tr);
             break;
+        case 'setPriority':
+            document.getElementById('priority-form').dataset.fileid = tr.data().fileid;
+            document.getElementById('priority').value = tr.data().prio;
+            $('#set-priority-modal').modal('show');
+            break;
         // playlist editor
         case 'mttpe':
             mpcp.pe.moveToTop(tr);
@@ -227,6 +232,7 @@ $.contextMenu({
                     'mttPlaylist':  {name: 'Move to top of playlist'},
                     'mtc':          {name: 'Move after current playing song'},
                     'mtbPlaylist':  {name: 'Move to bottom of playlist'},
+                    'setPriority':  {name: 'Set song priority'},
                     'remPlaylist':  {name: 'Remove'},
                     'infoPlaylist': {name: 'Song information'}
                 };
@@ -237,6 +243,7 @@ $.contextMenu({
                     'play':         {name: 'Play song'},
                     'mttPlaylist':  {name: 'Move to top of playlist'},
                     'mtbPlaylist':  {name: 'Move to bottom of playlist'},
+                    'setPriority':  {name: 'Set song priority'},
                     'remPlaylist':  {name: 'Remove'},
                     'infoPlaylist': {name: 'Song information'}
                 };

@@ -207,6 +207,24 @@ html
                     .modal-footer
                         button.btn.btn-default(type='button', data-dismiss='modal') Close
 
+        #set-priority-modal.modal.fade(tabindex='-1')
+            .modal-dialog
+                .modal-content
+                    .modal-header
+                        button.close(type='button', data-dismiss='modal')
+                            span ×
+                        h4.modal-title Set Priority
+                    .modal-body
+                        p Set the priority of the specified song. A higher priority means that it will be played first when in random mode. The default priority of new songs is 0.
+                        p: a(href='https://www.musicpd.org/doc/protocol/queue.html', target='_blank') Source
+                        form#priority-form
+                            input#priority.form-control(type='number', min='0', max='255')
+                            // form validation, and press enter to submit
+                            input#priority-submit.hidden(type='submit')
+                    .modal-footer
+                        button.btn.btn-default(type='button', data-dismiss='modal') Close
+                        button#set-priority-confirm.btn.btn-primary(type='button') Ok
+
         if (config.downloader)
             #downloader-location-modal.modal.fade(tabindex='-1')
                 .modal-dialog

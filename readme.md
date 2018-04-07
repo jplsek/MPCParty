@@ -27,6 +27,7 @@ Showing the Materialish theme, library view, and playlist editor
     * Multiselection (ctrl, shift: remove, drag and drop; right click: add to top, bottom, current)
     * Playlist searching
     * Skip to remove songs (when user voting is disabled)
+    * Set song priority
 * File browser
     * Double click folders to browse them
     * Add songs to the playlist by pressing "+" or double clicking
