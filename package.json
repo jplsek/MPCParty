@@ -10,19 +10,19 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "browserify-middleware": "^7.0.0",
-    "expand-tilde": "^1.2.0",
-    "express": "^4.13.4",
-    "express-minify": "^0.2.0",
+    "browserify-middleware": "^8.1.1",
+    "expand-tilde": "^2.0.2",
+    "express": "^4.16.3",
+    "express-minify": "^1.0.0",
     "fs": "0.0.2",
     "glob": "^7.1.1",
     "http": "0.0.0",
     "komponist": "~0.1.0",
-    "less-middleware": "^2.0.1",
-    "pug": "^2.0.0-alpha7",
-    "toml": "^2.3.0",
-    "ws": "^1.0.1",
-    "youtube-dl": "^1.10.5"
+    "less-middleware": "^3.0.1",
+    "pug": "^2.0.3",
+    "toml": "^2.3.3",
+    "ws": "^5.2.1",
+    "youtube-dl": "^1.12.2"
   },
   "repository": {
     "type": "git",
