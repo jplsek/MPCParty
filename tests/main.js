@@ -9,44 +9,44 @@
 QUnit.config.autostart = false;
 
 $(function () {
-    $('#start-testing').click(function() {
-        // set a default state before starting
-        $('#open-file-browser').click();
-        $('#home').click();
-        $('#clear-playlist').click();
+  $('#start-testing').click(function() {
+    // set a default state before starting
+    $('#open-file-browser').click();
+    $('#home').click();
+    $('#clear-playlist').click();
 
-        if ($('#use-skip-to-remove').is(':checked')) {
-            $('#use-skip-to-remove').click();
-        }
+    if ($('#use-skip-to-remove').is(':checked')) {
+      $('#use-skip-to-remove').click();
+    }
 
-        if (!$('#use-unknown').is(':checked')) {
-            $('#use-unknown').click();
-        }
+    if (!$('#use-unknown').is(':checked')) {
+      $('#use-unknown').click();
+    }
 
-        if ($('#use-pages-browser').is(':checked')) {
-            $('#use-pages-browser').click();
-        }
+    if ($('#use-pages-browser').is(':checked')) {
+      $('#use-pages-browser').click();
+    }
 
-        if ($('#items-max-playlist').val() != 200) {
-            mpcp.settings.saveItemsMax('browser', 200);
-        }
+    if ($('#items-max-playlist').val() != 200) {
+      mpcp.settings.saveItemsMax('browser', 200);
+    }
 
-        if (!$('#use-pages-playlist').is(':checked')) {
-            $('#use-pages-playlist').click();
-        }
+    if (!$('#use-pages-playlist').is(':checked')) {
+      $('#use-pages-playlist').click();
+    }
 
-        if ($('#items-max-playlist').val() != 200) {
-            mpcp.settings.saveItemsMax('playlist', 200);
-        }
+    if ($('#items-max-playlist').val() != 200) {
+      mpcp.settings.saveItemsMax('playlist', 200);
+    }
 
-        if ($('#random').hasClass('active')) {
-            $('#random').click();
-        }
+    if ($('#random').hasClass('active')) {
+      $('#random').click();
+    }
 
-        setTimeout(function () {
-            QUnit.start();
-        }, 1000);
-    });
+    setTimeout(function () {
+      QUnit.start();
+    }, 1000);
+  });
 });
 
 var utils = {};
