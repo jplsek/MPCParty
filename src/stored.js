@@ -74,8 +74,7 @@ return {
 
       var html = '';
 
-      if (!Array.isArray(playlists))
-        playlists = [playlists];
+      playlists = mpcp.utils.toArray(playlists);
 
       if (!playlists.length) {
         html = '<em class="gen text-muted">No saved playlists</em>';
@@ -212,7 +211,11 @@ return {
             mpcp.lazyToast.error('Is there a playlist directory and correct write permissions?', 'Cannot read playlist directory!');
           } else if (notFound) {
             // read MESSAGE1
-            mpcp.lazyToast.error('File not found: ' + err2, 'Playlist');
+            if (err2 == undefined) {
+              mpcp.lazyToast.warning('Hmmm a known bug was triggered. (A song was undefined when it should be defined.) Double check that your playlist was saved before closing!');
+            } else {
+              mpcp.lazyToast.error('File not found: ' + err2, 'Playlist');
+            }
           } else if (unknown) {
             mpcp.lazyToast.error(err2, 'Unhandled Error');
           }
