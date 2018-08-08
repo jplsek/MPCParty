@@ -4,27 +4,27 @@ Installing MPCParty
 ## 1) Dependencies
 
 ### Ubuntu / Debian / Linux Mint
-`sudo apt update && sudo apt install git mpd nodejs npm libav-tools && sudo npm install -g bower`
+`sudo apt update && sudo apt install git mpd nodejs npm ffmpeg && sudo npm install -g yarn`
 
 ### Arch Linux / Antergos / Manjaro
-`sudo pacman -Sy git mpd nodejs npm ffmpeg && sudo npm install -g bower`
+`sudo pacman -Sy git mpd nodejs npm ffmpeg && sudo npm install -g yarn`
 
 ### Fedora / Cent OS / RHEL
-`sudo yum install epel-release`  
-Install [mpd](http://mpd.wikia.com/wiki/Install)  
-`sudo yum install nodejs npm && sudo npm install -g bower`  
-Install [libav](https://libav.org/download/) or [ffmpeg](http://ffmpeg.org/download.html)  
+`sudo yum install epel-release`
+Install [mpd](http://mpd.wikia.com/wiki/Install)
+`sudo yum install nodejs npm && sudo npm install -g yarn`
+Install [libav](https://libav.org/download/) or [ffmpeg](http://ffmpeg.org/download.html)
 You may have issues running mpd. Good luck.
 
 ### Suse
-Install [mpd](http://mpd.wikia.com/wiki/Install)  
-`sudo zypper install git nodejs npm libav-tools && sudo npm install -g bower`  
+Install [mpd](http://mpd.wikia.com/wiki/Install)
+`sudo zypper install git nodejs npm libav-tools && sudo npm install -g yarn`
 You may have issues running mpd. Good luck.
 
 ### Windows
-Install [nodejs](https://nodejs.org/download/)  
-Install [mpd](http://www.musicpd.org/download.html)  
-Install [libav](https://libav.org/download/) or [ffmpeg](http://ffmpeg.org/download.html)  
+Install [nodejs](https://nodejs.org/download/)
+Install [mpd](http://www.musicpd.org/download.html)
+Install [libav](https://libav.org/download/) or [ffmpeg](http://ffmpeg.org/download.html)
 You will need nodejs to be in your path.
 
 ## 2) Release version
@@ -32,8 +32,7 @@ Download the latest release from the GitHub [releases](https://github.com/jplsek
 
 ## 2) Development version (should be stable)
 * Clone this repository (`git clone https://github.com/jplsek/MPCParty`)
-* Run `npm install` from the project's directory (to install all the libraries)
-* You can also get the node\_modules and bower\_modules folder from the latest release so you don't need to download everything if you decide to clone the repository.
+* Run `yarn` from the project's directory (to install all the libraries)
 
 ## 3) Running
 * Now get a running instance of mpd working.

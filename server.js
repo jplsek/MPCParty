@@ -303,19 +303,19 @@ app.get('/search/*', function (req, res) {
   });
 });
 
-// browser modules
+// static components
 app.use('/bootstrap',
-  express.static(__dirname + '/bower_components/bootstrap/dist/'));
+  express.static(__dirname + '/node_modules/bootstrap/dist/'));
 app.use('/jquery',
-  express.static(__dirname + '/bower_components/jquery/dist/'));
+  express.static(__dirname + '/node_modules/jquery/dist/'));
 app.use('/floatthead',
-  express.static(__dirname + '/bower_components/jquery.floatThead/dist/'));
+  express.static(__dirname + '/node_modules/floatthead/dist/'));
 app.use('/toastr',
-  express.static(__dirname + '/bower_components/toastr/'));
+  express.static(__dirname + '/node_modules/toastr/'));
 app.use('/jquery-contextmenu',
-  express.static(__dirname + '/bower_components/jQuery-contextMenu/dist/'));
+  express.static(__dirname + '/node_modules/jquery-contextmenu/dist/'));
 app.use('/dragula',
-  express.static(__dirname + '/bower_components/dragula.js/dist/'));
+  express.static(__dirname + '/node_modules/dragula/dist/'));
 
 // 404 requests
 // currently disabled until we can get dynamic urls to not 404 with this

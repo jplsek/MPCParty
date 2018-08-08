@@ -1,7 +1,7 @@
 *.swp
 *.swo
 node_modules
-bower_components
+*.log
 *.css
 !public/css/jquery-ui.min.css
 downloads/*
