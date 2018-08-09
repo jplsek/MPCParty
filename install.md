@@ -10,21 +10,17 @@ Installing MPCParty
 `sudo pacman -Sy git mpd nodejs npm ffmpeg && sudo npm install -g yarn`
 
 ### Fedora / Cent OS / RHEL
-`sudo yum install epel-release`
-Install [mpd](http://mpd.wikia.com/wiki/Install)
-`sudo yum install nodejs npm && sudo npm install -g yarn`
-Install [libav](https://libav.org/download/) or [ffmpeg](http://ffmpeg.org/download.html)
-You may have issues running mpd. Good luck.
+Set up [RPM Fusion](https://rpmfusion.org/Configuration)  
+`sudo yum install epel-release`  
+`sudo yum install git mpd nodejs npm ffmpeg && sudo npm install -g yarn`
 
 ### Suse
-Install [mpd](http://mpd.wikia.com/wiki/Install)
-`sudo zypper install git nodejs npm libav-tools && sudo npm install -g yarn`
-You may have issues running mpd. Good luck.
+`sudo zypper install git mpd nodejs npm ffmpeg && sudo npm install -g yarn`
 
 ### Windows
-Install [nodejs](https://nodejs.org/download/)
-Install [mpd](http://www.musicpd.org/download.html)
-Install [libav](https://libav.org/download/) or [ffmpeg](http://ffmpeg.org/download.html)
+Install [nodejs](https://nodejs.org/download/)  
+Install [mpd](http://www.musicpd.org/download.html)  
+Install [ffmpeg](http://ffmpeg.org/download.html)  
 You will need nodejs to be in your path.
 
 ## 2) Release version
