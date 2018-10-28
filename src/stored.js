@@ -58,8 +58,8 @@ return {
           mpcp.lazyToast.error('Is there a playlist directory and correct write permissions?', 'Cannot read playlist directory!');
         }
 
-        html = '<em class="gen text-muted">No saved playlists</em>';
-        $(id +' .modal-body')[0].innerHTML = html;
+        html = '<em class="text-muted">No saved playlists</em>';
+        $(id +' .modal-body .gen')[0].innerHTML = html;
         console.log(err);
         if (callback) callback();
         return;
@@ -70,15 +70,15 @@ return {
       else if (id == '#playlist-save-modal')
         mpcp.stored.active = 'save';
 
-      $(id +' .modal-body .gen').remove();
+      $(id +' .modal-body .gen')[0].innerHTML = '';
 
       var html = '';
 
       playlists = mpcp.utils.toArray(playlists);
 
       if (!playlists.length) {
-        html = '<em class="gen text-muted">No saved playlists</em>';
-        $(id +' .modal-body')[0].innerHTML = html;
+        html = '<em class="text-muted">No saved playlists</em>';
+        $(id +' .modal-body .gen')[0].innerHTML = html;
         return console.log('No playlists');
       }
 
