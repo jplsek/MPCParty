@@ -106,7 +106,7 @@ return {
       if (!files.length) {
         html = '<tr class="directory gen"><td colspan="6">' +
           '<em class="text-muted">Empty directory</em></td></tr>';
-        document.getElementById(mpcp.browser.tableid).innerHTML = html;
+        document.getElementById(mpcp.browser.tbodyid).innerHTML = html;
         mpcp.pages.update('browser');
         console.log('Empty directory');
         if (callback) callback();
@@ -191,7 +191,7 @@ return {
         document.getElementById(mpcp.browser.tbodyid).innerHTML = html;
         mpcp.pages.update('browser');
         console.log('No songs found');
-        window.dispatchEvent(new CustomEvent("MPCperowserChanged"));
+        window.dispatchEvent(new CustomEvent("MPCbrowserChanged"));
         if (callback) callback(0);
         return;
       }
@@ -266,7 +266,7 @@ return {
 
     komponist.currentsong(function (err, song) {
       if (err) {
-        window.dispatchEvent(new CustomEvent("MPCperowserChanged"));
+        window.dispatchEvent(new CustomEvent("MPCbrowserChanged"));
 
         if (callback) callback();
 
@@ -304,7 +304,7 @@ return {
       }
     }
 
-    window.dispatchEvent(new CustomEvent("MPCperowserChanged"));
+    window.dispatchEvent(new CustomEvent("MPCbrowserChanged"));
 
     if (callback) callback();
   },
@@ -647,7 +647,7 @@ return {
       mpcp.browser.open();
     });
 
-    mpcp.tableHeader(this.tableid, 'MPCperowserChanged');
+    mpcp.tableHeader(this.tableid, 'MPCbrowserChanged');
 
     // this cannot be part of .song-list because of a bug with sortColumn
     // (overwrites contens from one tabe to other tables).
