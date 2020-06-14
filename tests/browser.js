@@ -38,8 +38,6 @@ QUnit.test('search from browser nothing', function (assert) {
     var childrenSearch = $(utils.fb).children('.gen');
     assert.equal(childrenSearch.length, 1, 'check if one item is in the file browser');
     assert.notOk(~document.location.pathname.indexOf(encodeURIComponent(keyword)), 'check if url is not the search name');
-    $('#search-clear').click();
-    assert.ok($('#search-browser').val() != keyword, 'check if clear works');
 
     mpcp.browser.resetSearch(function () {
       var childrenNow = $(utils.fb).children('.gen');

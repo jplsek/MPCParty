@@ -7,12 +7,6 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 
 ![Screenshot](screenshot.png)
 
-Showing the Default theme, and file browser view
-
-![Screenshot2](screenshot2.png)
-
-Showing the Materialish theme, library view, and playlist editor
-
 ## Features
 * No need to have a separate web server running!
 * Play, pause, repeat, random, skip, seek, previous buttons and volume controls
@@ -80,11 +74,6 @@ Edit config.cfg
 * Set the relative Downloader location (default is Downloads)
 * Set whether or not to keep the downloaded videos after conversion (default is false)
 
-## Custom Theme Development
-* Copy public/css/themes/default-thin and rename it to anything.
-* Edit the variables as you see fit. You can look at the bootstrap/less folder to see what modules you want to overwrite.
-* Edit view/index.jade in the configuration section, add your theme file name as the value and a name. (This might be changed to auto-populate the select list, but for now, you have to add them manually.)
-
 ## Issues
 * Something, somewhere, crashes, at what seems to be random times. I've seen this happen with other web clients, so I'm not sure what the cause of this is. It could be MPCParty's code, the komponist library, or MPD itself. Restarting the MPCParty server fixes these issues. You *should* get a popup when it stops responding.
 * Not all errors from MPD are handled properly. When this happens, MPCParty will stop working. Refresh the page to fix it. If possible, check the console and report what the error was and what you were doing to cause the error.
@@ -97,7 +86,6 @@ Edit config.cfg
 
 ## Other Notes
 * Updates may be slow for now on. This repo will be updated if someone notices some annoying bug, or if I feel the need to add a "must have" feature. Some bugs are related to the library I use to interact with mpd. Such as the bad json bug which is hackishly fixed (`utils.getAllInfo()`), and the not fixed sometimes occurring "a single song in a directory won't show up".
-* 2.0, if I get around to it, will be a rewrite to use TypeScript (maybe with some view framework?), an attempt to decouple things, and to be able to choose whether to run the process intensive things on the client (which is done right now) or choose to run it on the server. (Lan party = beefy desktops usually, and for our setup we had an old server. But what about phones and non-beefy pc's? Then we would want it to run it on the server.) It will also use a lighter / more "low level" mpd js library.
 
 ## License
 GNU Lesser General Public License v3 (LGPL-3.0)

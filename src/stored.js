@@ -98,7 +98,11 @@ return {
             songs = [songs];
 
           value.playlist = value.playlist.replace(/ /g, '\u00a0');
-          html += '<tr class="gen playlists-row" data-fileid="' + value.playlist + '"><td>' + value.playlist + '</td><td>' + songs.length + '</td><td class="text-right"><span class="faded playlist-remove text-danger glyphicon glyphicon-remove" data-fileid="' + value.playlist + '" title="Remove the playlist"></span></td>';
+          html += '<tr class="gen playlists-row" data-fileid="' + value.playlist + '">' +
+            '<td>' + value.playlist + '</td>' +
+            '<td>' + songs.length + '</td>' +
+            '<td class="text-right"><i class="faded fas fa-times playlist-remove text-danger" data-fileid="' + value.playlist + '" title="Remove the playlist"></i></td>';
+
           if (++i == playlists.length) {
             $(id +' .playlists tbody')[0].innerHTML = html;
             if (callback) callback();
@@ -228,7 +232,7 @@ return {
             if (updatedCurrentPlaylist) {
               var msg = 'You must open the updated playlist for it to update the current playlist.';
               mpcp.history.add(msg, 'info');
-              toastr.info(msg + '<button title="Reloads the playlist" class="playlist-reload btn btn-default pull-right"><span class="glyphicon glyphicon-repeat"></span></button>', 'Playlist update', {
+              toastr.info(msg + '<button title="Reloads the playlist" class="playlist-reload btn btn-secondary btn-sm border pull-right"><i class="fas fa-redo"></i></button>', 'Playlist update', {
                 'closeButton': true,
                 'positionClass': 'toast-bottom-left',
                 'preventDuplicates': false,
@@ -378,7 +382,7 @@ return {
   },
 
   initEvents: function () {
-    var rowSelect = mpcp.utils.rowSelect('.playlists-row', 'bg-primary');
+    var rowSelect = mpcp.utils.rowSelect('.playlists-row');
 
     rowSelect.on('down', function (ele) {
       var file = $(ele).data().fileid;

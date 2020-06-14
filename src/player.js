@@ -27,8 +27,7 @@ return {
           '<em class="text-muted" title="No song selected">No song selected</em>';
         document.title = 'MPCParty';
         document.getElementById('title-pos').innerHTML = '';
-        document.getElementById('time-total').innerHTML =
-          '<span class="text-muted">-- / --</span>';
+        document.getElementById('time-total').innerHTML = '';
         mpcp.player.setCurrent(null);
         console.log('No song selected');
         mpcp.player.updateControls(callback);
@@ -50,17 +49,16 @@ return {
       document.getElementById('title-pos').innerHTML =
         (parseInt(song.Pos) + 1) + '. ';
       $('#music-time').attr('max', song.Time);
-      document.getElementById('time-total').innerHTML =
-        ' / ' + mpcp.utils.toMMSS(song.Time);
+      document.getElementById('time-total').innerHTML = mpcp.utils.toMMSS(song.Time);
 
       // highlight song in playlist with song.Id and data-fileid
       // this happens with only a player update
       $(mpcp.playlist.table + ' .gen').each(function () {
         var id = $(this).data().fileid;
         if (parseInt(id) == mpcp.player.current.Id) {
-          $(this)[0].classList.add('bg-success');
+          $(this)[0].classList.add('bg-success', 'text-light');
         } else {
-          $(this)[0].classList.remove('bg-success');
+          $(this)[0].classList.remove('bg-success', 'text-light');
         }
       });
 
@@ -385,7 +383,7 @@ return {
 
     mpcp.utils.createSearch(
       '#search-browser', mpcp.browser.search,
-      mpcp.browser.resetSearch, '#search-clear');
+      mpcp.browser.resetSearch);
   }
 };
 

@@ -161,7 +161,7 @@ return {
 
       // highlight current song on first load
       if (mpcp.player.current && value.Id == mpcp.player.current.Id)
-        current += ' bg-success';
+        current += ' bg-success text-light';
 
       if (mpcp.settings.pulse &&
           ~this.toPulse.indexOf(value.Id)) {
@@ -177,7 +177,10 @@ return {
         prio = ` [${value.Prio}]`;
       }
 
-      html += `<tr class="drag context-menu ${current}" title="${title}" data-fileid="${value.Id }" data-file="${value.file}" data-pos="${value.Pos}" data-prio="${value.Prio}"><td class="playlist-song-list-icons"><span class="glyphicon glyphicon-play song-play faded text-success" title="Play song"></span>${value.Pos + 1}.${prio}</td><td class="playlist-song-title"><table class="fixed-table"><tr><td>${title}</td></tr></table></td><td class="playlist-song-list-icons text-right"><span class="song-remove faded text-danger glyphicon glyphicon-remove" title="Remove song from playlist"></span></td></tr>`;
+      html += `<tr class="drag context-menu ${current}" title="${title}" data-fileid="${value.Id }" data-file="${value.file}" data-pos="${value.Pos}" data-prio="${value.Prio}">` +
+        `<td class="playlist-song-list-icons"><i class="song-play fas fa-play faded text-success" title="Play song"></i>${value.Pos + 1}.${prio}</td>` +
+        `<td class="cell-ellipsis w-100"><span>${title}</span></td>` +
+        `<td class="playlist-song-list-icons text-right"><i class="song-remove fas fa-times faded text-danger" title="Remove song from playlist"></i></td></tr>`;
     }
 
     this.toPulse = [];
@@ -924,7 +927,7 @@ return {
       }
     });
 
-    mpcp.utils.createSearch('#search-playlist', this.search, this.resetSearch, '#search-playlist-clear');
+    mpcp.utils.createSearch('#search-playlist', this.search, this.resetSearch);
 
     $(document).on('click', '.song-remove', function () {
       var ele = $(this).parent().parent();

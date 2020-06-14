@@ -34,15 +34,15 @@ return {
       files = mpcp.utils.toArray(files);
 
       var html = '',
-        tableStart = '<table class="fixed-table"><tr><td>',
-        tableEnd = '</td></tr></table>',
         addClass = '';
 
       if (!albumUse)
         addClass = 'info';
 
       // All row
-      html += '<tr class="context-menu gen album library-artist-all ' + addClass + '" data-artist="' + artist + '" title="All"><td>' + tableStart + 'All' + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
+      html += '<tr class="context-menu gen album library-artist-all ' + addClass + '" data-artist="' + artist + '" title="All">' +
+        '<td>All</td>' +
+        '<td class="song-list-icons text-right"><i class="album-add fas fa-plus faded text-success" title="Add album to the bottom of the playlist"></i></td></tr>';
       addClass = '';
 
       //console.log(files);
@@ -63,7 +63,9 @@ return {
         if (album == albumUse)
           addClass = 'info';
 
-        html += '<tr class="context-menu gen album ' + addClass + '" data-artist="' + artist + '" data-album="' + album + '" title="' + album + '"><td>' + tableStart + album + tableEnd + '</td><td class="song-list-icons text-right"><span class="album-add faded text-success glyphicon glyphicon-plus" title="Add album to the bottom of the playlist"></span></td></tr>';
+        html += '<tr class="context-menu gen album ' + addClass + '" data-artist="' + artist + '" data-album="' + album + '" title="' + album + '">' +
+          '<td class="cell-ellipsis w-100"><span>' + album + '</span></td>' +
+          '<td class="song-list-icons text-right"><i class="album-add fas fa-plus faded text-success" title="Add album to the bottom of the playlist"></i></td></tr>';
         addClass = '';
       }
 
@@ -75,8 +77,7 @@ return {
   },
 
   initEvents: function () {
-    mpcp.utils.lazySearch('#search-albums', this.table, 'album',
-      '#search-albums-clear');
+    mpcp.utils.lazySearch('#search-albums', this.table, 'album');
 
     $(document).on('click', this.table + ' .gen', function () {
       var artist = $(this).data().artist,

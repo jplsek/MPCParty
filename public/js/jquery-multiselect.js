@@ -43,7 +43,9 @@
                 callback = options.callback,
                 actcls = options.actcls,
                 deselect = options.deselect,
-                cancel = options.cancel;
+                cancel = options.cancel,
+                classes = actcls.split(" ")
+                jqClasses = "." + actcls.split(" ").join(".");
 
             scope.on('click.mSelect', options.selector, function (e) {
                 if (!e.shiftKey && self.checkStatics($(this))) {
@@ -56,13 +58,23 @@
                 var skip = false;
 
                 for (var i = 0; i < cancel.length; ++i) {
-                    if ($(e.target).hasClass(cancel[i]) && $(this).hasClass(actcls)) {
-                        skip = true;
-                        //console.log('set true');
+                    for (var curClass of classes) {
+                        if ($(e.target).hasClass(cancel[i]) && $(this)[0].classList.contains(curClass)) {
+                            skip = true;
+                            break;
+                        }
                     }
                 }
 
-                if (!skip && deselect && $(this).hasClass(actcls)) {
+                var hasClass = true
+                for (var curClass of classes) {
+                    if (!$(this)[0].classList.contains(curClass)) {
+                        hasClass = false;
+                        break;
+                    }
+                }
+
+                if (!skip && deselect && hasClass) {
                     $(this).removeClass(actcls);
                     setLastNull = true;
                 } else {
@@ -80,14 +92,14 @@
                         start = end;
                         end = temp;
                     }
-                    $(options.selector, scope).removeClass(actcls).slice(start, end + 1).each(function () {
+                    $(options.selector, scope).slice(start, end + 1).each(function () {
                         if (!self.checkStatics($(this))) {
                             $(this).addClass(actcls);
                         }
                     });
                     window.getSelection ? window.getSelection().removeAllRanges() : document.selection.empty();
                 } else if (!skip && !e.ctrlKey && !e.metaKey) {
-                    $(this).siblings().removeClass(actcls);
+                    $(this).siblings(jqClasses).removeClass(actcls);
                 }
 
                 if (setLastNull) {
@@ -96,7 +108,7 @@
                     self.last = $(this);
                 }
 
-                $.isFunction(callback) && callback($(options.selector + '.' + actcls, scope), e);
+                $.isFunction(callback) && callback($(options.selector + jqClasses, scope), e);
             });
 
             /**
@@ -105,18 +117,18 @@
             $(document).on('click.mSelect', function (e) {
                 for (var i in options.except) {
                     var except = options.except[i];
-                    if ($(e.target).is(except) || $(e.target).parents(except).size()) {
+                    if ($(e.target).is(except) || $(e.target).parents(except).length) {
                         return;
                     }
                 }
                 if (deselect) {
-                    scope.find(options.selector).each(function () {
+                    scope.find(options.selector + jqClasses).each(function () {
                         if (!self.checkStatics($(this))) {
                             $(this).removeClass(actcls);
                         }
                     });
                 }
-                $.isFunction(callback) && callback($(options.selector + '.' + actcls, scope), e);
+                $.isFunction(callback) && callback($(options.selector + jqClasses, scope), e);
             });
 
             /**

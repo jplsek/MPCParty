@@ -111,7 +111,7 @@ return {
 
     if (this.current != '/')
       for (i = 0; i < dirs.length; ++i) {
-        html += '<li class="downloader-loc-dir" data-dirid="' + dirId + '">' +
+        html += '<li class="breadcrumb-item downloader-loc-dir" data-dirid="' + dirId + '">' +
           dirs[i] + '</li>';
         dirId += '/' + dirs[i+1];
       }
@@ -151,9 +151,7 @@ return {
   },
 
   getHtmlFolders: function (value) {
-    var tableStart = '<table class="fixed-table"><tr><td>',
-      tableEnd = '</td></tr></table>',
-      strippedDir = '',
+    var strippedDir = '',
       html = '';
 
     if (value.directory) {
@@ -161,7 +159,9 @@ return {
 
       strippedDir = mpcp.utils.stripSlash(value.directory);
 
-      html = '<tr class="downloader-directory gen" data-dirid="' + value.directory + '"><td class="song-list-icons"><span class="text-warning glyphicon glyphicon-folder-open"></span> <span class="folder-open faded glyphicon glyphicon-share-alt" title="Open directory. Note: You can double click the directory to open"></span></a></td><td title="' + strippedDir + '">' + tableStart + strippedDir + tableEnd + '</td></tr>';
+      html = '<tr class="downloader-directory gen" data-dirid="' + value.directory + '">' +
+        '<td class="song-list-icons"><i class="fas fa-folder-open text-warning faded folder-open" title="Open directory. Note: You can double click the directory to open"></i></a></td>' +
+        '<td title="' + strippedDir + '" class="cell-ellipsis w-100"><span>' + strippedDir + '</span></td></tr>';
     }
 
     return html;
@@ -238,7 +238,7 @@ return {
     });
 
     mpcp.downloader.rowSelect =
-      mpcp.utils.rowSelect('.downloader-directory', 'bg-primary', '#downloader-wrap');
+      mpcp.utils.rowSelect('.downloader-directory', '#downloader-wrap');
 
     mpcp.downloader.rowSelect.on('enter', function (ele) {
       var dir = $(ele).data().dirid;

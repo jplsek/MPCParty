@@ -3,8 +3,6 @@ module.exports = function (mpcp) {
 // saved user settings
 // since all storage is text, the if statements check if their undefined.
 return {
-  // default theme to use
-  theme: 'default-thin',
   // show pulsing effect
   pulse: true,
   // 'unknown' text
@@ -18,7 +16,6 @@ return {
 
   // initially load all the settings
   loadAll: function () {
-    this.loadTheme();
     this.loadHistoryMax();
     this.loadItemsMax();
     this.loadPagination();
@@ -28,30 +25,6 @@ return {
     this.loadSkipToRemove();
     this.loadBrowser();
     this.loadConsumeWarning();
-  },
-
-  loadTheme: function () {
-    var theme = localStorage.getItem('mpcp-theme');
-
-    if (theme) this.theme = theme;
-
-    document.getElementById('themes').value = this.theme;
-
-    var url = '/css/themes/' + this.theme + '/main.css';
-
-    $.get(url, function () {
-      $('#theme').attr('href', url);
-      // I'm hoping it will only take Xms to load all the css...
-      setTimeout(function () {
-        window.dispatchEvent(new CustomEvent("MPCPReflow"));
-      }, 500);
-    });
-  },
-
-  saveTheme: function (theme) {
-    console.log('changed theme');
-    localStorage.setItem('mpcp-theme', theme);
-    this.loadTheme();
   },
 
   loadHistoryMax: function () {
@@ -282,10 +255,6 @@ return {
   initEvents: function () {
     // settings event handling
     // client config
-    $('#themes').change(function () {
-      mpcp.settings.saveTheme(this.value);
-    });
-
     $('#history-max').change(function () {
       mpcp.settings.saveHistoryMax(this.value);
     });

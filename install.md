@@ -75,7 +75,7 @@ Download the latest release from the GitHub [releases](https://github.com/jplsek
 * Run `yarn install` from the project's directory (to install all the libraries)
 
 ## 3) Running
-* Start MPCParty with `./run.sh` from this directory (or `npm start`)
+* Start MPCParty with `./run.sh` from this directory (or `yarn start`)
 * Done
 
 ## 4) Auto restarts (recommended!)

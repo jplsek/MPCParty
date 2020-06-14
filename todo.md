@@ -26,7 +26,6 @@ TODO
 * Option to disable notifications?
 * Navigator? (tag grouping)
 * MPD password support?
-* Switch to Bootstrap 4 when released?
 * Playlist queueing (so it doesn't stop the song playing when opening a playlist)
 * Some simple visualizer?
 * After accessing a folder, check if there is only one folder and no songs, if so, automatically enter that folder (not when clicking location bar, however)
@@ -53,7 +52,6 @@ TODO
 ## Bugs
 * Client side visual errors when having multiple browsers open
     * Vote buttons do not accurately represent their vote
-* Restart server -> skip 8 times -> memory leak WARNING (I don't think it's an actual memory leak, but I'd like to know how to fix it. I could also try socket.io instead)
 
 ---
 

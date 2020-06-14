@@ -28,7 +28,10 @@ return {
     var extra = '';
     if (mpcp.settings.pulse) extra += 'pulse';
 
-    return '<tr class="gen context-menu ' + extra + '" title="' + title + '" data-title="' + title + '" data-fileid="' + file + '"><td class="playlist-song-list-icons"></td><td class="playlist-song-title"><table class="fixed-table"><tr><td>' + title + '</td></tr></table></td><td class="playlist-song-list-icons text-right"><span class="pe-song-remove faded text-danger glyphicon glyphicon-remove" title="Remove song from playlist"></span></td></tr>';
+    return '<tr class="gen context-menu ' + extra + '" title="' + title + '" data-title="' + title + '" data-fileid="' + file + '">' +
+      '<td class="playlist-song-list-icons"></td>' +
+      '<td class="cell-ellipsis w-100"><span>' + title + '</span></td>' +
+      '<td class="playlist-song-list-icons text-right"><i class="pe-song-remove fas fa-times faded text-danger" title="Remove song from playlist"></i></td></tr>';
   },
 
   // file object, position to put song
@@ -437,7 +440,7 @@ return {
       }
     });
 
-    mpcp.utils.lazySearch('#search-pe', this.table, 'title', '#search-pe-clear');
+    mpcp.utils.lazySearch('#search-pe', this.table, 'title');
   }
 };
 

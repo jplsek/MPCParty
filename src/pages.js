@@ -118,14 +118,6 @@ return {
       mpcp.pages.go('playlist', 1);
     });
 
-    $('#playlist-pages .previous').click(function () {
-      mpcp.pages.go('playlist', mpcp.pages.currentPlaylist - 1);
-    });
-
-    $('#playlist-pages .next').click(function () {
-      mpcp.pages.go('playlist', mpcp.pages.currentPlaylist + 1);
-    });
-
     $('#playlist-pages .last').click(function () {
       mpcp.pages.go('playlist', mpcp.pages.totalPlaylist);
     });
@@ -137,14 +129,6 @@ return {
 
     $('#browser-pages .first').click(function () {
       mpcp.pages.go('browser', 1);
-    });
-
-    $('#browser-pages .previous').click(function () {
-      mpcp.pages.go('browser', mpcp.pages.currentBrowser - 1);
-    });
-
-    $('#browser-pages .next').click(function () {
-      mpcp.pages.go('browser', mpcp.pages.currentBrowser + 1);
     });
 
     $('#browser-pages .last').click(function () {

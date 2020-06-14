@@ -128,7 +128,7 @@ var downloader = {
         if (err) {
           socket.send(JSON.stringify({
             'type': 'downloader-status',
-            'info': 'Error! Invalid url?'
+            'info': err.stderr + '. Updating youtube-dl may fix the problem.'
           }));
           return console.log(err);
         }
@@ -311,11 +311,15 @@ app.use('/jquery',
 app.use('/floatthead',
   express.static(__dirname + '/node_modules/floatthead/dist/'));
 app.use('/toastr',
-  express.static(__dirname + '/node_modules/toastr/'));
+  express.static(__dirname + '/node_modules/toastr/build/'));
 app.use('/jquery-contextmenu',
   express.static(__dirname + '/node_modules/jquery-contextmenu/dist/'));
 app.use('/dragula',
   express.static(__dirname + '/node_modules/dragula/dist/'));
+app.use('/fa',
+  express.static(__dirname + '/node_modules/@fortawesome/fontawesome-free/css/'));
+app.use('/webfonts',
+  express.static(__dirname + '/node_modules/@fortawesome/fontawesome-free/webfonts/'));
 
 // 404 requests
 // currently disabled until we can get dynamic urls to not 404 with this
@@ -425,10 +429,10 @@ fs.readFile(__dirname + '/config.cfg', function (err, data) {
   }
 
   http.listen(config.server.port, function () {
-    console.log('Web server listening on *:' + config.server.port);
-    console.log('Connecting to MPD server ' + config.mpd.url + ':' +
-      config.mpd.port + '...');
+    console.log('Web server listening on http://localhost:' + config.server.port);
   });
+
+  console.log('Connecting to MPD server ' + config.mpd.url + ':' + config.mpd.port + '...');
 
   // Open up a proxy on the HTTP server that points to MPD
   komponist.install(http, config.mpd.url, config.mpd.port);
@@ -505,7 +509,7 @@ function getImage(song) {
       res.sendFile(imageLocation, function (err) {
         if (err) {
           console.log(err);
-          res.status(err.status).end();
+          res.status(404).end();
         }
       });
     });

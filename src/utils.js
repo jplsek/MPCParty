@@ -317,10 +317,10 @@ return {
     }
   },
 
-  // select a table row and apply a custom style
+  // select a table row
   // ele: the table to click the rows with
   // scrollEle: element to scroll if out of view
-  rowSelect: (function (ele, style, scrollEle) {
+  rowSelect: (function (ele, scrollEle) {
     var selected,
       downCallback,
       upCallback,
@@ -330,14 +330,14 @@ return {
 
     function deselect() {
       if (selected) {
-        $(selected).children().removeClass(style);
+        $(selected).children().removeClass('bg-primary text-light');
         $(selected)[0].classList.remove('selected');
       }
     }
 
     function select(obj) {
       // fix hover issues
-      $(obj).children().addClass(style);
+      $(obj).children().addClass('bg-primary text-light');
       $(obj)[0].classList.add('selected');
       selected = obj;
     }
@@ -439,7 +439,7 @@ return {
 
   // creates a search input setup (input, search callback [returns searchVal],
   // reset callback, input clear button, time it takes to search
-  createSearch: function (input, callSearch, callReset, inputClear, time) {
+  createSearch: function (input, callSearch, callReset, time) {
     if (!time) time = 3000;
 
     function getSearchVal() { return $(input)[0].value.toLowerCase(); }
@@ -472,21 +472,6 @@ return {
       }
     });
 
-    $(inputClear).click(function () {
-      //console.log('clearing search');
-      $(input)[0].value = '';
-      $(input).focus();
-      lastVal = '';
-      callReset();
-
-      // not the best way of doing things...
-      if (mpcp.library.bringBack) {
-        mpcp.browser.hide();
-        mpcp.library.show();
-        mpcp.library.bringBack = false;
-      }
-    });
-
     // detect enter key
     $(input).keyup(function (e) {
       if (e.keyCode == 13) {
@@ -504,7 +489,7 @@ return {
 
   // hides table rows as the user searches (input text box, table, data-*,
   // clear input button)
-  lazySearch: function (input, table, data, inputClear, time) {
+  lazySearch: function (input, table, data, time) {
     if (!time) time = 1000;
 
     mpcp.utils.createSearch(
@@ -525,7 +510,6 @@ return {
       function () {
         $(table + ' .gen').show();
       },
-      inputClear,
       time
     );
   },
@@ -569,7 +553,7 @@ return {
     if (deselect === undefined) deselect = true;
 
     $(obj.table).multiSelect({
-      actcls: 'info',
+      actcls: 'bg-primary text-light',
       selector: 'tr.gen',
       except: disable,
       deselect: deselect,
@@ -600,7 +584,7 @@ return {
 
     for (var i = 0; i < obj.selected.length; ++i) {
       //console.log(obj.selected[i]);
-      $(obj.selected[i])[0].classList.remove('info');
+      $(obj.selected[i])[0].classList.remove('bg-primary', 'text-light');
     }
 
     obj.selected = [];

@@ -6,169 +6,89 @@ html {
   overflow-y: hidden; // fixes random bugs that occur with changing the table widths dynamically
 }
 #page-wrapper {
-  display: flex;
-  flex-direction: column;
   height: 100vh;
 }
 header {
-  display: -webkit-box; /* fallback for apple webkit */
-  display: flex;
-  -webkit-align-items: center;
-  align-items: stretch;
   min-width: @minimumWidth;
-
-  #header-left {
-    display: -webkit-box; /* fallback for apple webkit */
-    display: flex;
-    -webkit-align-items: center;
-    align-items: stretch;
-    margin: 0;
-    box-shadow: none;
-    border: none;
-
-    #volume {
-      width: 30px; // width set for webkit
-      height: 60px;
-      -webkit-appearance: slider-vertical;
-    }
-    #media-buttons {
-      display: -webkit-box; /* fallback for apple webkit */
-      display: flex;
-      -webkit-flex-direction: column;
-      flex-direction: column;
-      justify-content: space-around;
-    }
-  }
-  #header-middle {
-    display: -webkit-box; /* fallback for apple webkit */
-    display: flex;
-    -webkit-align-items: center;
-    align-items: center;
-    flex: 2;
-
-    // I want the height of the image to depend on the header,
-    // but only ff seems to do what I want atm. Might try to css hack my
-    // way to get it working later...
-    #album-art {
-      flex: 0;
-      height: 60px;
-      padding: 0 5px;
-    }
-  }
-  #header-right {
-    display: -webkit-box; /* fallback for apple webkit */
-    display: flex;
-    -webkit-flex-direction: column;
-    flex-direction: column;
-    justify-content: space-around;
-    width: 200px;
-
-    #header-right-top {
-      display: -webkit-box; /* fallback for apple webkit */
-      display: flex;
-      align-items: center;
-    }
-  }
+}
+#volume {
+  width: 30px; // width set for webkit
+  height: 60px;
+  -webkit-appearance: slider-vertical;
+}
+#header-middle {
+  flex: 2;
+}
+// I want the height of the image to depend on the header,
+// but only ff seems to do what I want atm. Might try to css hack my
+// way to get it working later...
+#album-art {
+  flex: 0;
+  height: 60px;
+  padding: 0 5px;
+}
+#header-right {
+  width: 200px;
 }
 main {
-  display: flex;
   flex: 2;
   overflow-y: auto;
   overflow-x: hidden; // dragging off screen
+}
+#browser {
+  display: flex;
+  -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+}
+#slwrap {
+  flex-grow: 2;
+  overflow-x: hidden; // in case of size issues with js
+}
+#library {
+  display: flex;
+  -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+}
+#library-top {
+  flex: 1;
+  overflow: auto;
+}
+#library-artists-wrap, #library-albums-wrap {
+  overflow: auto;
+}
+#library-artists, #library-albums {
+  flex: 1;
+  overflow: auto;
+}
+#library-songs {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden; // fix issues with dragging
+}
+#library-songs-wrap {
+  overflow: auto;
+}
+#playlist {
+  -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+}
+#playlist-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#pslwrap {
+  overflow: auto;
+  flex-grow: 2;
+}
+#playlist-song-list {
+  flex: 1;
 
-  #browser {
-    display: flex;
-    flex-direction: column;
-
-    -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-
-    #browser-header {
-      display: flex;
-    }
-
-    #slwrap {
-      flex-grow: 2;
-      overflow-x: hidden; // in case of size issues with js
-      position: relative;
-    }
+  > tbody {
+    flex: 1;
   }
-  #library {
-    display: flex;
-    flex-direction: column;
-
-    -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-
-    #library-top {
-      display: flex;
-      flex: 1;
-      overflow: auto;
-
-      #library-artists-wrap, #library-albums-wrap {
-        overflow: auto;
-      }
-
-      #library-artists, #library-albums {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: auto;
-      }
-    }
-
-    #library-songs {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden; // fix issues with dragging
-      display: flex;
-      flex-direction: column;
-
-      #library-songs-wrap {
-        overflow: auto;
-      }
-    }
+  td {
+    position: relative;
   }
-  #playlist {
-    display: flex;
-    flex-direction: column;
-    -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-
-    #playlist-header {
-      display: -webkit-box; /* fallback for apple webkit */
-      display: flex;
-      -webkit-align-items: center;
-      align-items: center;
-      text-align: center;
-
-      #playlist-title {
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-    }
-
-    #pslwrap {
-      border-left: 1px solid #DDD;
-      overflow: auto;
-      display: flex;
-      flex-grow: 2;
-
-      #playlist-song-list {
-        display: flex;
-        flex: 1;
-
-        > tbody {
-          display: flex;
-          flex: 1;
-          flex-direction: column;
-        }
-        td {
-          position: relative;
-        }
-        tr:hover {
-          .song-play {
-            display: inline;
-          }
-        }
-      }
+  tr:hover {
+    .song-play {
+      display: inline;
     }
   }
 }
@@ -180,48 +100,32 @@ main {
   bottom: 0;
   right: 0;
   z-index: 1002; // above floathead
-  // display: flex; // hidden by css by default, flex added by js
-  flex-direction: column;
 
   .panel-heading {
-    .panel-default-shown {
-      display: flex;
-      align-items: center;
-    }
-
     .panel-title {
       flex: 1;
-      text-align: center;
       cursor: move;
     }
   }
+}
+#pe-main {
+  padding: 0;
+  overflow: auto;
+  flex: 1;
+}
+#pewrap {
+  flex: 1;
 
-  #pe-main {
-    padding: 0;
-    overflow: auto;
-    display: flex;
-    flex: 1;
+  > table {
+    cursor: pointer;
   }
+}
+#pe-song-list {
+  margin-bottom: 0;
+  flex: 1;
 
-  #pewrap {
-    display: flex;
+  > tbody {
     flex: 1;
-
-    > table {
-      cursor: pointer;
-    }
-  }
-
-  #pe-song-list {
-    margin-bottom: 0;
-    display: flex;
-    flex: 1;
-
-    > tbody {
-      display: flex;
-      flex: 1;
-      flex-direction: column;
-    }
   }
 }
 #pe-tab {
@@ -230,21 +134,20 @@ main {
   bottom: 0;
   right: 0;
   z-index: 1002; // above floathead
-  background: #404040;
-  color: white;
   padding: 8px;
   cursor: pointer;
 }
 #downloader {
-  min-width: 400px;
-
-  #downloader-status {
-    min-height: 20px;
-  }
+  width: 400px;
 }
-#browser-selection {
+#downloader-status {
+  white-space: normal;
+}
+#history-container {
+  min-width: 300px;
+}
+#browser-selection-container {
   flex: 0;
-  text-align: center;
 }
 #downloader-wrap {
   overflow: auto;
@@ -258,31 +161,36 @@ main {
   margin-bottom: 0;
   bottom: 0;
   z-index: 1002; // above floathead
-  display: flex;
-  flex-direction: column;
-
-  #testing-main {
-    padding: 0;
-    overflow: auto;
-    flex-grow: 2;
-  }
+}
+#testing-main {
+  padding: 0;
+  overflow: auto;
+  flex-grow: 2;
 }
 .navbar.pages {
-  margin-bottom: 0;
   display: flex;
+  margin-bottom: 0;
   align-items: center;
-  justify-content: space-around;
 
-  .page {
-    width:200px;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-
-    .form-control {
-      max-width: 80px;
-    }
+  .form-control {
+    max-width: 80px;
   }
+}
+// https://stackoverflow.com/a/30362531
+.cell-ellipsis {
+    position: relative;
+}
+.cell-ellipsis:before {
+    content: '&nbsp;';
+    visibility: hidden;
+}
+.cell-ellipsis span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 // floatThead
 table.floatThead-table {
@@ -300,7 +208,6 @@ table.floatThead-table {
   top: auto !important;
 }
 .flex-full {
-  -webkit-box-flex: 1; /* fallback for apple webkit */
   flex: 1;
 }
 .song-list, #downloader-folder-list, #playlist-song-list, #home, #downloader-home, .loc-dir, .downloader-loc-dir,  .playlists, .faded, #library-artists-list, #library-albums-list, #downloader-home {
@@ -340,8 +247,9 @@ table.floatThead-table {
 .none { // like .hidden, except without !important
   display: none;
 }
-.dropdown-menu > li > a.no-hover:hover {
+.dropdown-menu .no-hover:hover {
   background: inherit;
+  color: inherit;
 }
 // bootstrap
 .modal-dialog {
@@ -370,24 +278,6 @@ table.floatThead-table {
   font-size: 0.8em;
   cursor: default;
   margin-bottom: 5px;
-}
-.space-between {
-  display: -webkit-box; /* fallback for apple webkit */
-  display: flex;
-  justify-content: space-between;
-}
-.main-link {
-  flex: 1;
-  text-align: center;
-}
-.glyphicon.spinning {
-  animation: spin 1s infinite linear;
-}
-// having an odd issue where a table cell was very small in ff..
-@-moz-document url-prefix() {
-  .width100 {
-    width: 100%;
-  }
 }
 table.table-header {
   // set display to break the table layout on purpose. It's so the js can
@@ -424,70 +314,28 @@ table.table-header-fixed {
 }
 
 // "mobile"
-@media (max-width: 768px) {
+@media (max-width: 575px) {
   html {
     overflow-y: auto;
     overflow-x: auto;
   }
-  body {
-    padding-bottom: 75px;
-  }
   #page-wrapper {
     height: auto;
-  }
-  main {
-    flex-direction: column;
-    height: auto;
-    align-items: center;
-  }
-  #album-art {
-    display: none;
   }
   // playlist editor
   #pe, #pe-tab {
     width: 100%;
   }
-  #browser, #playlist, #library {
-    margin-top: 16px;
-    height: 500px;
+  #slwrap {
+    height: 80vh;
   }
-  // accessibility for scrolling
-  #pslwrap, #slwrap {
-    border-left: 1px solid #DDD;
-    border-right: 1px solid #DDD;
-    border-bottom: 1px solid #DDD;
+  #playlist {
+    height: 80vh
   }
-  header {
-    display: flex;
-    flex-direction: column;
-
-    #header-left {
-      position: fixed;
-      bottom:0;
-      z-index: 2;
-      width: 100%;
-      min-width: .minimumWidth;
-      #media-buttons {
-        flex-direction: row;
-        width: 90%;
-      }
-    }
-    #header-right {
-      width: 100%;
-    }
-    #music-time {
-      position: fixed;
-      bottom: 5px;
-      z-index: 3;
-      left: 40px;
-      width: 80%;
-    }
+  #library {
+    height: 100vh;
   }
-  .space-between {
-    display: block;
-  }
-  #browser-selection {
-    display: flex;
-    width: 80%;
+  #header-right {
+    width: 100%;
   }
 }

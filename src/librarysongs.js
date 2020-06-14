@@ -132,7 +132,6 @@ return {
       function () {
         $(mpcp.librarySongs.table + ' .gen').show();
       },
-      '#search-songs-clear',
       1000);
 
     this.fixedThead = mpcp.tableHeader(this.tableid, 'MPCPLibrarySongsChanged');

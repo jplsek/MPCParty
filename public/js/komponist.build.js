@@ -1654,7 +1654,7 @@ Stream.prototype.pipe = function(dest, options) {
     }
     catch(err) {
         setTimeout(function() { // timeout to not show if refreshing the page
-            toastr.error('Restarting the web server may fix the issue.<button title="Stops the server. Depending on the server admin configuration, the server will restart ASAP." class="stop-server btn btn-warning pull-right"><span class="glyphicon glyphicon-off"></span></button>', "Lost connection to MPD!", {"closeButton": true, "positionClass": "toast-bottom-left", "preventDuplicates": true, "timeOut": "-1", "extendedTimeOut": "-1"});
+            toastr.error('Restarting the web server may fix the issue.<button title="Stops the server. Depending on the server admin configuration, the server will restart ASAP." class="stop-server btn btn-warning pull-right"><i class="fas fa-power-off"></i></button>', "Lost connection to MPD!", {"closeButton": true, "positionClass": "toast-bottom-left", "preventDuplicates": true, "timeOut": "-1", "extendedTimeOut": "-1"});
         }, 200);
     }
   }

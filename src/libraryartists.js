@@ -42,16 +42,16 @@ return {
         return;
       }
 
-      var tableStart = '<table class="fixed-table"><tr><td>',
-        tableEnd = '</td></tr></table>',
-        addClass = '';
+      var addClass = '';
 
       for (var i = 0; i < files.length; ++i) {
         var artist = files[i].Artist;
 
         if (artist == artistUse) addClass = 'info';
 
-        html += '<tr class="context-menu gen artist ' + addClass + '" data-artist="' + artist + '" title="' + artist + '"><td>' + tableStart + artist + tableEnd + '</td><td class="song-list-icons text-right"><span class="artist-add faded text-success glyphicon glyphicon-plus" title="Add artist to the bottom of the playlist"></span></td></tr>';
+        html += '<tr class="context-menu gen artist ' + addClass + '" data-artist="' + artist + '" title="' + artist + '">' +
+          '<td class="cell-ellipsis w-100"><span>' + artist + '</span></td>' +
+          '<td class="song-list-icons text-right"><i class="artist-add fas fa-plus faded text-success" title="Add artist to the bottom of the playlist"></i></td></tr>';
         addClass = '';
       }
 
@@ -62,8 +62,7 @@ return {
   },
 
   initEvents: function () {
-    mpcp.utils.lazySearch('#search-artists', this.table, 'artist',
-      '#search-artists-clear');
+    mpcp.utils.lazySearch('#search-artists', this.table, 'artist');
 
     $(document).on('click', this.table + ' .gen', function () {
       var artist = $(this).data().artist;

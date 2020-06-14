@@ -1,6 +1,6 @@
 {
   "name": "MPCParty",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Another MPD web client meant for multi-user usage.",
   "main": "server.js",
   "author": "Jeremy Plsek",
@@ -9,7 +9,8 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "bootstrap": "^3.3.7",
+    "@fortawesome/fontawesome-free": "^5.13.0",
+    "bootstrap": "^4.5.0",
     "browserify-middleware": "^8.1.1",
     "dragula": "^3.7.2",
     "expand-tilde": "^2.0.2",
@@ -18,16 +19,16 @@
     "floatthead": "^2.1.2",
     "fs": "0.0.2",
     "glob": "^7.1.1",
-    "http": "0.0.0",
-    "jquery": "2.2.4",
+    "http": "0.0.1-security",
+    "jquery": "3.5.1",
     "jquery-contextmenu": "^2.7.0",
     "komponist": "~0.1.0",
     "less-middleware": "^3.0.1",
-    "pug": "^2.0.3",
-    "toastr": "2.1.0",
-    "toml": "^2.3.3",
-    "ws": "^5.2.1",
-    "youtube-dl": "^1.12.2"
+    "pug": "^3.0.0",
+    "toastr": "2.1.4",
+    "toml": "^3.0.0",
+    "ws": "^7.3.0",
+    "youtube-dl": "^3.0.2"
   },
   "repository": {
     "type": "git",
