@@ -75,6 +75,9 @@ html
               |  - Download videos from a wide variety of websites (This is a 'frontend' to&nbsp;
               a(href='https://rg3.github.io/youtube-dl/') youtube-dl
               | )
+            p
+              a(href='https://fontawesome.com/', target='_blank') Font Awesome
+              |  - Icons
             hr
             h4 License of #{pack.name}
             p #{pack.license}
@@ -138,7 +141,7 @@ html
             button.btn.btn-light.btn-sm.border(type='button', data-dismiss='modal') Close
 
     mixin playlists
-      table.playlists.table.table-hover.table-sm
+      table.playlists.table.table-hover.table-sm.mb-0
         thead: tr
           th.col-playlists-title Title
           th.col-playlists-songs Songs
@@ -183,7 +186,7 @@ html
             button.close(type='button', data-dismiss='modal', aria-label='Close')
               span(aria-hidden='true') &times;
           .modal-body.p-0
-            table#song-info.table.table-sm: tbody
+            table#song-info.table.table-sm.mb-0: tbody
           .modal-footer
             button.btn.btn-light.btn-sm.border(type='button', data-dismiss='modal') Close
 
@@ -200,7 +203,7 @@ html
             form#priority-form
               input#priority.form-control.form-control-sm(type='number', min='0', max='255')
               // form validation, and press enter to submit
-              input#priority-submit.hidden(type='submit')
+              input#priority-submit(type='submit', hidden)
           .modal-footer
             button.btn.btn-light.btn-sm.border(type='button', data-dismiss='modal') Close
             button#set-priority-confirm.btn.btn-primary.btn-sm(type='button') Ok
@@ -226,8 +229,8 @@ html
               button#downloader-location-confirm.btn.btn-primary.btn-sm(type='button', data-dismiss='modal') Select
 
     #page-wrapper.d-flex.flex-column
-      header.navbar.p-1.d-flex.align-items-center.border-bottom.flex-column.flex-sm-row.bg-light
-        #header-left.d-flex.align-items-center
+      header.navbar.p-1.d-flex.align-items-center.flex-column.flex-sm-row.bg-light
+        #header-left.d-flex.align-items-center.pr-1
           #slider
             input#volume(type='range', min='0', max='100', orient='vertical', title='Change the volume')
 
@@ -323,39 +326,39 @@ html
             th
 
       mixin songList(id)
-        table.song-list.table.table-hover.table-sm(id=id)
+        table.song-list.table.table-hover.table-sm.table-fixed(id=id)
           tbody.append.connected(id=id+'-tbody')
 
       mixin libraryAA(id, title, search)
         div.d-flex.flex-column(id='library-'+id)
-          div.p-1(id='library-'+id+'-header')
+          div.p-1.border-left(id='library-'+id+'-header')
             form(autocomplete='off')
               input.form-control.form-control-sm(id='search-'+id, type='search', placeholder='Search '+search+'...')
-          table.table-header-fixed.table.table-sm(id='library-'+id+'-list-header')
+          table.table-header-fixed.table.table-sm.border-left(id='library-'+id+'-list-header')
             thead: tr
               th(id='library-col-'+id) #{title}
               th
-          div(id='library-'+id+'-wrap')
-            table.table.table-hover.table-sm.library-list-context(id='library-'+id+'-list')
+          div.border-left.h-100(id='library-'+id+'-wrap')
+            table.table.table-hover.table-sm.library-list-context.table-fixed(id='library-'+id+'-list')
               tbody.append.connected(id='library-'+id+'-list-tbody')
 
       main.d-sm-flex
-        #browser-selection-container.border-right.d-flex.flex-sm-column.justify-content-between
-          button#update.btn.btn-light.btn-sm.border.m-1(title='Update the music database (after uploading new music to the folder)')
-            i.fas.fa-redo
+        #browser-selection-container.d-flex.flex-sm-column.justify-content-between.border-top
           div#browser-selection.text-center.d-flex.flex-sm-column
             button#open-file-browser.btn.btn-light.btn-sm.border.m-1(title='Show the file browser')
               i.fas.fa-folder-open
             button#open-library.btn.btn-light.btn-sm.border.m-1(title='Show the library')
               i.fas.fa-align-justify
             i#warning-consume.fas.fa-exclamation-triangle.text-warning.none.m-1(title='MPD\'s consume mode is enabled!')
+          button#update.btn.btn-light.btn-sm.border.m-1(title='Update the music database (after uploading new music to the folder)')
+            i.fas.fa-redo
 
         div.container-fluid.d-sm-flex.px-4.px-sm-0
-          #library.col-sm-8.flex-column.px-0
+          #library.col-sm-8.flex-column.px-0.border-right.border-top
             #library-top.d-flex
               +libraryAA('artists', 'Artist', 'artists')
               +libraryAA('albums', 'Album', 'albums from artist')
-            #library-songs.d-flex.flex-column
+            #library-songs.d-flex.flex-column.border-left
               #library-songs-header.p-1.border-top
                 form(autocomplete='off')
                   input#search-songs.form-control.form-control-sm(type='search', placeholder='Search songs from album...')
@@ -363,7 +366,7 @@ html
               #library-songs-wrap
                 +songList('library-songs-list')
 
-          #browser.col-sm-8.flex-column.px-0.pt-1
+          #browser.col-sm-8.flex-column.px-0.pt-1.border-left.border-right.border-top
             noscript: h1 You have Javascript disabled. This does not work without Javascript.
             // having the block wrapper fixes an issue with webkit not getting the childs height
             #browser-header-wrap.px-1
@@ -390,7 +393,7 @@ html
               button.btn.btn-light.btn-sm.border.last(title='Go to last page')
                 i.fas.fa-forward
 
-          #playlist.col-sm-4.d-flex.flex-column.p-0.border-left
+          #playlist.col-sm-4.d-flex.flex-column.p-0.border-top
             // having the block wrapper fixes an issue with webkit not getting the childs height
             #playlist-header-wrap.pr-1.py-1.border-bottom
               #playlist-header.d-flex.align-items-center
@@ -414,12 +417,12 @@ html
                     i.fas.fa-clone
                   button#playlist-search-toggle.btn.btn-light.btn-sm.border(type='button')
                     i.fas.fa-search
-            #playlist-search.none
+            #playlist-search.p-1.none
               form(autocomplete='off')
                 input#search-playlist.form-control.form-control-sm(type='search', placeholder='Search playlist...')
             #pslwrap.d-flex
-              table#playlist-song-list.table.table-hover.table-sm.d-flex
-                tbody#playlist-song-list-tbody.append.connected.d-flex.flex-column
+              table#playlist-song-list.table.table-hover.table-sm.table-fixed
+                tbody#playlist-song-list-tbody.append.connected
             #playlist-pages.pages.navbar.p-1.justify-content-center.border-top.bg-light
               button.btn.btn-light.btn-sm.border.first(title='Go to first page')
                 i.fas.fa-backward
@@ -433,7 +436,7 @@ html
 
     footer
       #pe.panel.panel-default.none.shadow.rounded.flex-column.bg-white.border
-        #pe-header.panel-heading.bg-light
+        #pe-header.panel-heading.bg-light.border-bottom.p-1
           .panel-default-shown.d-flex.align-items-center
             .btn-group
               button#pe-clear.btn.btn-light.btn-sm.border(title='Clear the playlist')
@@ -448,19 +451,19 @@ html
                 i.fas.fa-clone
               button#pe-search-toggle.btn.btn-light.btn-sm.border(type='button')
                 i.fas.fa-search
-            span.panel-title.text-center Playlist Editor
+            span.panel-title.text-center.flex-fill Playlist Editor
             .btn-group.pull-right
               button#pe-minimize.btn.btn-light.btn-sm.border
                 i.fas.fa-window-minimize
               button#pe-close.btn.btn-light.btn-sm.border
                 i.fas.fa-times
-          #pe-search.none
+          #pe-search.pt-1.none
             form(autocomplete='off')
               input#search-pe.form-control.form-control-sm(type='search', placeholder='Search playlist editor...')
         #pe-main.panel-body.d-flex
           #pewrap.d-flex
-            table#pe-song-list.table.table-hover.table-sm.d-flex
-              tbody#pe-song-list-tbody.append.connected.d-flex.flex-column
+            table#pe-song-list.table.table-hover.table-sm
+              tbody#pe-song-list-tbody.append.connected
       #pe-tab.none.bg-secondary.rounded.shadow.text-light Resume playlist editor
 
     if (config.testing)

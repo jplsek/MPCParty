@@ -50,7 +50,7 @@ return {
         if (artist == artistUse) addClass = 'info';
 
         html += '<tr class="context-menu gen artist ' + addClass + '" data-artist="' + artist + '" title="' + artist + '">' +
-          '<td class="cell-ellipsis w-100"><span>' + artist + '</span></td>' +
+          '<td class="ellipsis">' + artist + '</td>' +
           '<td class="song-list-icons text-right"><i class="artist-add fas fa-plus faded text-success" title="Add artist to the bottom of the playlist"></i></td></tr>';
         addClass = '';
       }

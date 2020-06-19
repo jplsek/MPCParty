@@ -140,6 +140,29 @@ return {
       this.toPulse[i] = parseInt(this.toPulse[i]);
     }
 
+    // get width of first column
+    var positionWidth = 5;  // PL1._
+    for (i = 0; i < this.local.length; ++i) {
+      // show calculate necessary files
+      if (mpcp.pages.enabledPlaylist) {
+        if (i < start)
+          continue;
+        else if (i >= end)
+          break;
+      }
+
+      var value = this.local[i];
+      var length = 4;  // PL{}._
+      if (value.Prio) {
+        length += value.Prio.toString().length + 2;  // []
+      }
+      length += (Number(value.Pos) + 1).toString().length
+      if (length > positionWidth) {
+        positionWidth = length;
+      }
+    }
+
+    // create table rows
     for (i = 0; i < this.local.length; ++i) {
       var value = this.local[i];
 
@@ -178,9 +201,9 @@ return {
       }
 
       html += `<tr class="drag context-menu ${current}" title="${title}" data-fileid="${value.Id }" data-file="${value.file}" data-pos="${value.Pos}" data-prio="${value.Prio}">` +
-        `<td class="playlist-song-list-icons"><i class="song-play fas fa-play faded text-success" title="Play song"></i>${value.Pos + 1}.${prio}</td>` +
-        `<td class="cell-ellipsis w-100"><span>${title}</span></td>` +
-        `<td class="playlist-song-list-icons text-right"><i class="song-remove fas fa-times faded text-danger" title="Remove song from playlist"></i></td></tr>`;
+        `<td class="playlist-song-list-icons" style="width: ${positionWidth}ch"><i class="song-play fas fa-play faded text-success" title="Play song"></i>${value.Pos + 1}.${prio}</td>` +
+        `<td class="ellipsis">${title}</td>` +
+        `<td class="playlist-song-list-icons text-right" style="width: 3ch"><i class="song-remove fas fa-times faded text-danger" title="Remove song from playlist"></i></td></tr>`;
     }
 
     this.toPulse = [];

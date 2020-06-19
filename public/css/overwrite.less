@@ -93,6 +93,7 @@ main {
   }
 }
 #pe { // playlist editor
+  min-width: 400px;
   width: 400px;
   height: 300px;
   position: fixed;
@@ -100,13 +101,9 @@ main {
   bottom: 0;
   right: 0;
   z-index: 1002; // above floathead
-
-  .panel-heading {
-    .panel-title {
-      flex: 1;
-      cursor: move;
-    }
-  }
+}
+#pe-header {
+  cursor: move;
 }
 #pe-main {
   padding: 0;
@@ -117,7 +114,7 @@ main {
   flex: 1;
 
   > table {
-    cursor: pointer;
+    cursor: move;
   }
 }
 #pe-song-list {
@@ -192,6 +189,11 @@ main {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 // floatThead
 table.floatThead-table {
   border-top: none;
@@ -220,11 +222,11 @@ table.floatThead-table {
   opacity: 1;
 }
 .nowrap, .song-list-icons, .playlist-song-list-icons {
-  white-space:nowrap;
+  white-space: nowrap;
 }
 .song-list-icons {
   // slightly less jarring when there there is an init width
-  min-width: 25px;
+  width: 3ch;
 }
 .fixed-table {
   /* magic */
@@ -293,6 +295,9 @@ table.table-header-fixed {
   table-layout: fixed;
   margin-bottom: 0;
   cursor: pointer;
+}
+.table-fixed {
+  table-layout: fixed;
 }
 @keyframes spin {
   from { transform: scale(1) rotate(0deg) }

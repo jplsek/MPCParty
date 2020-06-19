@@ -64,7 +64,7 @@ return {
           addClass = 'info';
 
         html += '<tr class="context-menu gen album ' + addClass + '" data-artist="' + artist + '" data-album="' + album + '" title="' + album + '">' +
-          '<td class="cell-ellipsis w-100"><span>' + album + '</span></td>' +
+          '<td class="ellipsis">' + album + '</td>' +
           '<td class="song-list-icons text-right"><i class="album-add fas fa-plus faded text-success" title="Add album to the bottom of the playlist"></i></td></tr>';
         addClass = '';
       }

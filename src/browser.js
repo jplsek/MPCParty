@@ -231,8 +231,8 @@ return {
 
       html = '<tr class="context-menu directory gen" data-dirid="' + value.directory + '">' +
         '<td class="song-list-icons"><i class="text-warning fas fa-folder-open faded folder-open" title="Open directory. Note: You can double click the directory to open"></i></a></td>' +
-        '<td colspan="3" class="w-100 cell-ellipsis" title="' + strippedDir + '"><span>' + strippedDir + '</span></td>' +
-        '<td colspan="2" class="song-list-icons text-right"><i class="dir-add fas fa-plus faded text-success" title="Add the whole directory of songs to the bottom of the playlist"></i></td></tr>';
+        '<td colspan="4" class="ellipsis" title="' + strippedDir + '">' + strippedDir + '</td>' +
+        '<td class="song-list-icons text-right"><i class="dir-add fas fa-plus faded text-success" title="Add the whole directory of songs to the bottom of the playlist"></i></td></tr>';
     }
 
     return html;
@@ -254,10 +254,10 @@ return {
 
       html = '<tr class="context-menu file gen" data-fileid="' + value.file + '">' +
         '<td class="song-list-icons pos"><i class="fas fa-file-audio text-primary"></i></td>' +
-        '<td title="' + value.Title + '" class="cell-ellipsis"><span>' + value.Title + '</span></td>' +
-        '<td title="' + value.Artist + '" class="cell-ellipsis"><span>' + value.Artist + '</span></td>' +
-        '<td title="' + value.Album + '" class="cell-ellipsis"><span>' + value.Album + '</span></td>' +
-        '<td class="nowrap">' + mpcp.utils.toMMSS(value.Time) + '</td>' +
+        '<td title="' + value.Title + '" class="ellipsis">' + value.Title + '</td>' +
+        '<td title="' + value.Artist + '" class="ellipsis">' + value.Artist + '</td>' +
+        '<td title="' + value.Album + '" class="ellipsis">' + value.Album + '</td>' +
+        '<td class="nowrap" style="width: 7ch">' + mpcp.utils.toMMSS(value.Time) + '</td>' +
         '<td class="song-list-icons text-right"><i class="song-add fas fa-plus faded text-success" title="Add song to the bottom of the playlist"></i></td></tr>';
 
     }
@@ -292,21 +292,40 @@ return {
 
     var element, fileid, icon, index;
 
+    // get width of first column
+    var positionWidth = 3;  // IC_
+
     for (var i = 0; i < tr.length; ++i) {
       element = tr[i];
 
       fileid = $(element).data().fileid;
       icon   = '';
       index  = mpcp.playlist.list.files.indexOf(fileid);
+      var length = 1;  // {}_
 
       if (index != -1) {
-        icon = (parseInt(mpcp.playlist.list.positions[index]) + 1) +
-          '.';
+        icon = (parseInt(mpcp.playlist.list.positions[index]) + 1) + '.';
         element.firstChild.innerHTML = icon;
+        length += icon.toString().length;
       } else {
         icon = '<i class="fas fa-file-audio text-primary"></i>';
         element.firstChild.innerHTML = icon;
+        length += 2;
       }
+
+      if (length > positionWidth) {
+        positionWidth = length;
+      }
+    }
+
+    for (var i = 0; i < tr.length; ++i) {
+      tr[i].firstChild.style.width = positionWidth + 'ch';
+    }
+
+    var tr = $('.song-list tbody').children('.directory');
+
+    for (var i = 0; i < tr.length; ++i) {
+      tr[i].firstChild.style.width = positionWidth + 'ch';
     }
 
     window.dispatchEvent(new CustomEvent("MPCbrowserChanged"));
