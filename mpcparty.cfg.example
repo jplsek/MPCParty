@@ -20,7 +20,7 @@
 ### The music library location that MPD also uses. This is used for extra
 ### features such as music downloading and album art detection.
 ### Default: ""
-library = "~/Music"
+#library = "~/Music"
 
 [vote]
 ### Enable vote skipping (set to false if you are having issues with voting)

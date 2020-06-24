@@ -35,6 +35,73 @@ var express = require('express'),
   // set to true when making a release
   release = false;
 
+var settingsManager = {
+  server: {
+    port: 8081
+  },
+  mpd: {
+    url: 'localhost',
+    port: 6600,
+    library: ''
+  },
+  users: {
+    enabled: false
+  },
+  testing: {
+    enabled: false
+  },
+  voting: {
+    enabled: true,
+    percent: 0.75
+  },
+  downloader: {
+    enabled: true,
+    directory: 'Downloads',
+    keepVideo: false
+  },
+
+  start: function () {
+    // read from config file
+    try {
+      var data = fs.readFileSync(__dirname + '/mpcparty.cfg')
+
+      data = toml.parse(data);
+      this.server.port = (data.server.port !== undefined ?
+        data.server.port : this.server.port);
+      this.mpd.url = (data.mpd.url !== undefined ?
+        data.mpd.url : this.mpd.url);
+      this.mpd.port = (data.mpd.port !== undefined ?
+        data.mpd.port : this.mpd.port);
+      this.mpd.library = (data.mpd.library !== undefined ?
+        data.mpd.library : this.mpd.library);
+      this.users.enabled = (data.users.enabled !== undefined ?
+        data.users.enabled : this.users.enabled);
+      this.testing.enabled = (data.testing.enabled !== undefined ?
+        data.testing.enabled : this.testing.enabled);
+      this.voting.enabled = (data.vote.enabled !== undefined ?
+        data.vote.enabled : this.voting.enabled);
+      this.voting.percent = (data.vote.percent !== undefined ?
+        data.vote.percent : this.voting.percent);
+      this.downloader.enabled = (data.downloader.enabled !== undefined ?
+        data.downloader.enabled : this.downloader.enabled);
+      this.downloader.directory = (data.downloader.directory !== undefined ?
+        data.downloader.directory : this.downloader.directory);
+      this.downloader.keepVideo = (data.downloader.keep_videos !== undefined ?
+        data.downloader.keep_videos : this.downloader.keepVideo);
+    } catch(err) {
+      console.warn('Unable to read the config file. ' +
+        'Make sure to copy the mpcparty.cfg.example file to mpcparty.cfg if you would like to customize your settings.');
+    }
+
+    // if we don't know the location of the library, disable extra features
+    if (this.mpd.library === '') {
+      this.downloader.enabled = false;
+    }
+  }
+}
+
+settingsManager.start();
+
 io.broadcast = function(data) {
   io.clients.forEach(function each(client) {
     client.send(data, function (err) {
@@ -72,11 +139,6 @@ function getHostname(ip, callback) {
 }
 
 var downloader = {
-  // some of these settings get set in config.cfg
-  enabled: true,
-  directory: 'Downloads',
-  keepVideo: false,
-
   // TODO check if file already exists
   download: function (url, location, address, socket) {
     if (location.includes('..')) {
@@ -99,7 +161,7 @@ var downloader = {
     console.log('Requesting video download: ' + url + ' from ' + address +
       ' to ' + location);
 
-    if (this.keepVideo) option.push('-k');
+    if (settingsManager.downloader.keepVideo) option.push('-k');
 
     // create the folder if it doesn't exist
     fs.mkdir(location, function (err) {
@@ -155,7 +217,7 @@ var downloader = {
       // I would like to use this instead... but it doesnt seem to work
       // unless I use a write steam
       //var ytdl = youtubedl(url, ['-x', '--audio-format', 'mp3'],
-        //{cwd: downloader.directory});
+        //{cwd: settingsManager.downloader.directory});
       //ytdl.on('info', function (info) {
         //console.log('video download starting!');
       //});
@@ -166,14 +228,12 @@ var downloader = {
   },
 
   getLocation: function (location) {
-    return path.normalize(tilde(config.mpd.library + path.sep + location));
+    return path.normalize(tilde(settingsManager.mpd.library + path.sep + location));
   }
 };
 
 // song skipping
 var skip = {
-  votePercent: 0.75,
-  voting: true,
   // user count
   total: 1,
   // user count for skip ammout
@@ -266,9 +326,9 @@ app.get('/', function (req, res) {
   res.render('index', {
     pack: pack,
     config: {
-      "showUsers": config.users.enabled,
-      "downloader": downloader.enabled,
-      "testing": config.testing.enabled
+      "showUsers": settingsManager.users.enabled,
+      "downloader": settingsManager.downloader.enabled,
+      "testing": settingsManager.testing.enabled
     }
   });
 });
@@ -277,9 +337,9 @@ app.get('/browser/*', function (req, res) {
   res.render('index', {
     pack: pack,
     config: {
-      "showUsers": config.users.enabled,
-      "downloader": downloader.enabled,
-      "testing": config.testing.enabled
+      "showUsers": settingsManager.users.enabled,
+      "downloader": settingsManager.downloader.enabled,
+      "testing": settingsManager.testing.enabled
     }
   });
 });
@@ -288,9 +348,9 @@ app.get('/library/*', function (req, res) {
   res.render('index', {
     pack: pack,
     config: {
-      "showUsers": config.users.enabled,
-      "downloader": downloader.enabled,
-      "testing": config.testing.enabled
+      "showUsers": settingsManager.users.enabled,
+      "downloader": settingsManager.downloader.enabled,
+      "testing": settingsManager.testing.enabled
     }
   });
 });
@@ -299,9 +359,9 @@ app.get('/search/*', function (req, res) {
   res.render('index', {
     pack: pack,
     config: {
-      "showUsers": config.users.enabled,
-      "downloader": downloader.enabled,
-      "testing": config.testing.enabled
+      "showUsers": settingsManager.users.enabled,
+      "downloader": settingsManager.downloader.enabled,
+      "testing": settingsManager.testing.enabled
     }
   });
 });
@@ -348,118 +408,61 @@ app.use('/webfonts',
   res.type('txt').send('Not found');
 });*/
 
-// default config
-var config = {
-  server: {
-    port: 8081
-  },
-  mpd: {
-    url: 'localhost',
-    port: 6600,
-    library: ''
-  },
-  users: {
-    enabled: false
-  },
-  testing: {
-    enabled: false
-  }
-};
+// create video.directory folder
+if (settingsManager.downloader.enabled) {
+  (function() {
+    youtubedl = require('youtube-dl');
+    var location = downloader.getLocation(settingsManager.downloader.directory);
 
-fs.readFile(__dirname + '/config.cfg', function (err, data) {
-  if (err) {
-    console.log('Unable to read config file. ' +
-      'Custom config will not be used.');
-    console.log(err);
-  } else {
-    data = toml.parse(data);
-
-    // set all config (otherwise resort to defaults)
-    config.server.port = (data.server.port !== undefined ?
-      data.server.port : config.server.port);
-    config.mpd.url = (data.mpd.url !== undefined ?
-      data.mpd.url : config.mpd.url);
-    config.mpd.port = (data.mpd.port !== undefined ?
-      data.mpd.port : config.mpd.port);
-    config.mpd.library = (data.mpd.library !== undefined ?
-      data.mpd.library : config.mpd.library);
-    config.users.enabled = (data.users.enabled !== undefined ?
-      data.users.enabled : config.users.enabled);
-    config.testing.enabled = (data.testing.enabled !== undefined ?
-      data.testing.enabled : config.testing.enabled);
-    skip.voting = (data.vote.enabled !== undefined ?
-      data.vote.enabled : skip.voting);
-    skip.votePercent = (data.vote.percent !== undefined ?
-      data.vote.percent : skip.votePercent);
-    downloader.enabled = (data.downloader.enabled !== undefined ?
-      data.downloader.enabled : downloader.enabled);
-    downloader.directory = (data.downloader.directory !== undefined ?
-      data.downloader.directory : downloader.directory);
-    downloader.keepVideo = (data.downloader.keep_videos !== undefined ?
-      data.downloader.keep_videos : downloader.keepVideo);
-  }
-
-  // if we don't know the location of the library, disable extra features
-  if (config.mpd.library === '') {
-    downloader.enabled = false;
-  }
-
-  // create video.directory folder
-  if (downloader.enabled) {
-    (function() {
-      youtubedl = require('youtube-dl');
-      var location = downloader.getLocation(downloader.directory);
-
-      fs.mkdir(location, function (err) {
-        // ignore exists error
-        if (err) {
-          if (err.code == 'EEXIST') {
-            console.log('Default directory for the ' +
-              'Downloader: ' + location);
-          } else {
-            console.log('!!! Error creating directory "' +
-              location + '" for the ' +
-              'Downloader, disabling...');
-            downloader.enabled = false;
-            console.log(err);
-          }
-        } else {
-          console.log('Creating directory for the ' +
+    fs.mkdir(location, function (err) {
+      // ignore exists error
+      if (err) {
+        if (err.code == 'EEXIST') {
+          console.log('Default directory for the ' +
             'Downloader: ' + location);
+        } else {
+          console.log('!!! Error creating directory "' +
+            location + '" for the ' +
+            'Downloader, disabling...');
+          settingsManager.downloader.enabled = false;
+          console.log(err);
         }
-      });
-    })();
-  }
-
-  http.listen(config.server.port, function () {
-    console.log('Web server listening on http://localhost:' + config.server.port);
-  });
-
-  console.log('Connecting to MPD server ' + config.mpd.url + ':' + config.mpd.port + '...');
-
-  // Open up a proxy on the HTTP server that points to MPD
-  komponist.install(http, config.mpd.url, config.mpd.port);
-
-  mpd = komponist.createConnection(config.mpd.port, config.mpd.url,
-      function (err, client) {
-    if (err) {
-      console.log(err);
-      process.exit(-5);
-    }
-
-    console.log('Connected to MPD!');
-    setSong(client);
-
-    client.on('changed', function (system) {
-      //console.log('subsystem changed: ' + system);
-      if (system == 'player') {
-        setSong(client);
-      } else if (system == 'playlist') {
-        // running setSong with a playlist change to fix a vote issue
-        // where users could vote after no song was selected
-        setSong(client);
+      } else {
+        console.log('Creating directory for the ' +
+          'Downloader: ' + location);
       }
     });
+  })();
+}
+
+http.listen(settingsManager.server.port, function () {
+  console.log('Web server listening on http://localhost:' + settingsManager.server.port);
+});
+
+console.log('Connecting to MPD server ' + settingsManager.mpd.url + ':' + settingsManager.mpd.port + '...');
+
+// Open up a proxy on the HTTP server that points to MPD
+komponist.install(http, settingsManager.mpd.url, settingsManager.mpd.port);
+
+mpd = komponist.createConnection(settingsManager.mpd.port, settingsManager.mpd.url,
+    function (err, client) {
+  if (err) {
+    console.log(err);
+    process.exit(-5);
+  }
+
+  console.log('Connected to MPD!');
+  setSong(client);
+
+  client.on('changed', function (system) {
+    //console.log('subsystem changed: ' + system);
+    if (system == 'player') {
+      setSong(client);
+    } else if (system == 'playlist') {
+      // running setSong with a playlist change to fix a vote issue
+      // where users could vote after no song was selected
+      setSong(client);
+    }
   });
 });
 
@@ -475,14 +478,14 @@ function sendArtworkMessage() {
 
 // get album art based on the directory the file is in
 function getImage(song) {
-  if (!song || config.mpd.library === '') {
+  if (!song || settingsManager.mpd.library === '') {
     currentArt = null;
     sendArtworkMessage();
     return;
   }
 
   var subFolder = song.file.substr(0, song.file.lastIndexOf('/')),
-    folder  = tilde(config.mpd.library + '/' + subFolder);
+    folder  = tilde(settingsManager.mpd.library + '/' + subFolder);
 
   //console.log(folder);
   glob('{*.jpg,*.png}', {cwd:folder}, function(err, files) {
@@ -570,7 +573,7 @@ var sendUpdate = function (address, connect, customSocket) {
     return getHostname(addr, function (hostname, usedip) {
       hostnames[usedip] = hostname;
 
-      if (i == addresses.length - 1 && config.users.enabled) {
+      if (i == addresses.length - 1 && settingsManager.users.enabled) {
         io.broadcast(JSON.stringify(
           {'type': 'hostnames', 'info': hostnames}));
       }
@@ -632,7 +635,7 @@ var sendUpdate = function (address, connect, customSocket) {
     console.log(addresses);
 
     var totalClients = addresses.length,
-      songSkipFloat = totalClients * skip.votePercent;
+      songSkipFloat = totalClients * settingsManager.voting.percent;
 
     skip.total = parseInt((songSkipFloat), 10);
 
@@ -648,7 +651,7 @@ var sendUpdate = function (address, connect, customSocket) {
       skip.previousSuccess();
 
     console.log('| Song skip total needed: ' + skip.total + ' (' +
-      skip.votePercent * 100 + '% = ' + songSkipFloat +
+      settingsManager.voting.percent * 100 + '% = ' + songSkipFloat +
       ' users) (next: ' + skip.next + ') (previous: ' + skip.previous +
       ')');
 
@@ -711,9 +714,9 @@ io.on('connection', function (socket) {
   // on client connect, send init values to single client
   socket.send(JSON.stringify({
       'type': 'init', 'playlist-title': playlisttitle,
-      'song-vote': skip.voting,
-      'downloader-enabled': downloader.enabled,
-      'downloader-location': downloader.directory,
+      'song-vote': settingsManager.voting.enabled,
+      'downloader-enabled': settingsManager.downloader.enabled,
+      'downloader-location': settingsManager.downloader.directory,
       'album-art': currentArt,
       }),
       function (err) {

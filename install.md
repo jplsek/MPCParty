@@ -8,13 +8,12 @@ Installing MPCParty
 
 ## With Docker
 
-Clone this repository:
-
 ```sh
 git clone https://github.com/jplsek/MPCParty && cd MPCParty
+cp mpcparty.cfg.example mpcparty.cfg
 ```
 
-Make sure to change the config `[mpd] url` to be the ip of your system, not `localhost`!
+Change the config `[mpd] url` to be the ip of your system, not `localhost`!
 Change the `[mpd] library` option to `/Music`.
 
 - The commands below will use the local config file, so you don't have to rebuild the image every time you change the config file.
@@ -40,7 +39,7 @@ docker build -t mpcparty .
 Running:
 
 ```sh
-docker run -it -v $(pwd)/config.cfg:/app/config.cfg -v ~/Music:/Music -p 8081:8081 mpcparty
+docker run -it -v $(pwd)/mpcparty.cfg:/app/mpcparty.cfg -v ~/Music:/Music -p 8081:8081 mpcparty
 ```
 
 ## Without Docker - Running on the Host System
@@ -67,12 +66,20 @@ Install [mpd](http://www.musicpd.org/download.html)
 Install [ffmpeg](http://ffmpeg.org/download.html)  
 You will need nodejs to be in your path.
 
-## 2) Release version
-Download the latest release from the GitHub [releases](https://github.com/jplsek/MPCParty/releases) page.
+## 2) Download MPCParty
+You can either get the release version or the development version.
+The main difference is that the release version doesn't require installing the node libraries nor git to be installed.
+However, I recommend using the development version since it should have the latest features and bug fixes.
 
-## 2) Development version (should be stable)
-* Clone this repository (`git clone https://github.com/jplsek/MPCParty`)
-* Run `yarn install` from the project's directory (to install all the libraries)
+### Development version
+```sh
+git clone https://github.com/jplsek/MPCParty && cd mpcparty
+cp mpcparty.cfg.example mpcparty.cfg
+yarn install
+```
+
+### Release version
+Download the latest release from the GitHub [releases](https://github.com/jplsek/MPCParty/releases) page.
 
 ## 3) Running
 * Start MPCParty with `./run.sh` from this directory (or `yarn start`)

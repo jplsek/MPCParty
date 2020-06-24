@@ -5,7 +5,7 @@ services:
     build:
       context: .
     volumes:
-      - ./config.cfg:/app/config.cfg
+      - ./mpcparty.cfg:/app/mpcparty.cfg
       - ~/Music:/Music
     ports:
       - 8081:8081
