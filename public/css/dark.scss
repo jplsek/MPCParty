@@ -1,0 +1,26 @@
+// as long as this isn't literally the same as the default, it works.
+$white: rgb(255, 250, 250);
+
+// colors are just inverted
+$gray-900: #f8f9fa;
+$gray-800: #e9ecef;
+$gray-700: #dee2e6;
+$gray-600: #ced4da;
+$gray-500: #adb5bd;
+$gray-400: #6c757d;
+$gray-300: #495057;
+$gray-200: #343a40;
+$gray-100: #212529;
+
+$black: #000;
+
+// force some other colors
+$body-bg: rgb(44, 49, 54);
+$body-color: $white;
+$modal-content-bg: $body-bg;
+$input-bg: $body-bg;
+$dropdown-bg: $body-bg;
+$close-color: $white;
+$close-text-shadow: 0 1px 0 $black;
+
+@import 'node_modules/bootstrap/scss/bootstrap';

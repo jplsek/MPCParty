@@ -1,7 +1,7 @@
-@minimumWidth: 360px;
+$minimumWidth: 360px;
 
 html {
-  min-width: @minimumWidth;
+  min-width: $minimumWidth;
   overflow-x: hidden; // fixes an issue with context-menus
   overflow-y: hidden; // fixes random bugs that occur with changing the table widths dynamically
 }
@@ -9,7 +9,7 @@ html {
   height: 100vh;
 }
 header {
-  min-width: @minimumWidth;
+  min-width: $minimumWidth;
 }
 #volume {
   width: 30px; // width set for webkit
@@ -148,7 +148,7 @@ main {
 }
 #downloader-wrap {
   overflow: auto;
-  height: ~"calc(100vh - 300px)";
+  height: calc(100vh - 300px);
   min-height: 100px;
 }
 #testing { // unit testing ouput
@@ -255,7 +255,7 @@ table.floatThead-table {
 }
 // bootstrap
 .modal-dialog {
-  min-width: @minimumWidth;
+  min-width: $minimumWidth;
 }
 .dropdown-menu {
   z-index: 1003 !important; // above pe and floathead

@@ -6,7 +6,7 @@ html
     meta(name='viewport', content='width=device-width, initial-scale=1')
     link(rel='icon', href='/img/favicon.png', type='image/x-icon')
     link(rel='shortcut icon', href='/img/favicon.png', type='image/x-icon')
-    link(rel='stylesheet', href='/bootstrap/css/bootstrap.min.css')
+    link#theme(rel='stylesheet', href='/bootstrap/css/bootstrap.min.css')
     link(rel='stylesheet', href='/toastr/toastr.min.css')
     link(rel='stylesheet', href='/jquery-contextmenu/jquery.contextMenu.min.css')
     link(rel='stylesheet', href='/dragula/dragula.min.css')
@@ -98,6 +98,12 @@ html
           .modal-body
             form.form-group(autocomplete='off')
               h3 Client Settings
+              .form-group
+                label(for='themes') Theme
+                select#themes.form-control.form-control-sm
+                  option(value='os') Browser/OS Preference
+                  option(value='dark') Dark
+                  option(value='light') Light
               .form-group
                 .form-check
                   input.form-check-input#use-pages-playlist(type='checkbox')
@@ -435,7 +441,7 @@ html
                 i.fas.fa-forward
 
     footer
-      #pe.panel.panel-default.none.shadow.rounded.flex-column.bg-white.border
+      #pe.panel.panel-default.none.shadow.rounded.flex-column.bg-light.border
         #pe-header.panel-heading.bg-light.border-bottom.p-1
           .panel-default-shown.d-flex.align-items-center
             .btn-group

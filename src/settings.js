@@ -14,8 +14,20 @@ return {
   // show consume warning
   consumeWarning: true,
 
+  themes: {
+    'light': {
+      setting: 'light',
+      file: '/bootstrap/css/bootstrap.min.css'
+    },
+    'dark': {
+      setting: 'dark',
+      file: '/css/dark.css'
+    }
+  },
+
   // initially load all the settings
   loadAll: function () {
+    this.loadTheme();
     this.loadHistoryMax();
     this.loadItemsMax();
     this.loadPagination();
@@ -25,6 +37,40 @@ return {
     this.loadSkipToRemove();
     this.loadBrowser();
     this.loadConsumeWarning();
+  },
+
+  getDefaultTheme: function () {
+    // check OS preferences before defaulting to the light theme
+    if (window.matchMedias) {
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return this.themes['dark']
+      }
+      if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        return this.themes['light']
+      }
+    }
+
+    return this.themes['light']
+  },
+
+  loadTheme: function () {
+    var theme = localStorage.getItem('mpcp-theme');
+
+    if (theme === 'os' || !(theme in this.themes)) {
+      var themeToUse = this.getDefaultTheme()
+      document.getElementById('themes').value = 'os';
+    } else {
+      var themeToUse = this.themes[theme]
+      document.getElementById('themes').value = themeToUse.setting;
+    }
+
+    $('#theme').attr('href', themeToUse.file);
+  },
+
+  saveTheme: function (theme) {
+    console.log('changed theme');
+    localStorage.setItem('mpcp-theme', theme);
+    this.loadTheme();
   },
 
   loadHistoryMax: function () {
@@ -255,6 +301,10 @@ return {
   initEvents: function () {
     // settings event handling
     // client config
+    $('#themes').change(function () {
+      mpcp.settings.saveTheme(this.value);
+    });
+
     $('#history-max').change(function () {
       mpcp.settings.saveHistoryMax(this.value);
     });
@@ -296,6 +346,15 @@ return {
       var use = $(this).prop('checked');
       mpcp.settings.saveShowAllErrors(use);
     });
+
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        mpcp.settings.loadTheme();
+      });
+      window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => {
+        mpcp.settings.loadTheme();
+      });
+    }
 
     // server config
     $('#crossfade').on('input change', function () {

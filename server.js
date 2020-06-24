@@ -5,7 +5,7 @@ var express = require('express'),
   io = new WebSocketServer({ server: http }),
   komponist = require('komponist'),
   fs = require('fs'),
-  less = require('less-middleware'),
+  sass = require('node-sass-middleware'),
   browserify = require('browserify-middleware'),
   dns = require('dns'),
   toml = require('toml'),
@@ -242,8 +242,11 @@ if (release) {
 }
 
 app.disable('x-powered-by');
-// less config
-app.use(less(__dirname + '/public'));
+// sass config
+app.use(sass({
+  src: __dirname + '/public',
+  dest: __dirname + '/public'
+}));
 // compile js client side code
 app.get('/mpcparty.js', browserify(__dirname + '/src/main.js'));
 app.get('/testing.js', browserify(__dirname + '/tests/main.js'));

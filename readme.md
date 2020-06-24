@@ -6,6 +6,7 @@ This is yet another MPD web client. It was inspired to be used in multi-user env
 The interface is similar to Client175, while using Nodejs as a backend for better synchronization and performance between the server and the clients (hopefully).
 
 ![Screenshot](screenshot.png)
+![Dark mode](dark.png)
 
 ## Features
 * No need to have a separate web server running!
