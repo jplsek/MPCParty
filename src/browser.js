@@ -293,7 +293,7 @@ return {
     var element, fileid, icon, index;
 
     // get width of first column
-    var positionWidth = 3;  // IC_
+    var positionWidth = 3;  // Icon size
 
     for (var i = 0; i < tr.length; ++i) {
       element = tr[i];
@@ -301,7 +301,7 @@ return {
       fileid = $(element).data().fileid;
       icon   = '';
       index  = mpcp.playlist.list.files.indexOf(fileid);
-      var length = 1;  // {}_
+      var length = 0;  // Let padding deal with it
 
       if (index != -1) {
         icon = (parseInt(mpcp.playlist.list.positions[index]) + 1) + '.';

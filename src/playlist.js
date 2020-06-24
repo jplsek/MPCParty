@@ -141,7 +141,7 @@ return {
     }
 
     // get width of first column
-    var positionWidth = 5;  // PL1._
+    var positionWidth = 3;  // Play icon size + period
     for (i = 0; i < this.local.length; ++i) {
       // show calculate necessary files
       if (mpcp.pages.enabledPlaylist) {
@@ -152,9 +152,9 @@ return {
       }
 
       var value = this.local[i];
-      var length = 4;  // PL{}._
+      var length = 3;  // Play icon size + period
       if (value.Prio) {
-        length += value.Prio.toString().length + 2;  // []
+        length += value.Prio.toString().length + 2;  // Brackets
       }
       length += (Number(value.Pos) + 1).toString().length
       if (length > positionWidth) {
