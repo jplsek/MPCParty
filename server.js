@@ -12,8 +12,6 @@ var express = require('express'),
   path = require('path'),
   tilde = require('expand-tilde'),
   glob = require('glob'),
-  // optional modules
-  youtubedl = null,
 
   // mpd: komponist mpd connection; pack: package.json;
   mpd, pack,
@@ -95,6 +93,7 @@ var settingsManager = {
 
     // if we don't know the location of the library, disable extra features
     if (this.mpd.library === '') {
+      console.warn('Disabling the downloader since the library setting is not set.')
       this.downloader.enabled = false;
     }
   }
@@ -139,8 +138,37 @@ function getHostname(ip, callback) {
 }
 
 var downloader = {
+  youtubedl: require('youtube-dl'),
+
+  start: function () {
+    if (!settingsManager.downloader.enabled) {
+      return
+    }
+
+    // create video.directory folder
+    var location = downloader.getLocation(settingsManager.downloader.directory);
+
+    try {
+      fs.mkdirSync(location)
+    } catch (err) {
+      // ignore exists error
+      if (err.code != 'EEXIST') {
+        console.log('!!! Error creating directory "' + location + '" for the Downloader, disabling...', err.message);
+        settingsManager.downloader.enabled = false;
+      }
+    }
+
+    if (settingsManager.downloader.enabled) {
+      console.log('Using directory for the Downloader: ' + location);
+    }
+  },
+
   // TODO check if file already exists
   download: function (url, location, address, socket) {
+    if (!settingsManager.downloader.enabled) {
+      return
+    }
+
     if (location.includes('..')) {
       console.log(address + " tried to access " + location + "!");
       socket.send(JSON.stringify({
@@ -152,79 +180,69 @@ var downloader = {
 
     location = downloader.getLocation(location);
 
+    // make sure the folder exists and is writable
+    try {
+      fs.accessSync(location, fs.constants.R_OK | fs.constants.W_OK);
+    } catch (err) {
+      console.log(address + " tried to download " + url + " to " + location + ", " +
+        "but mpcparty can't write to the directory. Does it exist?", err.message);
+      socket.send(JSON.stringify({
+        'type': 'downloader-status',
+        'info': 'Error writing to the selected directory'
+      }));
+      return;
+    }
+
     socket.send(JSON.stringify({
       'type': 'downloader-status',
       'info': 'Downloading and converting video...'
     }));
 
-    var option  = ['-x', '--audio-format', 'mp3'];
+    var option = ['-x', '--audio-format', 'mp3'];
     console.log('Requesting video download: ' + url + ' from ' + address +
       ' to ' + location);
 
     if (settingsManager.downloader.keepVideo) option.push('-k');
 
-    // create the folder if it doesn't exist
-    fs.mkdir(location, function (err) {
-      // ignore exists error
+    this.youtubedl.exec(url, option, {cwd: location},
+        function exec(err, output) {
       if (err) {
-        if (err.code == 'EEXIST') {
-          console.log('Using directory for the ' +
-            'Downloader: ' + location);
-        } else {
-          console.log('!!! Error creating directory "' +
-            location + '" for the Downloader.');
-          console.log(err);
-
-          socket.send(JSON.stringify({
-            'type': 'downloader-status',
-            'info': 'Error creating directory!'
-          }));
-        }
-      } else {
-        console.log('Creating directory for the ' +
-          'Downloader: ' + location);
-      }
-
-      youtubedl.exec(url, option, {cwd: location},
-          function exec(err, output) {
-        if (err) {
-          socket.send(JSON.stringify({
-            'type': 'downloader-status',
-            'info': err.stderr + '. Updating youtube-dl may fix the problem.'
-          }));
-          return console.log(err);
-        }
-
-        console.log('============ start youtube-dl ============');
-        console.log(output.join('\n'));
-        console.log('============  end  youtube-dl ============');
-
-        //for (var item = 0; item < output.length; ++item) {
-        //  if (~output[item].indexOf('.mp3')) {
-        //    var str = output[item];
-        //    var colon = str.indexOf(':');
-        //    var newstr = str.substring(colon + 2);
-        //    console.log(newstr);
-        //  }
-        //}
-
         socket.send(JSON.stringify({
           'type': 'downloader-status',
-          'info': 'Done'
+          'info': err.stderr + '. Updating youtube-dl may fix the problem.'
         }));
-      });
+        return console.log(err);
+      }
 
-      // I would like to use this instead... but it doesnt seem to work
-      // unless I use a write steam
-      //var ytdl = youtubedl(url, ['-x', '--audio-format', 'mp3'],
-        //{cwd: settingsManager.downloader.directory});
-      //ytdl.on('info', function (info) {
-        //console.log('video download starting!');
-      //});
-      //ytdl.on('end', function (info) {
-        //console.log('video download complete!');
-      //});
+      console.log('============ start youtube-dl ============');
+      console.log(output.join('\n'));
+      console.log('============  end  youtube-dl ============');
+
+      //for (var item = 0; item < output.length; ++item) {
+      //  if (~output[item].indexOf('.mp3')) {
+      //    var str = output[item];
+      //    var colon = str.indexOf(':');
+      //    var newstr = str.substring(colon + 2);
+      //    console.log(newstr);
+      //  }
+      //}
+
+      socket.send(JSON.stringify({
+        'type': 'downloader-status',
+        'info': 'Done'
+      }));
     });
+
+    // I would like to use this instead... but it doesnt seem to work
+    // unless I use a write steam
+    //var ytdl = this.youtubedl(url, ['-x', '--audio-format', 'mp3'],
+      //{cwd: settingsManager.downloader.directory});
+    //ytdl.on('info', function (info) {
+      //console.log('video download starting!');
+    //});
+    //ytdl.on('end', function (info) {
+      //console.log('video download complete!');
+    //});
   },
 
   getLocation: function (location) {
@@ -408,32 +426,7 @@ app.use('/webfonts',
   res.type('txt').send('Not found');
 });*/
 
-// create video.directory folder
-if (settingsManager.downloader.enabled) {
-  (function() {
-    youtubedl = require('youtube-dl');
-    var location = downloader.getLocation(settingsManager.downloader.directory);
-
-    fs.mkdir(location, function (err) {
-      // ignore exists error
-      if (err) {
-        if (err.code == 'EEXIST') {
-          console.log('Default directory for the ' +
-            'Downloader: ' + location);
-        } else {
-          console.log('!!! Error creating directory "' +
-            location + '" for the ' +
-            'Downloader, disabling...');
-          settingsManager.downloader.enabled = false;
-          console.log(err);
-        }
-      } else {
-        console.log('Creating directory for the ' +
-          'Downloader: ' + location);
-      }
-    });
-  })();
-}
+downloader.start();
 
 http.listen(settingsManager.server.port, function () {
   console.log('Web server listening on http://localhost:' + settingsManager.server.port);
@@ -904,12 +897,11 @@ io.on('connection', function (socket) {
 http.on('error', function (err) {
   if (err.code == 'EADDRINUSE') {
     console.error('Web server port already in use! ' +
-      'Edit config.cfg to change the port.');
+      'Edit mpcparty.cfg to change the port.');
     process.exit(-4);
   } else {
     console.log('Uncaught HTTP Exception!');
     console.error(err);
-    process.exit(-3);
   }
 });
 
@@ -919,9 +911,12 @@ process.on('uncaughtException', function(err) {
   if (err.code == 'ECONNREFUSED') {
     console.log('Connection refused! Is MPD running?');
     process.exit(-6);
+  } else if (err.code == 'EADDRINUSE') {
+    console.error('Web server port already in use! ' +
+      'Edit mpcparty.cfg to change the port.');
+    process.exit(-4);
   } else {
     console.log('Uncaught Exception!');
     console.log(err);
-    process.exit(-2);
   }
 });

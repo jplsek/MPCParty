@@ -5,3 +5,4 @@ node_modules
 *.css
 !public/css/jquery-ui.min.css
 downloads/*
+mpcparty.cfg
