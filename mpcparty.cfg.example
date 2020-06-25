@@ -2,33 +2,42 @@
 ### Remove the "#" before a variable, for example:
 ### "#port = 8080" to "port = 8080"
 ### Note to Windows users: you need to use "\\" for folder separators.
+###
+### You can also use environment variables if you prefer.
+### Environment variables are listed with the settings below.
 
 [server]
 ### The web port to be used.
+### Env var: SEVER_PORT
 ### Default: 8081
 #port = 8080
 
 [mpd]
 ### The MPD location.
+### Env var: MPD_URL
 ### Default: "localhost"
 #url = "mpdserver.lan"
 
 ### The MPD port of the url
+### Env var: MPD_PORT
 ### Default: 6600
 #port = 6600
 
 ### The music library location that MPD also uses. This is used for extra
 ### features such as music downloading and album art detection.
+### Env var: MPD_LIBRARY
 ### Default: ""
 #library = "~/Music"
 
 [vote]
 ### Enable vote skipping (set to false if you are having issues with voting)
+### Env var: VOTE_ENABLED
 ### Default: true
 #enabled = false
 
 ### Vote skipping percentage. 0.75 = 3/4 clients need to vote in order for a
 ### skip to be successful
+### Env var: VOTE_PERCENT
 ### Default: 0.75
 #percent = 0.50
 
@@ -36,18 +45,21 @@
 ### Show user lists to clients (shows hostnames via DNS if possible). This may
 ### be "removed" in the future if support for sharing the playlist editor is
 ### added, in which case you would disable sharing of the playlist editor.
+### Env var: USERS_ENABLED
 ### Default: false
 #enabled = true
 
 [downloader]
 ### Enable the Downloader (note: "library" needs to be set for this to actually
 ### be enabled)
+### Env var: DOWNLOADER_ENABLED
 ### Default: true
 #enabled = false
 
 ### Set the Downloader download location for the clients RELATIVE to the
 ### MPD library location. Note: Having ".." in the name is possible. Make sure
 ### your permissions are properly set on your system!
+### Env var: DOWNLOADER_DIRECTORY
 ### Default: "Downloads"
 #directory = ""
 
@@ -55,10 +67,12 @@
 ### If you are changing the "location" you may want to set this to false.
 ### Note that setting this to false will download videos even when there are
 ### duplicates.
+### Env var: DOWNLOADER_KEEP_VIDEOS
 ### Default: false
 #keep_videos = true
 
 [testing]
 # Used for unit testing. This should only be enabled during development.
+### Env var: TESTING_ENABLED
 ### Default: false
 #enabled = true

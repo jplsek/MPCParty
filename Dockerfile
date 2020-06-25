@@ -8,4 +8,6 @@ WORKDIR /app
 
 RUN yarn install
 
+ENV MPD_LIBRARY /music
+
 ENTRYPOINT ["yarn", "start"]

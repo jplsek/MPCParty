@@ -59,7 +59,8 @@ var settingsManager = {
   },
 
   start: function () {
-    // read from config file
+    console.log("Reading settings from mpcparty.cfg...")
+
     try {
       var data = fs.readFileSync(__dirname + '/mpcparty.cfg')
 
@@ -90,6 +91,20 @@ var settingsManager = {
       console.warn('Unable to read the config file. ' +
         'Make sure to copy the mpcparty.cfg.example file to mpcparty.cfg if you would like to customize your settings.');
     }
+
+    console.log("Reading any environment variables...")
+
+    this.server.port = process.env.SERVER_PORT || this.server.port;
+    this.mpd.url = process.env.MPD_URL || this.mpd.url;
+    this.mpd.port = process.env.MPD_PORT || this.mpd.port;
+    this.mpd.library = process.env.MPD_LIBRARY || this.mpd.library;
+    this.users.enabled = process.env.USERS_ENABLED || this.users.enabled;
+    this.testing.enabled = process.env.TESTING_ENABLED || this.testing.enabled;
+    this.voting.enabled = process.env.VOTE_ENABLED || this.voting.enabled;
+    this.voting.percent = process.env.VOTE_PERCENT || this.voting.percent;
+    this.downloader.enabled = process.env.DOWNLOADER_ENABLED || this.downloader.enabled;
+    this.downloader.directory = process.env.DOWNLOADER_DIRECTORY || this.downloader.directory;
+    this.downloader.keepVideo = process.env.DOWNLOADER_KEEP_VIDEOS || this.downloader.keepVideo;
 
     // if we don't know the location of the library, disable extra features
     if (this.mpd.library === '') {

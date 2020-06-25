@@ -1,11 +1,11 @@
 version: '3.4'
 
 services:
-  mpdparty:
+  mpcparty:
     build:
       context: .
-    volumes:
-      - ./mpcparty.cfg:/app/mpcparty.cfg
-      - ~/Music:/Music
     ports:
       - 8081:8081
+    volumes:
+      - ./mpcparty.cfg:/app/mpcparty.cfg
+      - ~/Music:/music  # change me! (the "~/Music" part if necessary)

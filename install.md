@@ -13,16 +13,11 @@ git clone https://github.com/jplsek/MPCParty && cd MPCParty
 cp mpcparty.cfg.example mpcparty.cfg
 ```
 
-Change the config `[mpd] url` to be the ip of your system, not `localhost`!
-Change the `[mpd] library` option to `/Music`.
-
-- The commands below will use the local config file, so you don't have to rebuild the image every time you change the config file.
-- It will also set the music folder to `~/Music` (change this to where your music is actually stored) for mpcparty to look for album art and song download support.
-- Finally, the web port is exposed as 8081. If your config `[server] port` is different, make sure to update this.
-
-If any of this needs to be changed, either edit the `docker-compose.yml` or change the CLI options if using plain docker.
+- Change the config `[mpd] url` to be the ip of your system running mpd, not `localhost`!
 
 ### With docker-compose
+
+Make sure to change docker-compose.yml pointing the music directory to where your music is actually stored.
 
 ```
 docker-compose up
@@ -30,16 +25,24 @@ docker-compose up
 
 ### With Plain Docker
 
-Building:
+#### Building
 
 ```sh
 docker build -t mpcparty .
 ```
 
-Running:
+#### Running with environment variables
 
 ```sh
-docker run -it -v $(pwd)/mpcparty.cfg:/app/mpcparty.cfg -v ~/Music:/Music -p 8081:8081 mpcparty
+docker run -it -p 8081:8081 -e MPD_URL=$YOUR_MPD_URL -v $YOUR_MUSIC_DIRECTORY:/music mpcparty
+```
+
+#### Running with the config file
+
+Make sure to update `[mpd] url` as mentioned above!
+
+```sh
+docker run -it -p 8081:8081 -v $(pwd)/mpcparty.cfg:/app/mpcparty.cfg -v $YOUR_MUSIC_DIRECTORY:/music mpcparty
 ```
 
 ## Without Docker - Running on the Host System
