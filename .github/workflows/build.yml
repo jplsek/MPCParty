@@ -1,0 +1,23 @@
+name: MPCParty CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+    - run: yarn install
+    - run: cp mpcparty.cfg.example mpcparty.cfg
+    - uses: actions/upload-artifact@v2
+      with:
+        name: MPCParty-${{ matrix.os }}
+        path: .
