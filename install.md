@@ -1,6 +1,17 @@
 Installing MPCParty
 ===================
 
+* [MPD](#mpd)
+* [With Docker](#with-docker)
+  * [With docker-compose](#with-docker-compose)
+  * [With Plain Docker](#with-plain-docker)
+* [Without Docker](#without-docker---running-on-the-host-system)
+  * [Dependencies](#1-dependencies)
+  * [Download MPCParty](#2-download-mpcparty)
+    * [Development version (git)](#development-version-git)
+    * [Release version](#release-version)
+    * [Pre-Release version](#pre-release-version)
+
 ## MPD
 
 * Get a running instance of mpd working.
@@ -17,7 +28,9 @@ cp mpcparty.cfg.example mpcparty.cfg
 
 ### With docker-compose
 
-Make sure to change docker-compose.yml pointing the music directory to where your music is actually stored.
+(I noticed that the docker-compose setup can sometimes not work, if so, try the plain docker solution below.)
+
+Make sure to change `docker-compose.yml` pointing the music directory to where your music is actually stored.
 
 ```
 docker-compose up
@@ -74,7 +87,7 @@ You can either get the release version or the development version.
 The main difference is that the release version doesn't require installing the node libraries nor git to be installed.
 However, I recommend using the development version since it should have the latest features and bug fixes.
 
-### Development version
+### Development version (git)
 ```sh
 git clone https://github.com/jplsek/MPCParty && cd mpcparty
 cp mpcparty.cfg.example mpcparty.cfg
@@ -84,9 +97,11 @@ yarn install
 ### Release version
 Download the latest release from the GitHub [releases](https://github.com/jplsek/MPCParty/releases) page.
 
+### Pre-Release version
+If the artifacts have not exipired, you can also download the lastest "release" version [here](https://github.com/jplsek/MPCParty/actions?query=is%3Asuccess+branch%3Amaster).
+
 ## 3) Running
-* Start MPCParty with `./run.sh` from this directory (or `yarn start`)
-* Done
+Start MPCParty with `./run.sh` from this directory (or `yarn start`)
 
 ## 4) Auto restarts (recommended!)
 * Users: install [forever](https://github.com/foreverjs/forever#installation) then start `./run.sh` again.
