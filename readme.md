@@ -8,6 +8,9 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 ![Screenshot](screenshot.png)
 ![Dark mode](dark.png)
 
+## Installation
+Read [install.md](install.md).
+
 ## Features
 * No need to have a separate web server running!
 * Play, pause, repeat, random, skip, seek, previous buttons and volume controls
@@ -58,11 +61,8 @@ The interface is similar to Client175, while using Nodejs as a backend for bette
 * Playlist editor: Create and edit playlists without interrupting the current playlist
 * User lists (optional)
 
-## Installation
-Read [install.md](install.md).
-
 ## Configuration
-Edit config.cfg
+Edit mpcparty.cfg (`cp mpcparty.cfg.example mpcparty.cfg`)
 
 * Web port (default is 8081)
 * MPD url (default is localhost)
