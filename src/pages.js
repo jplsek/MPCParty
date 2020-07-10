@@ -110,28 +110,28 @@ return {
 
   initEvents: function () {
     // playlist pages event handling
-    $('#playlist-pages input').change(function () {
-      mpcp.pages.go('playlist', this.value);
+    document.querySelector('#playlist-pages input').addEventListener('change', e => {
+      mpcp.pages.go('playlist', e.target.value);
     });
 
-    $('#playlist-pages .first').click(function () {
+    document.querySelector('#playlist-pages .first').addEventListener('click', e => {
       mpcp.pages.go('playlist', 1);
     });
 
-    $('#playlist-pages .last').click(function () {
+    document.querySelector('#playlist-pages .last').addEventListener('click', e => {
       mpcp.pages.go('playlist', mpcp.pages.totalPlaylist);
     });
 
     // browser pages event handling
-    $('#browser-pages input').change(function () {
-      mpcp.pages.go('browser', this.value);
+    document.querySelector('#browser-pages input').addEventListener('change', e => {
+      mpcp.pages.go('browser', e.target.value);
     });
 
-    $('#browser-pages .first').click(function () {
+    document.querySelector('#browser-pages .first').addEventListener('click', e => {
       mpcp.pages.go('browser', 1);
     });
 
-    $('#browser-pages .last').click(function () {
+    document.querySelector('#browser-pages .last').addEventListener('click', e => {
       mpcp.pages.go('browser', mpcp.pages.totalBrowser);
     });
   }

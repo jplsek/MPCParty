@@ -103,13 +103,12 @@ return {
           document.getElementById('stop').style.display = 'block';
           document.getElementById('pause').style.display = 'block';
           document.getElementById('play').style.display = 'none';
-          document.getElementById('pause').classList.remove('active');
           mpcp.progressbar.startProgress();
           break;
 
         case 'pause':
-          document.getElementById('play').style.display = 'none';
-          document.getElementById('pause').classList.add('active');
+          document.getElementById('play').style.display = 'block';
+          document.getElementById('pause').style.display = 'none';
           mpcp.progressbar.stopProgress();
           break;
       }
@@ -205,15 +204,9 @@ return {
     });
   },
 
-  // wrapper for komponist.toggle
+  // wrapper for komponist.toggle (there is no pause method)
   toggle: function (callback) {
     console.log('toggle');
-
-    // 1. (playing) -> mousedown adds active -> mouseup -> active goes away ->
-    // wait for mpd -> active comes back (to indicate pause).
-    // This removes the "active goes away" part so it is more consistent.
-    document.getElementById('pause').classList.toggle('active');
-
     komponist.toggle(function (err) {
       if (err) console.log(err);
       mpcp.player.addCallbackUpdate(callback);
@@ -316,27 +309,27 @@ return {
   },
 
   initEvents: function () {
-    $('#pause').click(function () {
+    document.getElementById('pause').addEventListener('click', () => {
       mpcp.player.toggle();
     });
 
-    $('#play').click(function () {
+    document.getElementById('play').addEventListener('click', () => {
       mpcp.player.play();
     });
 
-    $('#stop').click(function () {
+    document.getElementById('stop').addEventListener('click', () => {
       mpcp.player.stop();
     });
 
-    $('#next').click(function () {
+    document.getElementById('next').addEventListener('click', () => {
       mpcp.player.next();
     });
 
-    $('#previous').click(function () {
+    document.getElementById('previous').addEventListener('click', () => {
       mpcp.player.previous();
     });
 
-    $('#go-current').click(function () {
+    document.getElementById('go-current').addEventListener('click', () => {
       mpcp.playlist.goToCurrent();
     });
 
@@ -347,7 +340,7 @@ return {
       });
     });
 
-    $('#random').click(function () {
+    document.getElementById('random').addEventListener('click', () => {
       console.log('random');
       if (document.getElementById('random').classList.contains('active')) {
         // read 1.
@@ -364,7 +357,7 @@ return {
       }
     });
 
-    $('#repeat').click(function () {
+    document.getElementById('repeat').addEventListener('click', () => {
       console.log('repeat');
       if (document.getElementById('repeat').classList.contains('active')) {
         // read 1.

@@ -902,39 +902,41 @@ return {
   },
 
   initEvents: function () {
-    $('#new-playlist').click(function () { mpcp.pe.newLocal(); });
+    document.getElementById('new-playlist').addEventListener('click', () => {
+      mpcp.pe.newLocal();
+    });
 
-    $('#scramble').click(function () {
+    document.getElementById('scramble').addEventListener('click', () => {
       mpcp.playlist.scramble();
     });
 
-    $('#remove-duplicates').click(function () {
+    document.getElementById('remove-duplicates').addEventListener('click', () => {
       mpcp.playlist.removeDuplicates();
     });
 
-    $('#open-playlist').click(function () {
+    document.getElementById('open-playlist').addEventListener('click', () => {
       console.log('open playlists');
       mpcp.stored.updatePlaylists('#playlist-open-modal');
     });
 
-    $('#save-playlist').click(function () {
+    document.getElementById('save-playlist').addEventListener('click', () => {
       console.log('save playlist');
       mpcp.stored.updatePlaylists('#playlist-save-modal');
     });
 
-    $('#playlist-save-confirm').click(function () {
+    document.getElementById('playlist-save-confirm').addEventListener('click', () => {
       mpcp.playlist.saveFromStored();
     });
 
-    $('#playlist-open-confirm').click(function () {
+    document.getElementById('playlist-open-confirm').addEventListener('click', () => {
       mpcp.playlist.openFromStored();
     });
 
-    $('#clear-playlist').click(function () {
+    document.getElementById('clear-playlist').addEventListener('click', () => {
       mpcp.playlist.clear();
     });
 
-    $('#playlist-search-toggle').click(function () {
+    document.getElementById('playlist-search-toggle').addEventListener('click', () => {
       if (document.getElementById('playlist-search-toggle').classList.contains('active')) {
         document.getElementById('playlist-search-toggle').classList.remove('active');
         document.getElementById('playlist-search').style.display = 'none';
@@ -968,7 +970,7 @@ return {
       mpcp.playlist.playSong(file);
     });
 
-    $('#set-priority-confirm').click(() => {
+    document.getElementById('set-priority-confirm').addEventListener('click', () => {
       mpcp.playlist.setPriorityFromForm();
     });
 

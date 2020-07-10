@@ -437,18 +437,6 @@ return {
       mpcp.stored.active = '';
     });
 
-    $('#playlist-save-clear').click(function () {
-      document.getElementById('playlist-save-input').value = '';
-      $('#playlist-save-input').focus();
-      rowSelect.deselect();
-    });
-
-    $('#playlist-save-input').focus(function () {
-      $(document).keydown(function (e) {
-        if (e.keyCode == 13) mpcp.playlist.saveFromStored();
-      });
-    });
-
     // separate for open and save because of duplication issues
     mpcp.utils.tableSort('#playlist-open-modal table',
       '#playlist-open-modal .col-playlists-title', 1, 'string');

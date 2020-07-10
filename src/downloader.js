@@ -186,18 +186,19 @@ return {
   },
 
   initEvents: function () {
-    $('#downloader-download').click(function () {
+    document.getElementById('downloader-download').addEventListener('click', () => {
       mpcp.downloader.downloadFromDownloader();
     });
 
     // detect enter key
-    $('#downloader-url').keyup(function (e) {
+    document.getElementById('downloader-url').addEventListener('keyup', e => {
       if (e.keyCode == 13)
         mpcp.downloader.downloadFromDownloader();
     });
 
     // save location
-    $('#downloader-location').change(function () {
+    document.getElementById('downloader-url').addEventListener('change', () => {
+      console.log('')
       mpcp.downloader.setStatus('');
       mpcp.downloader.saveLocation();
     });
@@ -222,8 +223,7 @@ return {
       mpcp.downloader.update('/');
     });
 
-    $('#downloader-home').click(function () {
-      console.log('home');
+    document.getElementById('downloader-home').addEventListener('click', () => {
       mpcp.downloader.update('/');
     });
 

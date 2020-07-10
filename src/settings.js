@@ -305,45 +305,45 @@ return {
       mpcp.settings.saveTheme(this.value);
     });
 
-    $('#history-max').change(function () {
-      mpcp.settings.saveHistoryMax(this.value);
+    document.getElementById('history-max').addEventListener('change', e => {
+      mpcp.settings.saveHistoryMax(e.target.value);
     });
 
-    $('#items-max-playlist').change(function () {
-      mpcp.settings.saveItemsMax('playlist', this.value);
+    document.getElementById('items-max-playlist').addEventListener('change', e => {
+      mpcp.settings.saveItemsMax('playlist', e.target.value);
     });
 
-    $('#items-max-browser').change(function () {
-      mpcp.settings.saveItemsMax('browser', this.value);
+    document.getElementById('items-max-browser').addEventListener('change', e => {
+      mpcp.settings.saveItemsMax('browser', e.target.value);
     });
 
-    $('#use-pages-playlist').change(function () {
-      var use = $(this).prop('checked');
+    document.getElementById('use-pages-playlist').addEventListener('change', e => {
+      var use = e.target.checked;
       mpcp.settings.savePagination('playlist', use);
     });
 
-    $('#use-pages-browser').change(function () {
-      var use = $(this).prop('checked');
+    document.getElementById('use-pages-browser').addEventListener('change', e => {
+      var use = e.target.checked;
       mpcp.settings.savePagination('browser', use);
     });
 
-    $('#use-pulse').change(function () {
-      var use = $(this).prop('checked');
+    document.getElementById('use-pulse').addEventListener('change', e => {
+      var use = e.target.checked;
       mpcp.settings.savePulse(use);
     });
 
-    $('#use-unknown').change(function () {
-      var use = $(this).prop('checked');
+    document.getElementById('use-unknown').addEventListener('change', e => {
+      var use = e.target.checked;
       mpcp.settings.saveUnknown(use);
     });
 
-    $('#use-skip-to-remove').change(function () {
-      var use = $(this).prop('checked');
+    document.getElementById('use-skip-to-remove').addEventListener('change', e => {
+      var use = e.target.checked;
       mpcp.settings.saveSkipToRemove(use);
     });
 
-    $('#show-all-errors').change(function () {
-      var use = $(this).prop('checked');
+    document.getElementById('show-all-errors').addEventListener('change', e => {
+      var use = e.target.checked;
       mpcp.settings.saveShowAllErrors(use);
     });
 
@@ -363,8 +363,8 @@ return {
       });
     });
 
-    $('#consume').change(function () {
-      var use = $(this).prop('checked');
+    document.getElementById('consume').addEventListener('change', e => {
+      var use = e.target.checked;
       use = use ? 1 : 0;
 
       komponist.consume(use, function (err) {
@@ -372,8 +372,8 @@ return {
       });
     });
 
-    $('#use-consume-warning').change(function () {
-      var use = $(this).prop('checked');
+    document.getElementById('use-consume-warning').addEventListener('change', e => {
+      var use = e.target.checked;
       mpcp.settings.saveConsumeWarning(use);
     });
   }

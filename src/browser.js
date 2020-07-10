@@ -580,7 +580,7 @@ return {
   },
 
   initEvents: function () {
-    $('#update').click(function () {
+    document.getElementById('update').addEventListener('click', () => {
       // set to false until broadcast updates everyone
       // for now, the other clients will still receive multiple updates
       mpcp.browser.doUpdate = false;
@@ -660,11 +660,11 @@ return {
     });
 
     // add all songs from mpcp.browser.current
-    $('#add-all').click(function () {
+    document.getElementById('add-all').addEventListener('click', () => {
       mpcp.browser.addAll();
     });
 
-    $('#open-file-browser').click(function () {
+    document.getElementById('open-file-browser').addEventListener('click', () => {
       mpcp.browser.open();
     });
 

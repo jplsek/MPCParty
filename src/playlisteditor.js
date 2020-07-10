@@ -399,29 +399,35 @@ return {
       mpcp.pe.removeSong(file);
     });
 
-    $(document).on('click', '#pe-clear', function () { mpcp.pe.clear(); });
+    document.getElementById('pe-clear').addEventListener('click', () => {
+      mpcp.pe.clear();
+    });
 
-    $(document).on('click', '#pe-close', function () { mpcp.pe.close(); });
+    document.getElementById('pe-close').addEventListener('click', () => {
+      mpcp.pe.close();
+    });
 
-    $(document).on('click', '#pe-save', function () {
+    document.getElementById('pe-save').addEventListener('click', () => {
       mpcp.stored.externalSave();
     });
 
-    $(document).on('click', '#pe-minimize', function () {
+    document.getElementById('pe-minimize').addEventListener('click', () => {
       mpcp.pe.minimize();
     });
 
-    $(document).on('click', '#pe-tab', function () { mpcp.pe.resume(); });
+    document.getElementById('pe-tab').addEventListener('click', () => {
+      mpcp.pe.resume();
+    });
 
-    $(document).on('click', '#pe-open', function () {
+    document.getElementById('pe-open').addEventListener('click', () => {
       mpcp.stored.updatePlaylists('#playlist-open-modal', mpcp.pe.open);
     });
 
-    $(document).on('click', '#pe-scramble', function () {
+    document.getElementById('pe-scramble').addEventListener('click', () => {
       mpcp.pe.scramble();
     });
 
-    $(document).on('click', '#pe-remove-duplicates', function () {
+    document.getElementById('pe-remove-duplicates').addEventListener('click', () => {
       mpcp.pe.removeDuplicates();
     });
 
