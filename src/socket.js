@@ -209,6 +209,9 @@ module.exports = function (mpcp) {
 
   // gracefully close the socket
   window.addEventListener('beforeunload', () => {
+    // disable onclose handler first (to avoid retrying to connect back to socket as if the server was disconnected unexpectedly)
+    // this also fixes a firefox bug when trying to leave mpcparty by going to a different website would just reload the page
+    socket.onclose = () => {}
     socket.close()
   })
 
