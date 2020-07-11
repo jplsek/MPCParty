@@ -83,7 +83,6 @@ Edit mpcparty.cfg (`cp mpcparty.cfg.example mpcparty.cfg`)
 ## Contribution
 * Read todo.md or the issue tracker for suggestions of things to add or fix.
 * The project itself is stored in src/. The js, css, and html is automatically compiled when the page is loaded.
-* I recommend using [jshint](http://jshint.com/install/) before sending something.
 
 ## Other Notes
 * Updates may be slow for now on. This repo will be updated if someone notices some annoying bug, or if I feel the need to add a "must have" feature. Some bugs are related to the library I use to interact with mpd. Such as the bad json bug which is hackishly fixed (`utils.getAllInfo()`), and the not fixed sometimes occurring "a single song in a directory won't show up".

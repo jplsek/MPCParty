@@ -1,9 +1,0 @@
-{
-    "camelcase": true,
-    "freeze": true,
-    "indent": 2,
-    "quotmark": "single",
-    "funcscope": true,
-    "node": true,
-    "esversion": 6
-}

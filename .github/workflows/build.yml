@@ -15,7 +15,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
-    - run: yarn install
+    - name: Installing dependencies...
+      run: yarn install
+    - name: Checking formatting...
+      run: yarn lint
+    - name: Removing devel dependencies for release...
+      run: yarn install --production
     - run: cp mpcparty.cfg.example mpcparty.cfg
     - uses: actions/upload-artifact@v2
       with:
