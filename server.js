@@ -926,8 +926,8 @@ http.on('error', function (err) {
 // catch other errors that I can't seem to catch properly...
 // comment out this process.on() to see full stack log
 process.on('uncaughtException', function (err) {
-  if (err.code === 'ECONNREFUSED') {
-    console.log('Connection refused! Is MPD running?')
+  if (err.code === 'ECONNREFUSED' || err.code === 'EHOSTUNREACH') {
+    console.log('Connection cannot be established! Is MPD running?')
     process.exit(-6)
   } else if (err.code === 'EADDRINUSE') {
     console.error('Web server port already in use! ' +
