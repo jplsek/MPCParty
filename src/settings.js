@@ -40,7 +40,7 @@ module.exports = function (mpcp) {
 
     getDefaultTheme: function () {
       // check OS preferences before defaulting to the light theme
-      if (window.matchMedias) {
+      if (window.matchMedia) {
         if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
           return this.themes.dark
         }
