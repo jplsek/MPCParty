@@ -15,7 +15,7 @@
     "browserify-middleware": "^8.1.1",
     "dragula": "^3.7.2",
     "expand-tilde": "^2.0.2",
-    "express": "^4.16.3",
+    "express": "^4.17.3",
     "express-minify": "^1.0.0",
     "floatthead": "^2.1.2",
     "fs": "0.0.2",
